@@ -178,6 +178,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         ath: _ath,
         wil: _wil,
         defCategory: _selectedDefense,
+        spells: _spells,
       );
       await _repository.addCharacter(character);
     }
