@@ -9,7 +9,8 @@ import '../repositories/name_data_repository.dart';
 import '../widgets/hexagon_shape.dart';
 import '../models/species.dart';
 import '../models/def_category.dart';
-import '../themes/app_theme.dart';
+import '../theme/app_theme.dart';
+import '../models/spell.dart';
 
 class CharacterCreationScreen extends StatefulWidget {
   final Character? character;
@@ -36,6 +37,8 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
   Species _selectedSpecies = const Species(name: 'Human', icon: 'human-face.svg');
   List<Species> _availableSpecies = [];
   late DefCategory _selectedDefense;
+  bool _showSpellOverlay = false;
+  List<Spell> _spells = [];
 
   @override
   void initState() {
@@ -117,6 +120,18 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
     });
   }
 
+  void _toggleSpellOverlay() {
+    setState(() {
+      _showSpellOverlay = !_showSpellOverlay;
+    });
+  }
+
+  void _addSpell(Spell spell) {
+    setState(() {
+      _spells.add(spell);
+    });
+  }
+
   Future<void> _saveCharacter() async {
     if (_nameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -137,7 +152,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         tempHp: widget.character!.tempHp,
         defCategory: _selectedDefense,
         hasShield: widget.character!.hasShield,
-        spells: widget.character!.spells,
+        spells: _spells,
         sessionLog: widget.character!.sessionLog,
         notes: widget.character!.notes,
         xp: widget.character!.tempHp,
@@ -173,149 +188,273 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
     final hp = CharacterService.calculateHp(_vit);
     final life = CharacterService.calculateLife(_vit);
     final power = CharacterService.calculatePower(_wil);
+    final screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.character != null ? 'Edit Character' : 'Create Character'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Name Section
-            Row(
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Name',
-                      border: OutlineInputBorder(),
+                // Name Section
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Name',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
                     ),
-                    onChanged: (_) => setState(() {}),
+                    IconButton(
+                      icon: const Icon(Icons.casino),
+                      onPressed: _generateRandomName,
+                      tooltip: 'Generate Random Name',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Species Selection
+                DropdownButtonFormField<Species>(
+                  value: _selectedSpecies,
+                  decoration: const InputDecoration(
+                    labelText: 'Species',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: _availableSpecies.map((species) {
+                    return DropdownMenuItem(
+                      value: species,
+                      child: Text(species.name),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedSpecies = value;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // Points Remaining
+                Center(
+                  child: Text(
+                    'Remaining Points: $_remainingPoints',
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.casino),
-                  onPressed: _generateRandomName,
-                  tooltip: 'Generate Random Name',
+                const SizedBox(height: 16),
+
+                // Stats Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: _buildStatBox('VIT', _vit, () => _updateStat('vit', -1), () => _updateStat('vit', 1)),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: _buildStatBox('ATH', _ath, () => _updateStat('ath', -1), () => _updateStat('ath', 1)),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: _buildStatBox('WIL', _wil, () => _updateStat('wil', -1), () => _updateStat('wil', 1)),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
-            // Species Selection
-            DropdownButtonFormField<Species>(
-              value: _selectedSpecies,
-              decoration: const InputDecoration(
-                labelText: 'Species',
-                border: OutlineInputBorder(),
-              ),
-              items: _availableSpecies.map((species) {
-                return DropdownMenuItem(
-                  value: species,
-                  child: Text(species.name),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedSpecies = value;
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 24),
-
-            // Points Remaining
-            Center(
-              child: Text(
-                'Remaining Points: $_remainingPoints',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Stats Row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: _buildStatBox('VIT', _vit, () => _updateStat('vit', -1), () => _updateStat('vit', 1)),
-                  ),
+                // Derived Stats Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildDiamondStat('HP', hp, null),
+                    const SizedBox(width: 20),
+                    _buildDiamondStat('LIFE', life, null),
+                  ],
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: _buildStatBox('ATH', _ath, () => _updateStat('ath', -1), () => _updateStat('ath', 1)),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: _buildStatBox('WIL', _wil, () => _updateStat('wil', -1), () => _updateStat('wil', 1)),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-            // Derived Stats Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildDiamondStat('HP', hp, null),
-                const SizedBox(width: 20),
-                _buildDiamondStat('LIFE', life, null),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Power Section
-            Center(
-              child: Column(
-                children: [
-                  const Text('POWER'),
-                  Text(power.toString(), style: Theme.of(context).textTheme.headlineSmall),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Defense Section
-            Center(
-              child: Column(
-                children: [
-                  _buildShieldIcon(CharacterService.calculateDefense(_ath, _selectedDefense)),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                // Power Section
+                Center(
+                  child: Column(
                     children: [
-                      _buildDefenseCircle('L', DefCategory.light),
-                      const SizedBox(width: 8),
-                      _buildDefenseCircle('M', DefCategory.medium),
-                      const SizedBox(width: 8),
-                      _buildDefenseCircle('H', DefCategory.heavy),
+                      const Text('POWER'),
+                      Text(power.toString(), style: Theme.of(context).textTheme.headlineSmall),
                     ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
+                ),
+                const SizedBox(height: 24),
 
-            // Save Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _canSave ? _saveCharacter : null,
-                child: Text(widget.character != null ? 'Update Character' : 'Create Character'),
+                // Defense Section
+                Center(
+                  child: Column(
+                    children: [
+                      _buildShieldIcon(CharacterService.calculateDefense(_ath, _selectedDefense)),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildDefenseCircle('L', DefCategory.light),
+                          const SizedBox(width: 8),
+                          _buildDefenseCircle('M', DefCategory.medium),
+                          const SizedBox(width: 8),
+                          _buildDefenseCircle('H', DefCategory.heavy),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Spells Section
+                Container(
+                  decoration: AppTheme.defaultBorder,
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'ABILITIES',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.add),
+                            onPressed: _toggleSpellOverlay,
+                          ),
+                        ],
+                      ),
+                      if (_spells.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 200,
+                          child: ListView.builder(
+                            itemCount: _spells.length,
+                            itemBuilder: (context, index) {
+                              final spell = _spells[index];
+                              return ListTile(
+                                contentPadding: const EdgeInsets.only(left: 0),
+                                leading: _buildHexagon(spell.cost.toString(), ''),
+                                title: Text(spell.name),
+                                subtitle: spell.effect.isNotEmpty ? Text(spell.effect) : null,
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Save Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _canSave ? _saveCharacter : null,
+                    child: Text(widget.character != null ? 'Update Character' : 'Create Character'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Spell selection overlay
+          if (_showSpellOverlay)
+            Container(
+              color: Colors.black54,
+              child: Center(
+                child: Container(
+                  width: screenSize.width * 0.8,
+                  height: screenSize.height * 0.6,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Available Abilities',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: _toggleSpellOverlay,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Max Power: $power',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: Spell.availableSpells.length,
+                          itemBuilder: (context, index) {
+                            final spell = Spell.availableSpells[index];
+                            final canAdd = spell.cost <= power && 
+                                        !_spells.any((s) => s.name == spell.name);
+                            return ListTile(
+                              title: Text(
+                                spell.name,
+                                style: TextStyle(
+                                  color: canAdd ? null : Colors.grey,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Cost: ${spell.cost}'),
+                                  if (spell.effect.isNotEmpty)
+                                    Text('Effect: ${spell.effect}'),
+                                ],
+                              ),
+                              trailing: canAdd
+                                ? IconButton(
+                                    icon: const Icon(Icons.add),
+                                    onPressed: () => _addSpell(spell),
+                                  )
+                                : Tooltip(
+                                    message: spell.cost > power 
+                                      ? 'Requires more power' 
+                                      : 'Already learned',
+                                    child: const Icon(Icons.lock, color: Colors.grey),
+                                  ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -429,6 +568,45 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         ),
         minimumSize: const Size(30, 30),
         padding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  Widget _buildHexagon(String value, String label) {
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: Stack(
+        children: [
+          HexagonContainer(
+            size: 40,
+            fillColor: AppTheme.primaryColor,
+            borderColor: AppTheme.highlightColor,
+            borderWidth: 2,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (label.isNotEmpty)
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
