@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../models/character.dart';
 import '../repositories/local_character_repository.dart';
 import '../theme/app_theme.dart';
+import 'character_creation_screen.dart';
 
 class CharacterListScreen extends StatefulWidget {
   final Function(Character) onCharacterSelected;
@@ -29,8 +30,62 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
   Future<void> _loadCharacters() async {
     final characters = await _repository.getAllCharacters();
     setState(() {
-      _characters = characters;
+      _characters = characters..sort((a, b) {
+        // First sort by life status (alive before dead)
+        if (a.lifeStat.current == 0 && b.lifeStat.current > 0) return 1;
+        if (a.lifeStat.current > 0 && b.lifeStat.current == 0) return -1;
+        // Then sort by name within each group
+        return a.name.compareTo(b.name);
+      });
     });
+  }
+
+  Future<void> _deleteCharacter(Character character) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Character'),
+        content: Text('Are you sure you want to delete ${character.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      await _repository.deleteCharacter(character.id);
+      await _loadCharacters();
+    }
+  }
+
+  Future<void> _editCharacter(Character character) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CharacterCreationScreen(
+          character: character,
+          onCharacterSaved: (updatedCharacter) {
+            setState(() {
+              final index = _characters.indexWhere((c) => c.id == updatedCharacter.id);
+              if (index != -1) {
+                _characters[index] = updatedCharacter;
+              }
+            });
+          },
+        ),
+      ),
+    );
+
+    if (result == true) {
+      await _loadCharacters();
+    }
   }
 
   @override
@@ -49,13 +104,16 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
           
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: isDead ? Colors.grey[100] : null,
             child: ListTile(
               title: Row(
                 children: [
                   Expanded(
                     child: Text(
                       character.name,
-                      style: AppTheme.titleStyle,
+                      style: AppTheme.titleStyle.copyWith(
+                        color: isDead ? Colors.grey[600] : null,
+                      ),
                     ),
                   ),
                   if (isDead)
@@ -65,8 +123,8 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                         'assets/svg/death-skull.svg',
                         width: 24,
                         height: 24,
-                        colorFilter: const ColorFilter.mode(
-                          Colors.black,
+                        colorFilter: ColorFilter.mode(
+                          Colors.grey[600]!,
                           BlendMode.srcIn,
                         ),
                       ),
@@ -75,9 +133,57 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
               ),
               subtitle: Text(
                 character.species.name,
-                style: AppTheme.bodyStyle,
+                style: AppTheme.bodyStyle.copyWith(
+                  color: isDead ? Colors.grey[500] : null,
+                ),
               ),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  PopupMenuButton<String>(
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: isDead ? Colors.grey[600] : null,
+                    ),
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'edit':
+                          _editCharacter(character);
+                          break;
+                        case 'delete':
+                          _deleteCharacter(character);
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit),
+                            SizedBox(width: 8),
+                            Text('Edit'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete),
+                            SizedBox(width: 8),
+                            Text('Delete'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: isDead ? Colors.grey[600] : null,
+                  ),
+                ],
+              ),
               onTap: () => widget.onCharacterSelected(character),
             ),
           );
@@ -85,7 +191,19 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Navigate to character creation
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CharacterCreationScreen(
+                onCharacterSaved: (character) async {
+                  await _loadCharacters();
+                  if (mounted) {
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+            ),
+          );
         },
         child: const Icon(Icons.add),
       ),

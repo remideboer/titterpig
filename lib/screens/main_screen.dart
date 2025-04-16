@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'character_sheet_screen.dart';
 import 'character_list_screen.dart';
 import 'spell_list_screen.dart';
+import 'spells_admin_screen.dart';
 import '../models/character.dart';
 
 class MainScreen extends StatefulWidget {
@@ -49,22 +50,14 @@ class _MainScreenState extends State<MainScreen> {
                 style: TextStyle(fontSize: 18),
               ),
             ),
-          if (_selectedCharacter != null)
-            SpellListScreen(character: _selectedCharacter!)
-          else
-            const Center(
-              child: Text(
-                'Select a character from the list',
-                style: TextStyle(fontSize: 18),
-              ),
-            ),
+          const SpellsAdminScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
-          if (index > 0 && _selectedCharacter == null) {
-            // Don't allow navigation to character sheet or spells without a selected character
+          if (index == 1 && _selectedCharacter == null) {
+            // Don't allow navigation to character sheet without a selected character
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Please select a character first'),

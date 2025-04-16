@@ -16,10 +16,12 @@ import 'package:flutter/services.dart';
 
 class CharacterCreationScreen extends StatefulWidget {
   final Character? character;
+  final Function(Character)? onCharacterSaved;
 
   const CharacterCreationScreen({
     Key? key,
     this.character,
+    this.onCharacterSaved,
   }) : super(key: key);
 
   @override
@@ -72,7 +74,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         ),
       ];
       if (widget.character == null) {
-        _selectedSpecies = species.first;
+        _selectedSpecies = species.isNotEmpty ? species.first : const Species(name: 'Human', icon: 'human-face.svg');
       }
     });
   }
@@ -150,9 +152,10 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
       return;
     }
 
+    Character savedCharacter;
     if (widget.character != null) {
       // Update existing character
-      final updatedCharacter = Character(
+      savedCharacter = Character(
         id: widget.character!.id,
         name: _nameController.text,
         species: _selectedSpecies,
@@ -167,10 +170,10 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         notes: widget.character!.notes,
         xp: widget.character!.tempHp,
       );
-      await _repository.updateCharacter(updatedCharacter);
+      await _repository.updateCharacter(savedCharacter);
     } else {
       // Create new character
-      final character = Character(
+      savedCharacter = Character(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: _nameController.text,
         species: _selectedSpecies,
@@ -180,7 +183,11 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         defCategory: _selectedDefense,
         spells: _spells,
       );
-      await _repository.addCharacter(character);
+      await _repository.addCharacter(savedCharacter);
+    }
+
+    if (widget.onCharacterSaved != null) {
+      widget.onCharacterSaved!(savedCharacter);
     }
 
     if (context.mounted) {
@@ -200,6 +207,14 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
     final life = CharacterService.calculateLife(_vit);
     final power = CharacterService.calculatePower(_wil);
     final screenSize = MediaQuery.of(context).size;
+
+    // Find the current species option or use the first one if not found
+    final currentOption = _dropdownOptions.firstWhere(
+      (option) => option.species == _selectedSpecies,
+      orElse: () => _dropdownOptions.isNotEmpty ? _dropdownOptions.first : const SpeciesOption(
+        species: Species(name: 'Human', icon: 'human-face.svg'),
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -239,10 +254,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<SpeciesOption>(
-                        value: _dropdownOptions.firstWhere(
-                          (option) => option.species == _selectedSpecies,
-                          orElse: () => _dropdownOptions.first,
-                        ),
+                        value: currentOption,
                         decoration: const InputDecoration(
                           labelText: 'Species',
                           border: OutlineInputBorder(),
@@ -442,6 +454,14 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
                                 leading: _buildHexagon(spell.cost.toString(), ''),
                                 title: Text(spell.name),
                                 subtitle: spell.effect.isNotEmpty ? Text(spell.effect) : null,
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.remove),
+                                  onPressed: () {
+                                    setState(() {
+                                      _spells.removeAt(index);
+                                    });
+                                  },
+                                ),
                               );
                             },
                           ),
