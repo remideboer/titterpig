@@ -1,69 +1,74 @@
 class Spell {
-  final String id;
+  static const int currentSaveVersion = 2; // Increment this when making breaking changes to the save format
+
   final String name;
   final int cost;
   final String effect;
-  final String? damage;
 
-  const Spell({
-    required this.id,
+  Spell({
     required this.name,
     required this.cost,
-    required this.effect,
-    this.damage,
+    this.effect = '',
   });
 
-  static final List<Spell> availableSpells = [
-    Spell(
-      id: 'fireball',
-      name: 'Fireball',
-      cost: 2,
-      effect: 'Deals fire damage in an area',
-      damage: '2d6',
-    ),
-    Spell(
-      id: 'heal',
-      name: 'Heal',
-      cost: 1,
-      effect: 'Restores health to target',
-    ),
-    Spell(
-      id: 'shield',
-      name: 'Shield',
-      cost: 1,
-      effect: 'Grants temporary defense bonus',
-    ),
-    Spell(
-      id: 'teleport',
-      name: 'Teleport',
-      cost: 3,
-      effect: 'Instantly move to a visible location',
-    ),
-    Spell(
-      id: 'invisibility',
-      name: 'Invisibility',
-      cost: 2,
-      effect: 'Become invisible for a short duration',
-    ),
-  ];
-
+  // Convert Spell to JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'version': currentSaveVersion,
       'name': name,
       'cost': cost,
       'effect': effect,
-      'damage': damage,
     };
   }
 
-  factory Spell.fromJson(Map<String, dynamic> json) {
-    return Spell(
-      id: json['id'],
-      name: json['name'],
-      cost: json['cost'],
-      effect: json['effect'],
-      damage: json['damage'],
-    );
+  // Create Spell from JSON
+  factory Spell.fromJson(dynamic json) {
+    // Handle both string and Map formats
+    if (json is String) {
+      // Old format: string
+      final jsonMap = json.substring(1, json.length - 1)
+        .split(', ')
+        .map((pair) {
+          final parts = pair.split(': ');
+          return MapEntry(parts[0], parts[1]);
+        })
+        .fold<Map<String, String>>({}, (map, entry) {
+          map[entry.key] = entry.value;
+          return map;
+        });
+
+      return Spell(
+        name: jsonMap['name'] ?? '',
+        cost: int.tryParse(jsonMap['cost'] ?? '0') ?? 0,
+        effect: jsonMap['effect'] ?? '',
+      );
+    } else if (json is Map<String, dynamic>) {
+      // New format: Map
+      final saveVersion = json['version'] as int? ?? 1; // Default to 1 for old saves
+      if (saveVersion > currentSaveVersion) {
+        throw FormatException(
+          'This spell was saved with a newer version of the app (v$saveVersion). '
+          'Please update the app to load this spell.'
+        );
+      }
+
+      return Spell(
+        name: json['name'] as String? ?? '',
+        cost: (json['cost'] as num?)?.toInt() ?? 0,
+        effect: json['effect'] as String? ?? '',
+      );
+    } else {
+      // Return empty spell for invalid format
+      return Spell(name: '', cost: 0);
+    }
   }
+
+  // Default list of available spells
+  static final List<Spell> availableSpells = [
+    Spell(name: 'Fireball', cost: 3, effect: 'Deal 2 damage to target'),
+    Spell(name: 'Heal', cost: 2, effect: 'Restore 2 HP'),
+    Spell(name: 'Shield', cost: 1, effect: 'Gain 2 temporary HP'),
+    Spell(name: 'Lightning Bolt', cost: 2, effect: 'Deal 1 damage to all enemies'),
+    Spell(name: 'Teleport', cost: 2, effect: 'Move to any unoccupied space'),
+  ];
 } 

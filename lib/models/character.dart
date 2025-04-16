@@ -1,12 +1,15 @@
 import 'spell.dart';
 import 'stat_value.dart';
 import 'package:ttrpg_character_manager/models/species.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../repositories/spell_repository.dart';
 
 class Character {
   static const int baseHp = 6;
   static const int hpPerVit = 2;
   static const int baseLife = 3;
   static const int minVitForPositiveHp = -2; // HP = 6 + 2*VIT > 0 => VIT > -3
+  static const int currentSaveVersion = 2; // Increment this when making breaking changes to the save format
 
   final String id;
   final String name;
@@ -117,6 +120,7 @@ class Character {
 
   Map<String, dynamic> toJson() {
     return {
+      'version': currentSaveVersion,
       'id': id,
       'name': name,
       'species': species.toJson(),
@@ -140,12 +144,29 @@ class Character {
   }
 
   factory Character.fromJson(Map<String, dynamic> json) {
+    // Check save version
+    final saveVersion = json['version'] as int? ?? 1; // Default to 1 for old saves
+    if (saveVersion > currentSaveVersion) {
+      throw FormatException(
+        'This character was saved with a newer version of the app (v$saveVersion). '
+        'Please update the app to load this character.'
+      );
+    }
+
     // Helper function to safely convert to int
     int safeToInt(dynamic value) {
       if (value is int) return value;
       if (value is String) return int.tryParse(value) ?? 0;
       if (value is num) return value.toInt();
       return 0;
+    }
+
+    // Helper function to safely convert spells
+    List<Spell> safeToSpells(dynamic value) {
+      if (value is List) {
+        return value.map((s) => Spell.fromJson(s)).toList();
+      }
+      return [];
     }
 
     // Handle both string and Map species formats
@@ -171,7 +192,7 @@ class Character {
       tempHp: safeToInt(json['tempHp']),
       defCategory: DefCategory.values[safeToInt(json['defCategory'])],
       hasShield: json['hasShield'] as bool? ?? false,
-      spells: (json['spells'] as List?)?.map((s) => Spell.fromJson(s)).toList() ?? [],
+      spells: safeToSpells(json['spells']),
       sessionLog: List<String>.from(json['sessionLog'] ?? []),
       notes: json['notes'] as String? ?? '',
       xp: safeToInt(json['xp']),
