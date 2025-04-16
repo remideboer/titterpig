@@ -8,6 +8,7 @@ import '../services/name_generator_service.dart';
 import '../repositories/name_data_repository.dart';
 import '../widgets/hexagon_shape.dart';
 import '../models/species.dart';
+import '../models/species_option.dart';
 import '../models/def_category.dart';
 import '../theme/app_theme.dart';
 import '../models/spell.dart';
@@ -36,6 +37,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
   int _remainingPoints = CharacterService.totalPoints;
   Species _selectedSpecies = const Species(name: 'Human', icon: 'human-face.svg');
   List<Species> _availableSpecies = [];
+  List<SpeciesOption> _dropdownOptions = [];
   late DefCategory _selectedDefense;
   bool _showSpellOverlay = false;
   List<Spell> _spells = [];
@@ -50,7 +52,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
       _vit = widget.character!.vit;
       _ath = widget.character!.ath;
       _wil = widget.character!.wil;
-      _remainingPoints = 0; // Character is already created, no points to spend
+      _remainingPoints = 0;
       _selectedDefense = widget.character!.defCategory;
     } else {
       _selectedDefense = DefCategory.none;
@@ -61,6 +63,13 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
     final species = await _speciesRepository.getSpecies();
     setState(() {
       _availableSpecies = species;
+      _dropdownOptions = [
+        ...species.map((s) => SpeciesOption(species: s)),
+        const SpeciesOption(
+          species: Species(name: 'Custom Species', icon: 'human-face.svg'),
+          isCustomOption: true,
+        ),
+      ];
       if (widget.character == null) {
         _selectedSpecies = species.first;
       }
@@ -224,25 +233,88 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
                 const SizedBox(height: 16),
 
                 // Species Selection
-                DropdownButtonFormField<Species>(
-                  value: _selectedSpecies,
-                  decoration: const InputDecoration(
-                    labelText: 'Species',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: _availableSpecies.map((species) {
-                    return DropdownMenuItem(
-                      value: species,
-                      child: Text(species.name),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _selectedSpecies = value;
-                      });
-                    }
-                  },
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<SpeciesOption>(
+                        value: _dropdownOptions.firstWhere(
+                          (option) => option.species == _selectedSpecies,
+                          orElse: () => _dropdownOptions.first,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Species',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _dropdownOptions.map((option) {
+                          return DropdownMenuItem<SpeciesOption>(
+                            value: option,
+                            child: Text(option.species.name),
+                          );
+                        }).toList(),
+                        onChanged: (SpeciesOption? value) {
+                          if (value != null) {
+                            if (value.isCustomOption) {
+                              // Show custom species dialog
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  final controller = TextEditingController();
+                                  return AlertDialog(
+                                    title: const Text('Custom Species'),
+                                    content: TextField(
+                                      controller: controller,
+                                      autofocus: true,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Species Name',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      onSubmitted: (name) {
+                                        if (name.isNotEmpty) {
+                                          setState(() {
+                                            _selectedSpecies = Species(
+                                              name: name,
+                                              icon: 'human-face.svg',
+                                              isCustom: true,
+                                            );
+                                          });
+                                          Navigator.of(context).pop();
+                                        }
+                                      },
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          if (controller.text.isNotEmpty) {
+                                            setState(() {
+                                              _selectedSpecies = Species(
+                                                name: controller.text,
+                                                icon: 'human-face.svg',
+                                                isCustom: true,
+                                              );
+                                            });
+                                            Navigator.of(context).pop();
+                                          }
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            } else {
+                              setState(() {
+                                _selectedSpecies = value.species;
+                              });
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
