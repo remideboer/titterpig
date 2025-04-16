@@ -411,10 +411,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                 trailing: canAdd
                                   ? IconButton(
                                       icon: const Icon(Icons.add),
-                                      onPressed: () {
-                                        _addSpell(spell);
-                                        _toggleSpellOverlay();
-                                      },
+                                      onPressed: () => _addSpell(spell),
                                     )
                                   : Tooltip(
                                       message: spell.cost > widget.character.power 
@@ -560,28 +557,39 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   }
 
   Widget _buildHexagon(String value, String label) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: Stack(
         children: [
           HexagonContainer(
             size: 40,
+            fillColor: AppTheme.primaryColor,
+            borderColor: AppTheme.highlightColor,
+            borderWidth: 2,
             child: Center(
-              child: Text(
-                value,
-                style: Theme.of(context).textTheme.bodyMedium,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (label.isNotEmpty)
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
-          if (label.isNotEmpty) 
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                label,
-                style: const TextStyle(fontSize: 10),
-              ),
-            ),
         ],
       ),
     );
