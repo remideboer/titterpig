@@ -17,33 +17,27 @@ class StatValueIcon extends BaseValueIcon {
 
   @override
   Widget buildValueText(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
+    return Row(
       children: [
         // Current value centered in the SVG
+        Spacer(),
         Text(
           value.toString(),
           style: textStyle ?? Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppTheme.primaryColor,
+                color: AppTheme.accentColor,
                 fontWeight: FontWeight.bold,
                 fontSize: size * 0.4,
               ),
         ),
         // Max value positioned lower but centered horizontally
-        Positioned(
-          bottom: 0, // Position lower than before
-          left: 0,
-          right: 0,
-          child: Center(
-            child: Text(
+     Text(
               '/${value.maxString}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppTheme.accentColor.withAlpha(179), // 0.7 * 255 ≈ 179
                     fontSize: size * 0.2,
                   ),
             ),
-          ),
-        ),
+      Spacer()
       ],
     );
   }
