@@ -145,39 +145,6 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     );
   }
 
-  void _showSpellDialog(Spell spell) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Use ${spell.name}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Cost: ${spell.cost}'),
-            if (spell.effect.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text('Effect: ${spell.effect}'),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // Add any spell effect logic here
-            },
-            child: const Text('Use'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -185,6 +152,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     final svgStatSize = mainStatSize;
     final isDead = widget.character.lifeStat.current == 0;
 
+    var defOptionScreenProportion = 0.5;
     return WillPopScope(
       onWillPop: () async {
         widget.character.updateDerivedStats();
@@ -277,11 +245,11 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            _buildDefenseCircle('L', DefCategory.light, selectedDefense == DefCategory.light, svgStatSize * 0.3),
+                            _buildDefenseCircle('L', DefCategory.light, selectedDefense == DefCategory.light, svgStatSize * defOptionScreenProportion),
                             const SizedBox(width: 8),
-                            _buildDefenseCircle('M', DefCategory.medium, selectedDefense == DefCategory.medium, svgStatSize * 0.3),
+                            _buildDefenseCircle('M', DefCategory.medium, selectedDefense == DefCategory.medium, svgStatSize * defOptionScreenProportion),
                             const SizedBox(width: 8),
-                            _buildDefenseCircle('H', DefCategory.heavy, selectedDefense == DefCategory.heavy, svgStatSize * 0.3),
+                            _buildDefenseCircle('H', DefCategory.heavy, selectedDefense == DefCategory.heavy, svgStatSize * defOptionScreenProportion),
                           ],
                         ),
                       ],
