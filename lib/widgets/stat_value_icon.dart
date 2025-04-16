@@ -33,8 +33,9 @@ class StatValueIcon extends BaseValueIcon {
      Text(
               '/${value.maxString}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.accentColor.withAlpha(179), // 0.7 * 255 ≈ 179
-                    fontSize: size * 0.2,
+                    color: AppTheme.accentColor, // 0.7 * 255 ≈ 179
+                fontWeight: FontWeight.bold,
+                fontSize: size * 0.2,
                   ),
             ),
       Spacer()

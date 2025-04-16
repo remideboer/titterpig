@@ -21,21 +21,40 @@ abstract class BaseValueIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const backgroundCircleMultiplier = 1.5;
+    const svgSizeModifier = 0.8;
     return SizedBox(
       width: size,
       height: size,
       child: Stack(
         alignment: Alignment.center,
         children: [
+          // Semi-transparent circle background
+          Container(
+            width: size * backgroundCircleMultiplier,
+            height: size * backgroundCircleMultiplier,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color:  AppTheme.primaryColor.withAlpha(255), // 0.2 * 255 ≈ 51
+            ),
+          ),
+          Positioned(
+              bottom: 0,
+              top:0,
+              child:
           SvgPicture.asset(
             svgAsset,
             colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
             placeholderBuilder: (context) => const CircularProgressIndicator(),
             semanticsLabel: 'Icon',
-            width: size,
-            height: size,
+            width: size * svgSizeModifier,
+            height: size * svgSizeModifier,
+          )
           ),
-          buildValueText(context),
+          Positioned(
+              child:
+          buildValueText(context))
+          ,
         ],
       ),
     );
