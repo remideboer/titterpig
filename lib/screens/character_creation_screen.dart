@@ -8,6 +8,8 @@ import '../services/name_generator_service.dart';
 import '../repositories/name_data_repository.dart';
 import '../widgets/hexagon_shape.dart';
 import '../models/species.dart';
+import '../models/def_category.dart';
+import '../themes/app_theme.dart';
 
 class CharacterCreationScreen extends StatefulWidget {
   final Character? character;
@@ -33,6 +35,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
   int _remainingPoints = CharacterService.totalPoints;
   Species _selectedSpecies = const Species(name: 'Human', icon: 'human-face.svg');
   List<Species> _availableSpecies = [];
+  late DefCategory _selectedDefense;
 
   @override
   void initState() {
@@ -45,6 +48,9 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
       _ath = widget.character!.ath;
       _wil = widget.character!.wil;
       _remainingPoints = 0; // Character is already created, no points to spend
+      _selectedDefense = widget.character!.defCategory;
+    } else {
+      _selectedDefense = DefCategory.none;
     }
   }
 
@@ -105,6 +111,12 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
     }
   }
 
+  void _selectDefense(DefCategory category) {
+    setState(() {
+      _selectedDefense = _selectedDefense == category ? DefCategory.none : category;
+    });
+  }
+
   Future<void> _saveCharacter() async {
     if (_nameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -123,7 +135,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         ath: _ath,
         wil: _wil,
         tempHp: widget.character!.tempHp,
-        defCategory: widget.character!.defCategory,
+        defCategory: _selectedDefense,
         hasShield: widget.character!.hasShield,
         spells: widget.character!.spells,
         sessionLog: widget.character!.sessionLog,
@@ -140,6 +152,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         vit: _vit,
         ath: _ath,
         wil: _wil,
+        defCategory: _selectedDefense,
       );
       await _repository.addCharacter(character);
     }
@@ -276,14 +289,16 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
             Center(
               child: Column(
                 children: [
-                  _buildShieldIcon(0),
+                  _buildShieldIcon(CharacterService.calculateDefense(_ath, _selectedDefense)),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildDefenseCircle('L', false),
-                      _buildDefenseCircle('M', false),
-                      _buildDefenseCircle('H', false),
+                      _buildDefenseCircle('L', DefCategory.light),
+                      const SizedBox(width: 8),
+                      _buildDefenseCircle('M', DefCategory.medium),
+                      const SizedBox(width: 8),
+                      _buildDefenseCircle('H', DefCategory.heavy),
                     ],
                   ),
                 ],
@@ -393,17 +408,28 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
     );
   }
 
-  Widget _buildDefenseCircle(String label, bool isSelected) {
-    return Container(
-      width: 30,
-      height: 30,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.black),
-        color: isSelected ? Colors.black12 : null,
+  Widget _buildDefenseCircle(String label, DefCategory category) {
+    final isSelected = _selectedDefense == category;
+    return IconButton(
+      icon: Text(
+        label,
+        style: TextStyle(
+          fontSize: 30 * 0.5,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? Colors.white : AppTheme.primaryColor,
+        ),
       ),
-      child: Center(child: Text(label)),
+      onPressed: () => _selectDefense(category),
+      style: IconButton.styleFrom(
+        backgroundColor: isSelected ? AppTheme.highlightColor : Colors.transparent,
+        shape: const CircleBorder(),
+        side: BorderSide(
+          color: isSelected ? AppTheme.accentColor : AppTheme.primaryColor,
+          width: 2,
+        ),
+        minimumSize: const Size(30, 30),
+        padding: EdgeInsets.zero,
+      ),
     );
   }
 } 

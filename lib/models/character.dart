@@ -3,6 +3,7 @@ import 'stat_value.dart';
 import 'package:ttrpg_character_manager/models/species.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../repositories/spell_repository.dart';
+import 'def_category.dart';
 
 class Character {
   static const int baseHp = 6;
@@ -210,35 +211,5 @@ class Character {
     );
     
     return character;
-  }
-}
-
-enum DefCategory {
-  none,
-  light,
-  medium,
-  heavy,
-}
-
-extension DefCategoryExtension on DefCategory {
-  int get defValue {
-    switch (this) {
-      case DefCategory.none: return 0;
-      case DefCategory.light: return 1;
-      case DefCategory.medium: return 2;
-      case DefCategory.heavy: return 3;
-    }
-  }
-  String get label {
-    switch (this) {
-      case DefCategory.none:
-        return 'None';
-      case DefCategory.light:
-        return 'Light';
-      case DefCategory.medium:
-        return 'Medium';
-      case DefCategory.heavy:
-        return 'Heavy';
-    }
   }
 } 

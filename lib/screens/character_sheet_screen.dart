@@ -13,6 +13,7 @@ import '../widgets/power_icon.dart';
 import '../widgets/stat_value_icon.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/name_formatter.dart';
+import '../models/def_category.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;

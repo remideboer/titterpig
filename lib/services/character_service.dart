@@ -1,4 +1,5 @@
 import '../models/character.dart';
+import '../models/def_category.dart';
 
 class CharacterService {
   static const int totalPoints = 3;
@@ -27,6 +28,10 @@ class CharacterService {
 
   static int calculateDef(DefCategory defCategory, bool hasShield) {
     return defCategory.defValue + (hasShield ? 2 : 0);
+  }
+
+  static int calculateDefense(int ath, DefCategory defCategory) {
+    return ath + defCategory.defValue;
   }
 
   static bool canUpdateStat({
