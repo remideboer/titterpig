@@ -153,11 +153,13 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     final isDead = widget.character.lifeStat.current == 0;
 
     var defOptionScreenProportion = 0.5;
-    return WillPopScope(
-      onWillPop: () async {
-        widget.character.updateDerivedStats();
-        await widget.onCharacterUpdated(widget.character);
-        return true;
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) {
+          widget.character.updateDerivedStats();
+          await widget.onCharacterUpdated(widget.character);
+        }
       },
       child: Scaffold(
         appBar: AppBar(
