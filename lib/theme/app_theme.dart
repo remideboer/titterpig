@@ -46,7 +46,7 @@ class AppTheme {
     color: primaryColor,
   );
 
-  static const TextStyle subtitleStyle = TextStyle(
+  static const TextStyle bodyStyle = TextStyle(
     fontSize: 16,
     color: primaryColor,
   );
@@ -113,7 +113,7 @@ class AppTheme {
           fontWeight: FontWeight.bold,
           color: primaryColor,
         ),
-        bodyLarge: subtitleStyle,
+        bodyLarge: bodyStyle,
         bodyMedium: TextStyle(
           fontSize: 14,
           color: primaryColor,

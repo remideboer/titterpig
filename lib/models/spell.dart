@@ -4,11 +4,13 @@ class Spell {
   final String name;
   final int cost;
   final String effect;
+  final String type;
 
   Spell({
     required this.name,
     required this.cost,
     this.effect = '',
+    this.type = 'Spell',
   });
 
   // Convert Spell to JSON
@@ -18,6 +20,7 @@ class Spell {
       'name': name,
       'cost': cost,
       'effect': effect,
+      'type': type,
     };
   }
 
@@ -41,6 +44,7 @@ class Spell {
         name: jsonMap['name'] ?? '',
         cost: int.tryParse(jsonMap['cost'] ?? '0') ?? 0,
         effect: jsonMap['effect'] ?? '',
+        type: jsonMap['type'] ?? 'Spell',
       );
     } else if (json is Map<String, dynamic>) {
       // New format: Map
@@ -56,6 +60,7 @@ class Spell {
         name: json['name'] as String? ?? '',
         cost: (json['cost'] as num?)?.toInt() ?? 0,
         effect: json['effect'] as String? ?? '',
+        type: json['type'] as String? ?? 'Spell',
       );
     } else {
       // Return empty spell for invalid format
@@ -65,10 +70,10 @@ class Spell {
 
   // Default list of available spells
   static final List<Spell> availableSpells = [
-    Spell(name: 'Fireball', cost: 3, effect: 'Deal 2 damage to target'),
-    Spell(name: 'Heal', cost: 2, effect: 'Restore 2 HP'),
-    Spell(name: 'Shield', cost: 1, effect: 'Gain 2 temporary HP'),
-    Spell(name: 'Lightning Bolt', cost: 2, effect: 'Deal 1 damage to all enemies'),
-    Spell(name: 'Teleport', cost: 2, effect: 'Move to any unoccupied space'),
+    Spell(name: 'Fireball', cost: 3, effect: 'Deal 2 damage to target', type: 'Offensive'),
+    Spell(name: 'Heal', cost: 2, effect: 'Restore 2 HP', type: 'Support'),
+    Spell(name: 'Shield', cost: 1, effect: 'Gain 2 temporary HP', type: 'Defensive'),
+    Spell(name: 'Lightning Bolt', cost: 2, effect: 'Deal 1 damage to all enemies', type: 'Offensive'),
+    Spell(name: 'Teleport', cost: 2, effect: 'Move to any unoccupied space', type: 'Utility'),
   ];
 } 

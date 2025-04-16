@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/character_overview_screen.dart';
+import 'screens/main_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'TTRPG Character Manager',
       theme: AppTheme.themeData,
-      home: const CharacterOverviewScreen(),
+      home: const MainScreen(),
     );
   }
 }
