@@ -12,6 +12,7 @@ import '../models/species_option.dart';
 import '../models/def_category.dart';
 import '../theme/app_theme.dart';
 import '../models/spell.dart';
+import 'package:flutter/services.dart';
 
 class CharacterCreationScreen extends StatefulWidget {
   final Character? character;
@@ -264,6 +265,16 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
                                     content: TextField(
                                       controller: controller,
                                       autofocus: true,
+                                      inputFormatters: [
+                                        TextInputFormatter.withFunction((oldValue, newValue) {
+                                          if (newValue.text.isEmpty) return newValue;
+                                          return TextEditingValue(
+                                            text: newValue.text[0].toUpperCase() + 
+                                                  (newValue.text.length > 1 ? newValue.text.substring(1) : ''),
+                                            selection: newValue.selection,
+                                          );
+                                        }),
+                                      ],
                                       decoration: const InputDecoration(
                                         labelText: 'Species Name',
                                         border: OutlineInputBorder(),
@@ -272,7 +283,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
                                         if (name.isNotEmpty) {
                                           setState(() {
                                             _selectedSpecies = Species(
-                                              name: name,
+                                              name: name[0].toUpperCase() + (name.length > 1 ? name.substring(1) : ''),
                                               icon: 'human-face.svg',
                                               isCustom: true,
                                             );
@@ -291,7 +302,8 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
                                           if (controller.text.isNotEmpty) {
                                             setState(() {
                                               _selectedSpecies = Species(
-                                                name: controller.text,
+                                                name: controller.text[0].toUpperCase() + 
+                                                      (controller.text.length > 1 ? controller.text.substring(1) : ''),
                                                 icon: 'human-face.svg',
                                                 isCustom: true,
                                               );
