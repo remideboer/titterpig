@@ -724,16 +724,30 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     return Container(
       width: boxWidth,
       height: boxHeight,
-      decoration: AppTheme.defaultBorder,
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.highlightColor,
+          width: 2,
+        ),
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(label, style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: AppTheme.highlightColor,
-          )),
+          Text(
+            label, 
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: AppTheme.accentColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           Text(
             value.toString(),
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: AppTheme.accentColor,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
