@@ -280,67 +280,69 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        // List of learned spells with cost hexagons
-                        SizedBox(
-                          height: 200, // Fixed height for the scrollable list
-                          child: ListView.builder(
-                            itemCount: widget.character.spells.length,
-                            itemBuilder: (context, index) {
-                              // Sort spells by cost
-                              final sortedSpells = List<Spell>.from(widget.character.spells)
-                                ..sort((a, b) => a.cost.compareTo(b.cost));
-                              final spell = sortedSpells[index];
-                              final canUse = spell.cost <= widget.character.availablePower;
-                              return ListTile(
-                                contentPadding: const EdgeInsets.only(left: 0),
-                                leading: _buildHexagon(spell.cost.toString(), ''),
-                                title: Text(spell.name),
-                                subtitle: spell.effect.isNotEmpty ? Text(spell.effect) : null,
-                                trailing: Icon(
-                                  Icons.flash_on,
-                                  color: canUse ? Colors.amber : Colors.grey,
-                                ),
-                                onTap: canUse ? () => _useSpell(spell) : null,
-                                onLongPress: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: Text(spell.name),
-                                      content: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('Cost: ${spell.cost}'),
-                                          if (spell.effect.isNotEmpty) ...[
-                                            const SizedBox(height: 8),
-                                            Text('Effect: ${spell.effect}'),
-                                          ],
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            canUse 
-                                              ? 'You have enough power to use this spell'
-                                              : 'You need ${spell.cost - widget.character.availablePower} more power to use this spell',
-                                            style: TextStyle(
-                                              color: canUse ? Colors.green : Colors.red,
-                                              fontWeight: FontWeight.bold,
+                        if (widget.character.spells.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          // List of learned spells with cost hexagons
+                          SizedBox(
+                            height: 200, // Fixed height for the scrollable list
+                            child: ListView.builder(
+                              itemCount: widget.character.spells.length,
+                              itemBuilder: (context, index) {
+                                // Sort spells by cost
+                                final sortedSpells = List<Spell>.from(widget.character.spells)
+                                  ..sort((a, b) => a.cost.compareTo(b.cost));
+                                final spell = sortedSpells[index];
+                                final canUse = spell.cost <= widget.character.availablePower;
+                                return ListTile(
+                                  contentPadding: const EdgeInsets.only(left: 0),
+                                  leading: _buildHexagon(spell.cost.toString(), ''),
+                                  title: Text(spell.name),
+                                  subtitle: spell.effect.isNotEmpty ? Text(spell.effect) : null,
+                                  trailing: Icon(
+                                    Icons.flash_on,
+                                    color: canUse ? Colors.amber : Colors.grey,
+                                  ),
+                                  onTap: canUse ? () => _useSpell(spell) : null,
+                                  onLongPress: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: Text(spell.name),
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text('Cost: ${spell.cost}'),
+                                            if (spell.effect.isNotEmpty) ...[
+                                              const SizedBox(height: 8),
+                                              Text('Effect: ${spell.effect}'),
+                                            ],
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              canUse 
+                                                ? 'You have enough power to use this spell'
+                                                : 'You need ${spell.cost - widget.character.availablePower} more power to use this spell',
+                                              style: TextStyle(
+                                                color: canUse ? Colors.green : Colors.red,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
+                                          ],
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(),
+                                            child: const Text('Close'),
                                           ),
                                         ],
                                       ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(),
-                                          child: const Text('Close'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            },
+                                    );
+                                  },
+                                );
+                              },
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
