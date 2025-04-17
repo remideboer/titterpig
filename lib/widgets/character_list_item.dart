@@ -76,7 +76,7 @@ class CharacterListItem extends StatelessWidget {
           'HP: ${character.hpStat.current}/${character.hpStat.max} | '
           'LIFE: ${character.lifeStat.current}/${character.lifeStat.max} | '
           'POWER: ${character.powerStat.current}/${character.powerStat.max}',
-          style: AppTheme.subtitleStyle.copyWith(
+          style: AppTheme.bodyStyle.copyWith(
             color: isDead ? Colors.grey : null,
           ),
         ),
