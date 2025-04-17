@@ -337,9 +337,16 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                             child: ListView.builder(
                               itemCount: _character.spells.length,
                               itemBuilder: (context, index) {
-                                // Sort spells by cost
+                                // Sort spells by availability and then by cost
                                 final sortedSpells = List<Spell>.from(_character.spells)
-                                  ..sort((a, b) => a.cost.compareTo(b.cost));
+                                  ..sort((a, b) {
+                                    final aAvailable = a.cost <= _character.availablePower;
+                                    final bAvailable = b.cost <= _character.availablePower;
+                                    if (aAvailable != bAvailable) {
+                                      return aAvailable ? -1 : 1; // Available spells first
+                                    }
+                                    return a.cost.compareTo(b.cost); // Then sort by cost
+                                  });
                                 final spell = sortedSpells[index];
                                 final canUse = spell.cost <= _character.availablePower;
                                 return Card(
