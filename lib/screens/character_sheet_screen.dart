@@ -369,18 +369,27 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                           Icons.flash_on,
                                           color: canUse ? Colors.amber : Colors.grey,
                                         ),
-                                        onTap: canUse ? () {
-                                          setState(() {
-                                            _character.availablePower -= spell.cost;
-                                            _updateLastUsed();
+                                        onTap: () {
+                                          if (canUse) {
+                                            setState(() {
+                                              _character.availablePower -= spell.cost;
+                                              _updateLastUsed();
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text('Used ${spell.name} (${spell.cost} power)'),
+                                                  duration: const Duration(seconds: 2),
+                                                ),
+                                              );
+                                            });
+                                          } else {
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
-                                                content: Text('Used ${spell.name} (${spell.cost} power)'),
+                                                content: Text('Insufficient power to cast ${spell.name} (requires ${spell.cost} power)'),
                                                 duration: const Duration(seconds: 2),
                                               ),
                                             );
-                                          });
-                                        } : null,
+                                          }
+                                        },
                                         onLongPress: () {
                                           Navigator.push(
                                             context,
