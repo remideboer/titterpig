@@ -24,23 +24,39 @@ class _CharacterOverviewScreenState extends State<CharacterOverviewScreen> {
 
   Future<void> _loadCharacters() async {
     print('Loading characters...');
-    final chars = await _repository.getAllCharacters();
+    final characters = await _repository.getAllCharacters();
     if (mounted) {  // Check if widget is still mounted
       setState(() {
-        // Sort characters: first by life status (alive first), then by first name
-        _characters = chars..sort((a, b) {
-          // First sort by life status (alive characters first)
+        _characters = characters..sort((a, b) {
+          // First sort by life status (alive before dead)
           final aIsDead = a.lifeStat.current == 0;
           final bIsDead = b.lifeStat.current == 0;
+          
+          // If one is dead and the other isn't, dead character goes last
           if (aIsDead != bIsDead) {
             return aIsDead ? 1 : -1;
           }
-          // Then sort by first name
-          final aFirstName = a.name.split(' ').first;
-          final bFirstName = b.name.split(' ').first;
-          return aFirstName.compareTo(bFirstName);
+          
+          // Split names into parts
+          final aNameParts = a.name.split(' ');
+          final bNameParts = b.name.split(' ');
+          
+          // Compare first names
+          final firstNameComparison = aNameParts.first.compareTo(bNameParts.first);
+          if (firstNameComparison != 0) return firstNameComparison;
+          
+          // Compare last names if they exist
+          if (aNameParts.length > 1 && bNameParts.length > 1) {
+            final lastNameComparison = aNameParts.last.compareTo(bNameParts.last);
+            if (lastNameComparison != 0) return lastNameComparison;
+          }
+          
+          // Finally compare species
+          return a.species.name.compareTo(b.species.name);
         });
         print('Characters loaded: ${_characters.length}');
+        print('First character life status: ${_characters.first.lifeStat.current}');
+        print('Last character life status: ${_characters.last.lifeStat.current}');
       });
     }
   }

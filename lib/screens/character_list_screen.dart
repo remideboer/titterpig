@@ -5,6 +5,21 @@ import '../repositories/local_character_repository.dart';
 import '../theme/app_theme.dart';
 import 'character_creation_screen.dart';
 
+enum SortOption {
+  lifeStatus,
+  name,
+  species,
+  creationDate,
+  lastUsed,
+}
+
+class SortCriteria {
+  final SortOption option;
+  final bool ascending;
+
+  SortCriteria(this.option, {this.ascending = true});
+}
+
 class CharacterListScreen extends StatefulWidget {
   final Function(Character) onCharacterSelected;
 
@@ -20,6 +35,11 @@ class CharacterListScreen extends StatefulWidget {
 class _CharacterListScreenState extends State<CharacterListScreen> {
   final LocalCharacterRepository _repository = LocalCharacterRepository();
   List<Character> _characters = [];
+  List<SortCriteria> _sortCriteria = [
+    SortCriteria(SortOption.lifeStatus),
+    SortCriteria(SortOption.name),
+  ];
+  bool _showSortOptions = false;
 
   @override
   void initState() {
@@ -30,14 +50,299 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
   Future<void> _loadCharacters() async {
     final characters = await _repository.getAllCharacters();
     setState(() {
-      _characters = characters..sort((a, b) {
-        // First sort by life status (alive before dead)
-        if (a.lifeStat.current == 0 && b.lifeStat.current > 0) return 1;
-        if (a.lifeStat.current > 0 && b.lifeStat.current == 0) return -1;
-        // Then sort by name within each group
-        return a.name.compareTo(b.name);
-      });
+      _characters = characters..sort(_getSortFunction());
     });
+  }
+
+  int Function(Character, Character) _getSortFunction() {
+    return (a, b) {
+      for (final criteria in _sortCriteria) {
+        final comparison = _compareByCriteria(a, b, criteria);
+        if (comparison != 0) {
+          return criteria.ascending ? comparison : -comparison;
+        }
+      }
+      return 0;
+    };
+  }
+
+  int _compareByCriteria(Character a, Character b, SortCriteria criteria) {
+    switch (criteria.option) {
+      case SortOption.lifeStatus:
+        final aIsDead = a.lifeStat.current == 0;
+        final bIsDead = b.lifeStat.current == 0;
+        if (aIsDead != bIsDead) return aIsDead ? 1 : -1;
+        return 0;
+      case SortOption.name:
+        return a.name.compareTo(b.name);
+      case SortOption.species:
+        return a.species.name.compareTo(b.species.name);
+      case SortOption.creationDate:
+        return a.createdAt.compareTo(b.createdAt);
+      case SortOption.lastUsed:
+        return a.lastUsed.compareTo(b.lastUsed);
+    }
+  }
+
+  String _getSortOptionText(SortOption option) {
+    switch (option) {
+      case SortOption.lifeStatus:
+        return 'Life Status';
+      case SortOption.name:
+        return 'Name';
+      case SortOption.species:
+        return 'Species';
+      case SortOption.creationDate:
+        return 'Creation Date';
+      case SortOption.lastUsed:
+        return 'Last Used';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Characters'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.sort),
+            onPressed: () {
+              setState(() {
+                _showSortOptions = !_showSortOptions;
+              });
+            },
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
+      body: Column(
+        children: [
+          if (_showSortOptions)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Sort Characters',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Selected sort criteria with reordering
+                  ReorderableListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _sortCriteria.length,
+                    onReorder: (oldIndex, newIndex) {
+                      setState(() {
+                        if (oldIndex < newIndex) {
+                          newIndex -= 1;
+                        }
+                        final item = _sortCriteria.removeAt(oldIndex);
+                        _sortCriteria.insert(newIndex, item);
+                        _characters.sort(_getSortFunction());
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      final criteria = _sortCriteria[index];
+                      return ReorderableDragStartListener(
+                        key: ValueKey(criteria),
+                        index: index,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              FilterChip(
+                                label: Text(_getSortOptionText(criteria.option)),
+                                selected: true,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    _sortCriteria.removeAt(index);
+                                    _characters.sort(_getSortFunction());
+                                  });
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  criteria.ascending ? Icons.arrow_upward : Icons.arrow_downward,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _sortCriteria[index] = SortCriteria(
+                                      criteria.option,
+                                      ascending: !criteria.ascending,
+                                    );
+                                    _characters.sort(_getSortFunction());
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  // Available sort options
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: SortOption.values.map((option) {
+                      final isSelected = _sortCriteria.any((c) => c.option == option);
+                      if (isSelected) return const SizedBox.shrink();
+                      return FilterChip(
+                        label: Text(_getSortOptionText(option)),
+                        selected: false,
+                        onSelected: (selected) {
+                          setState(() {
+                            _sortCriteria.add(SortCriteria(option));
+                            _characters.sort(_getSortFunction());
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _characters.length,
+              itemBuilder: (context, index) {
+                final character = _characters[index];
+                final isDead = character.lifeStat.current == 0;
+                
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  color: isDead ? Colors.grey[100] : null,
+                  child: ListTile(
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            character.name,
+                            style: AppTheme.titleStyle.copyWith(
+                              color: isDead ? Colors.grey[600] : null,
+                            ),
+                          ),
+                        ),
+                        if (isDead)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: SvgPicture.asset(
+                              'assets/svg/death-skull.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: ColorFilter.mode(
+                                Colors.grey[600]!,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    subtitle: Text(
+                      character.species.name,
+                      style: AppTheme.bodyStyle.copyWith(
+                        color: isDead ? Colors.grey[500] : null,
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PopupMenuButton<String>(
+                          icon: Icon(
+                            Icons.more_vert,
+                            color: isDead ? Colors.grey[600] : null,
+                          ),
+                          onSelected: (value) {
+                            switch (value) {
+                              case 'edit':
+                                _editCharacter(character);
+                                break;
+                              case 'delete':
+                                _deleteCharacter(character);
+                                break;
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit),
+                                  SizedBox(width: 8),
+                                  Text('Edit'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete),
+                                  SizedBox(width: 8),
+                                  Text('Delete'),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Icon(
+                          Icons.chevron_right,
+                          color: isDead ? Colors.grey[600] : null,
+                        ),
+                      ],
+                    ),
+                    onTap: () async {
+                      character.lastUsed = DateTime.now();
+                      await _repository.updateCharacter(character);
+                      widget.onCharacterSelected(character);
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CharacterCreationScreen(
+                onCharacterSaved: (character) async {
+                  await _loadCharacters();
+                  if (mounted) {
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
   }
 
   Future<void> _deleteCharacter(Character character) async {
@@ -86,127 +391,5 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
     if (result == true) {
       await _loadCharacters();
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Characters'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: ListView.builder(
-        itemCount: _characters.length,
-        itemBuilder: (context, index) {
-          final character = _characters[index];
-          final isDead = character.lifeStat.current == 0;
-          
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: isDead ? Colors.grey[100] : null,
-            child: ListTile(
-              title: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      character.name,
-                      style: AppTheme.titleStyle.copyWith(
-                        color: isDead ? Colors.grey[600] : null,
-                      ),
-                    ),
-                  ),
-                  if (isDead)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: SvgPicture.asset(
-                        'assets/svg/death-skull.svg',
-                        width: 24,
-                        height: 24,
-                        colorFilter: ColorFilter.mode(
-                          Colors.grey[600]!,
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              subtitle: Text(
-                character.species.name,
-                style: AppTheme.bodyStyle.copyWith(
-                  color: isDead ? Colors.grey[500] : null,
-                ),
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      Icons.more_vert,
-                      color: isDead ? Colors.grey[600] : null,
-                    ),
-                    onSelected: (value) {
-                      switch (value) {
-                        case 'edit':
-                          _editCharacter(character);
-                          break;
-                        case 'delete':
-                          _deleteCharacter(character);
-                          break;
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit),
-                            SizedBox(width: 8),
-                            Text('Edit'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete),
-                            SizedBox(width: 8),
-                            Text('Delete'),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  Icon(
-                    Icons.chevron_right,
-                    color: isDead ? Colors.grey[600] : null,
-                  ),
-                ],
-              ),
-              onTap: () => widget.onCharacterSelected(character),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CharacterCreationScreen(
-                onCharacterSaved: (character) async {
-                  await _loadCharacters();
-                  if (mounted) {
-                    Navigator.pop(context);
-                  }
-                },
-              ),
-            ),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
-    );
   }
 } 

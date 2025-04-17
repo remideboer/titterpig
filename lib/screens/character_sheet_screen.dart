@@ -41,6 +41,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     selectedDefense = widget.character.defCategory;
     widget.character.updateDerivedStats();
     _initializeSettings();
+    _updateLastUsed();
   }
 
   Future<void> _initializeSettings() async {
@@ -50,12 +51,17 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     });
   }
 
+  Future<void> _updateLastUsed() async {
+    widget.character.lastUsed = DateTime.now();
+    await _repository.updateCharacter(widget.character);
+  }
+
   void _selectDefense(DefCategory category) {
     setState(() {
       selectedDefense = selectedDefense == category ? DefCategory.none : category;
       widget.character.defCategory = selectedDefense;
       widget.character.updateDerivedStats();
-      _repository.updateCharacter(widget.character);
+      _updateLastUsed();
     });
   }
 
@@ -69,7 +75,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     setState(() {
       widget.character.spells.add(spell);
       widget.character.updateDerivedStats();
-      _repository.updateCharacter(widget.character);
+      _updateLastUsed();
     });
   }
 
@@ -77,6 +83,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     if (widget.character.availablePower >= spell.cost) {
       setState(() {
         widget.character.availablePower -= spell.cost;
+        _updateLastUsed();
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -88,6 +95,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   void _resetPower() {
     setState(() {
       widget.character.availablePower = widget.character.powerStat.max;
+      _updateLastUsed();
     });
   }
 
@@ -110,7 +118,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         }
       }
       widget.character.updateDerivedStats();
-      _repository.updateCharacter(widget.character);
+      _updateLastUsed();
     });
   }
 
@@ -126,7 +134,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         widget.character.increaseLife();
       }
       widget.character.updateDerivedStats();
-      _repository.updateCharacter(widget.character);
+      _updateLastUsed();
     });
   }
 
@@ -543,7 +551,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
           selectedDefense = selectedDefense == category ? DefCategory.none : category;
           widget.character.defCategory = selectedDefense;
           widget.character.updateDerivedStats();
-          _repository.updateCharacter(widget.character);
+          _updateLastUsed();
         });
       },
       style: IconButton.styleFrom(

@@ -29,6 +29,8 @@ class Character {
   List<String> sessionLog;
   String notes;
   int _xp;
+  final DateTime createdAt;
+  DateTime lastUsed;
 
   Character({
     required this.id,
@@ -44,11 +46,15 @@ class Character {
     List<String>? sessionLog,
     this.notes = '',
     int? xp,
+    DateTime? createdAt,
+    DateTime? lastUsed,
   })  : _tempHp = tempHp ?? 0,
         _xp = xp ?? 0,
         defCategory = defCategory ?? DefCategory.none,
         spells = spells ?? [],
-        sessionLog = sessionLog ?? [] {
+        sessionLog = sessionLog ?? [],
+        createdAt = createdAt ?? DateTime.now(),
+        lastUsed = lastUsed ?? DateTime.now() {
     // Initialize stat values before calling updateDerivedStats
     final newHp = baseHp + hpPerVit * vit;
     final newLife = baseLife + vit;
@@ -141,6 +147,8 @@ class Character {
       'sessionLog': sessionLog,
       'notes': notes,
       'xp': _xp,
+      'createdAt': createdAt.toIso8601String(),
+      'lastUsed': lastUsed.toIso8601String(),
     };
   }
 
@@ -160,6 +168,14 @@ class Character {
       if (value is String) return int.tryParse(value) ?? 0;
       if (value is num) return value.toInt();
       return 0;
+    }
+
+    // Helper function to safely convert to DateTime
+    DateTime safeToDateTime(dynamic value) {
+      if (value is String) {
+        return DateTime.tryParse(value) ?? DateTime.now();
+      }
+      return DateTime.now();
     }
 
     // Helper function to safely convert spells
@@ -197,6 +213,8 @@ class Character {
       sessionLog: List<String>.from(json['sessionLog'] ?? []),
       notes: json['notes'] as String? ?? '',
       xp: safeToInt(json['xp']),
+      createdAt: safeToDateTime(json['createdAt']),
+      lastUsed: safeToDateTime(json['lastUsed']),
     );
     
     // Initialize stat values from JSON

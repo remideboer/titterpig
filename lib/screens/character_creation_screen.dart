@@ -168,7 +168,9 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         spells: _spells,
         sessionLog: widget.character!.sessionLog,
         notes: widget.character!.notes,
-        xp: widget.character!.tempHp,
+        xp: widget.character!.xp,
+        createdAt: widget.character!.createdAt,
+        lastUsed: DateTime.now(),
       );
       await _repository.updateCharacter(savedCharacter);
     } else {
@@ -182,6 +184,8 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         wil: _wil,
         defCategory: _selectedDefense,
         spells: _spells,
+        createdAt: DateTime.now(),
+        lastUsed: DateTime.now(),
       );
       await _repository.addCharacter(savedCharacter);
     }
