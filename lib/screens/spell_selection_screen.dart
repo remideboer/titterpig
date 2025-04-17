@@ -28,6 +28,8 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   final SpellRepository _spellRepository = SpellRepository(baseUrl: 'https://api.example.com');
   List<Spell> _availableSpells = [];
   bool _isLoading = true;
+  double _maxCost = 0;
+  RangeValues _costRange = const RangeValues(0, 0);
 
   @override
   void initState() {
@@ -45,6 +47,8 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
       final spells = await _spellRepository.getSpells();
       setState(() {
         _availableSpells = spells;
+        _maxCost = spells.map((s) => s.cost.toDouble()).reduce((a, b) => a > b ? a : b);
+        _costRange = RangeValues(0, _maxCost);
         _isLoading = false;
       });
     } catch (e) {
@@ -57,6 +61,12 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
         );
       }
     }
+  }
+
+  List<Spell> _getFilteredSpells() {
+    return _availableSpells.where((spell) => 
+      spell.cost >= _costRange.start && spell.cost <= _costRange.end
+    ).toList();
   }
 
   Future<void> _handleSpellSelection(Spell spell) async {
@@ -106,6 +116,12 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
               }
             },
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: () => _saveChanges(shouldNavigate: true),
+            ),
+          ],
         ),
         body: Column(
           children: [
@@ -116,14 +132,56 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
+            // Cost filter range slider
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Filter by Cost: ${_costRange.start.toInt()} - ${_costRange.end.toInt()}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Text('0'),
+                      Expanded(
+                        child: RangeSlider(
+                          values: _costRange,
+                          min: 0,
+                          max: _maxCost,
+                          divisions: _maxCost.toInt(),
+                          labels: RangeLabels(
+                            _costRange.start.toInt().toString(),
+                            _costRange.end.toInt().toString(),
+                          ),
+                          onChanged: (values) {
+                            setState(() {
+                              _costRange = values;
+                            });
+                          },
+                        ),
+                      ),
+                      Text(_maxCost.toInt().toString()),
+                    ],
+                  ),
+                ],
+              ),
+            ),
             if (_isLoading)
               const Center(child: CircularProgressIndicator())
             else
               Expanded(
                 child: Builder(
                   builder: (context) {
+                    if (_isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
                     // Sort spells: selected first, then by cost and name
-                    final sortedSpells = List<Spell>.from(_availableSpells)
+                    final filteredSpells = _getFilteredSpells();
+                    final sortedSpells = List<Spell>.from(filteredSpells)
                       ..sort((a, b) {
                         final aSelected = _selectedSpells.any((s) => s.name == a.name);
                         final bSelected = _selectedSpells.any((s) => s.name == b.name);

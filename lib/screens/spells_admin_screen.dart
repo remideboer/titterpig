@@ -11,6 +11,28 @@ class SpellsAdminScreen extends StatefulWidget {
 }
 
 class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
+  double _maxCost = 10; // Default max cost
+  double _currentCostFilter = 10; // Default current filter
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateMaxCost();
+  }
+
+  void _calculateMaxCost() {
+    if (Spell.availableSpells.isNotEmpty) {
+      setState(() {
+        _maxCost = Spell.availableSpells.map((s) => s.cost.toDouble()).reduce((a, b) => a > b ? a : b);
+        _currentCostFilter = _maxCost;
+      });
+    }
+  }
+
+  List<Spell> _getFilteredSpells() {
+    return Spell.availableSpells.where((spell) => spell.cost <= _currentCostFilter).toList();
+  }
+
   void _showSpellForm({Spell? spell}) {
     Navigator.push(
       context,
@@ -19,7 +41,9 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
       ),
     ).then((result) {
       if (result == true) {
-        setState(() {});
+        setState(() {
+          _calculateMaxCost();
+        });
       }
     });
   }
@@ -39,6 +63,7 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
             onPressed: () {
               setState(() {
                 Spell.availableSpells.removeWhere((s) => s.name == spell.name);
+                _calculateMaxCost();
               });
               Navigator.of(context).pop();
             },
@@ -55,37 +80,77 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
       appBar: AppBar(
         title: const Text('Manage Spells'),
       ),
-      body: ListView.builder(
-        itemCount: Spell.availableSpells.length,
-        itemBuilder: (context, index) {
-          final spell = Spell.availableSpells[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ListTile(
-              title: Text(spell.name),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Cost: ${spell.cost}'),
-                  if (spell.effect.isNotEmpty) Text('Effect: ${spell.effect}'),
-                ],
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () => _showSpellForm(spell: spell),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () => _deleteSpell(spell),
-                  ),
-                ],
-              ),
+      body: Column(
+        children: [
+          // Cost filter slider
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Filter by Cost: ${_currentCostFilter.toInt()}',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Text('0'),
+                    Expanded(
+                      child: Slider(
+                        value: _currentCostFilter,
+                        min: 0,
+                        max: _maxCost,
+                        divisions: _maxCost.toInt(),
+                        label: _currentCostFilter.toInt().toString(),
+                        onChanged: (value) {
+                          setState(() {
+                            _currentCostFilter = value;
+                          });
+                        },
+                      ),
+                    ),
+                    Text(_maxCost.toInt().toString()),
+                  ],
+                ),
+              ],
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _getFilteredSpells().length,
+              itemBuilder: (context, index) {
+                final spell = _getFilteredSpells()[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: ListTile(
+                    title: Text(spell.name),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Cost: ${spell.cost}'),
+                        if (spell.effect.isNotEmpty) Text('Effect: ${spell.effect}'),
+                      ],
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _showSpellForm(spell: spell),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => _deleteSpell(spell),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showSpellForm(),
