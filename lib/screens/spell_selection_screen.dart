@@ -4,6 +4,8 @@ import '../models/character.dart';
 import '../widgets/hexagon_shape.dart';
 import '../theme/app_theme.dart';
 import '../repositories/local_character_repository.dart';
+import '../repositories/spell_repository.dart';
+import 'package:provider/provider.dart';
 
 class SpellSelectionScreen extends StatefulWidget {
   final List<Spell> selectedSpells;
@@ -22,11 +24,38 @@ class SpellSelectionScreen extends StatefulWidget {
 class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   late List<Spell> _selectedSpells;
   final LocalCharacterRepository _repository = LocalCharacterRepository();
+  final SpellRepository _spellRepository = SpellRepository(baseUrl: 'https://api.example.com');
+  List<Spell> _availableSpells = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _selectedSpells = List.from(widget.selectedSpells);
+    _loadSpells();
+  }
+
+  Future<void> _loadSpells() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final spells = await _spellRepository.getSpells();
+      setState(() {
+        _availableSpells = spells;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load spells: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _handleSpellSelection(Spell spell) async {
@@ -86,44 +115,47 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: Spell.availableSpells.length,
-                itemBuilder: (context, index) {
-                  final spell = Spell.availableSpells[index];
-                  final isSelected = _selectedSpells.any((s) => s.name == spell.name);
-                  final canSelect = spell.cost <= widget.character.powerStat.max;
-                  
-                  return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                    child: ListTile(
-                      leading: _buildHexagon(spell.cost.toString(), ''),
-                      title: Text(spell.name),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (spell.damage.isNotEmpty)
-                            Text('${spell.damage} ${spell.effect}'),
-                          Text('${spell.type} • Range: ${spell.range}'),
-                        ],
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator())
+            else
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _availableSpells.length,
+                  itemBuilder: (context, index) {
+                    final spell = _availableSpells[index];
+                    final isSelected = _selectedSpells.any((s) => s.name == spell.name);
+                    final canSelect = spell.cost <= widget.character.powerStat.max;
+                    
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                      child: ListTile(
+                        leading: _buildHexagon(spell.cost.toString(), ''),
+                        title: Text(spell.name),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (spell.damage.isNotEmpty)
+                              Text('${spell.damage} ${spell.effect}'),
+                            Text('${spell.type} • Range: ${spell.range}'),
+                          ],
+                        ),
+                        trailing: isSelected
+                          ? const Icon(Icons.check, color: AppTheme.primaryColor)
+                          : (canSelect
+                              ? IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () => _handleSpellSelection(spell),
+                                )
+                              : Tooltip(
+                                  message: 'Requires more power',
+                                  child: const Icon(Icons.lock, color: Colors.grey),
+                                )),
+                        onTap: canSelect ? () => _handleSpellSelection(spell) : null,
                       ),
-                      trailing: isSelected
-                        ? const Icon(Icons.check, color: AppTheme.primaryColor)
-                        : (canSelect
-                            ? IconButton(
-                                icon: const Icon(Icons.add),
-                                onPressed: () => _handleSpellSelection(spell),
-                              )
-                            : Tooltip(
-                                message: 'Requires more power',
-                                child: const Icon(Icons.lock, color: Colors.grey),
-                              )),
-                      onTap: canSelect ? () => _handleSpellSelection(spell) : null,
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
           ],
         ),
       ),
