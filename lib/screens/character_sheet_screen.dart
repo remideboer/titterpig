@@ -17,6 +17,7 @@ import '../models/def_category.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 import 'spell_selection_screen.dart';
+import 'spell_detail_screen.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -381,37 +382,13 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                           });
                                         } : null,
                                         onLongPress: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: Text(spell.name),
-                                              content: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text('Cost: ${spell.cost}'),
-                                                  if (spell.damage.isNotEmpty)
-                                                    Text('Damage: ${spell.damage}'),
-                                                  Text('Effect: ${spell.effect}'),
-                                                  Text('Type: ${spell.type}'),
-                                                  Text('Range: ${spell.range}'),
-                                                  const SizedBox(height: 8),
-                                                  Text(
-                                                    'You have ${_character.availablePower} power available.',
-                                                    style: TextStyle(
-                                                      color: canUse
-                                                          ? Colors.green
-                                                          : Colors.red,
-                                                    ),
-                                                  ),
-                                                ],
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => SpellDetailScreen(
+                                                spell: spell,
+                                                onSpellSelected: (_) {}, // No-op function since we don't want selection in character sheet
                                               ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Navigator.pop(context),
-                                                  child: const Text('Close'),
-                                                ),
-                                              ],
                                             ),
                                           );
                                         },
