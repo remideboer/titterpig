@@ -316,19 +316,7 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CharacterCreationScreen(
-                onCharacterSaved: (character) async {
-                  await context.read<CharacterListViewModel>().loadCharacters();
-                  if (mounted) {
-                    Navigator.pop(context);
-                  }
-                },
-              ),
-            ),
-          );
+          _navigateToCreateCharacter();
         },
         child: const Icon(Icons.add),
       ),
@@ -374,6 +362,37 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
 
     if (result == true) {
       await context.read<CharacterListViewModel>().loadCharacters();
+    }
+  }
+
+  Future<void> _navigateToCreateCharacter() async {
+    final result = await Navigator.push<Character>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CharacterCreationScreen(
+          onCharacterSaved: (character) {
+            context.read<CharacterListViewModel>().loadCharacters();
+          },
+        ),
+      ),
+    );
+    
+    if (result != null) {
+      await context.read<CharacterListViewModel>().loadCharacters();
+      if (mounted) {
+        // Navigate to the character sheet for the newly created character
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CharacterSheetScreen(
+              character: result,
+              onCharacterUpdated: (updatedCharacter) {
+                context.read<CharacterListViewModel>().loadCharacters();
+              },
+            ),
+          ),
+        );
+      }
     }
   }
 

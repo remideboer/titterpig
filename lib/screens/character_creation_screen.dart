@@ -205,9 +205,12 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
       widget.onCharacterSaved!(savedCharacter);
     }
 
-    if (context.mounted) {
-      Navigator.pop(context, true);
-    }
+    // Use a post-frame callback to ensure navigation happens after the current frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Navigator.of(context).pop(savedCharacter);
+      }
+    });
   }
 
   @override

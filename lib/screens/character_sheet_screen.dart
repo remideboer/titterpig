@@ -176,18 +176,17 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => SpellSelectionScreen(
-          onSpellSelected: (spell) {
-            setState(() {
-              _character = _character.copyWith(
-                spells: [..._character.spells, spell],
-              );
-            });
-          },
           selectedSpells: _character.spells,
           character: _character,
         ),
       ),
-    );
+    ).then((updatedCharacter) {
+      if (updatedCharacter != null) {
+        setState(() {
+          _character = updatedCharacter;
+        });
+      }
+    });
   }
 
   @override
@@ -200,13 +199,10 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     var defOptionScreenProportion = 0.5;
     return PopScope(
       canPop: true,
-      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+      onPopInvoked: (didPop) async {
         if (didPop) {
           _character.updateDerivedStats();
           await widget.onCharacterUpdated(_character);
-          if (context.mounted) {
-            Navigator.of(context).pop();
-          }
         }
       },
       child: Scaffold(
@@ -334,9 +330,8 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                           // List of learned spells with cost hexagons
                           SizedBox(
                             height: 200, // Fixed height for the scrollable list
-                            child: ListView.builder(
-                              itemCount: _character.spells.length,
-                              itemBuilder: (context, index) {
+                            child: Builder(
+                              builder: (context) {
                                 // Sort spells by availability and then by cost
                                 final sortedSpells = List<Spell>.from(_character.spells)
                                   ..sort((a, b) {
@@ -347,76 +342,82 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                     }
                                     return a.cost.compareTo(b.cost); // Then sort by cost
                                   });
-                                final spell = sortedSpells[index];
-                                final canUse = spell.cost <= _character.availablePower;
-                                return Card(
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 8.0,
-                                    vertical: 4.0,
-                                  ),
-                                  child: ListTile(
-                                    leading: _buildHexagon(spell.cost.toString(), ''),
-                                    title: Text(spell.name),
-                                    subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        if (spell.damage.isNotEmpty)
-                                          Text('${spell.damage} ${spell.effect}'),
-                                        Text('${spell.type} • Range: ${spell.range}'),
-                                      ],
-                                    ),
-                                    trailing: Icon(
-                                      Icons.flash_on,
-                                      color: canUse ? Colors.amber : Colors.grey,
-                                    ),
-                                    onTap: canUse ? () {
-                                      setState(() {
-                                        _character.availablePower -= spell.cost;
-                                        _updateLastUsed();
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Used ${spell.name} (${spell.cost} power)'),
-                                            duration: const Duration(seconds: 2),
-                                          ),
-                                        );
-                                      });
-                                    } : null,
-                                    onLongPress: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => AlertDialog(
-                                          title: Text(spell.name),
-                                          content: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text('Cost: ${spell.cost}'),
-                                              if (spell.damage.isNotEmpty)
-                                                Text('Damage: ${spell.damage}'),
-                                              Text('Effect: ${spell.effect}'),
-                                              Text('Type: ${spell.type}'),
-                                              Text('Range: ${spell.range}'),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                'You have ${_character.availablePower} power available.',
-                                                style: TextStyle(
-                                                  color: canUse
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () => Navigator.pop(context),
-                                              child: const Text('Close'),
-                                            ),
+
+                                return ListView.builder(
+                                  itemCount: sortedSpells.length,
+                                  itemBuilder: (context, index) {
+                                    final spell = sortedSpells[index];
+                                    final canUse = spell.cost <= _character.availablePower;
+                                    return Card(
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                        vertical: 4.0,
+                                      ),
+                                      child: ListTile(
+                                        leading: _buildHexagon(spell.cost.toString(), ''),
+                                        title: Text(spell.name),
+                                        subtitle: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            if (spell.damage.isNotEmpty)
+                                              Text('${spell.damage} ${spell.effect}'),
+                                            Text('${spell.type} • Range: ${spell.range}'),
                                           ],
                                         ),
-                                      );
-                                    },
-                                  ),
+                                        trailing: Icon(
+                                          Icons.flash_on,
+                                          color: canUse ? Colors.amber : Colors.grey,
+                                        ),
+                                        onTap: canUse ? () {
+                                          setState(() {
+                                            _character.availablePower -= spell.cost;
+                                            _updateLastUsed();
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Used ${spell.name} (${spell.cost} power)'),
+                                                duration: const Duration(seconds: 2),
+                                              ),
+                                            );
+                                          });
+                                        } : null,
+                                        onLongPress: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: Text(spell.name),
+                                              content: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text('Cost: ${spell.cost}'),
+                                                  if (spell.damage.isNotEmpty)
+                                                    Text('Damage: ${spell.damage}'),
+                                                  Text('Effect: ${spell.effect}'),
+                                                  Text('Type: ${spell.type}'),
+                                                  Text('Range: ${spell.range}'),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    'You have ${_character.availablePower} power available.',
+                                                    style: TextStyle(
+                                                      color: canUse
+                                                          ? Colors.green
+                                                          : Colors.red,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () => Navigator.pop(context),
+                                                  child: const Text('Close'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
                                 );
                               },
                             ),
@@ -465,38 +466,54 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                         const SizedBox(height: 16),
                         // List of available spells to learn
                         Expanded(
-                          child: ListView.builder(
-                            itemCount: Spell.availableSpells.length,
-                            itemBuilder: (context, index) {
-                              final spell = Spell.availableSpells[index];
-                              final canAdd = spell.cost <= _character.power && 
-                                          !_character.spells.any((s) => s.name == spell.name);
-                              return ListTile(
-                                title: Text(
-                                  spell.name,
-                                  style: TextStyle(
-                                    color: canAdd ? null : Colors.grey,
-                                  ),
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Cost: ${spell.cost}'),
-                                    if (spell.effect.isNotEmpty)
-                                      Text('Effect: ${spell.effect}'),
-                                  ],
-                                ),
-                                trailing: canAdd
-                                  ? IconButton(
-                                      icon: const Icon(Icons.add),
-                                      onPressed: () => _addSpell(spell),
-                                    )
-                                  : Tooltip(
-                                      message: spell.cost > _character.power 
-                                        ? 'Requires more power' 
-                                        : 'Already learned',
-                                      child: const Icon(Icons.lock, color: Colors.grey),
+                          child: Builder(
+                            builder: (context) {
+                              // Sort spells to show selected spells first, then by cost
+                              final sortedSpells = List<Spell>.from(Spell.availableSpells)
+                                ..sort((a, b) {
+                                  final aSelected = _character.spells.any((s) => s.name == a.name);
+                                  final bSelected = _character.spells.any((s) => s.name == b.name);
+                                  if (aSelected != bSelected) {
+                                    return aSelected ? -1 : 1; // Selected spells first
+                                  }
+                                  return a.cost.compareTo(b.cost); // Then sort by cost
+                                });
+
+                              return ListView.builder(
+                                itemCount: sortedSpells.length,
+                                itemBuilder: (context, index) {
+                                  final spell = sortedSpells[index];
+                                  final isSelected = _character.spells.any((s) => s.name == spell.name);
+                                  final canAdd = spell.cost <= _character.powerStat.max;
+                                  
+                                  return ListTile(
+                                    title: Text(
+                                      spell.name,
+                                      style: TextStyle(
+                                        color: canAdd ? null : Colors.grey,
+                                      ),
                                     ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Cost: ${spell.cost}'),
+                                        if (spell.effect.isNotEmpty)
+                                          Text('Effect: ${spell.effect}'),
+                                      ],
+                                    ),
+                                    trailing: isSelected
+                                      ? const Icon(Icons.check, color: AppTheme.primaryColor)
+                                      : (canAdd
+                                          ? IconButton(
+                                              icon: const Icon(Icons.add),
+                                              onPressed: () => _addSpell(spell),
+                                            )
+                                          : Tooltip(
+                                              message: 'Requires more power',
+                                              child: const Icon(Icons.lock, color: Colors.grey),
+                                            )),
+                                  );
+                                },
                               );
                             },
                           ),
