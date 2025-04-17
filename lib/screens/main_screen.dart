@@ -40,6 +40,7 @@ class _MainScreenState extends State<MainScreen> {
       if (character != null) {
         setState(() {
           _selectedCharacter = character;
+          _selectedIndex = 1; // Switch to character sheet tab
         });
       }
     }
@@ -63,33 +64,13 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        if (_selectedIndex == 0) {
-          // On home screen, show confirmation dialog
-          final shouldPop = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Exit App?'),
-              content: const Text('Are you sure you want to exit the app?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Exit'),
-                ),
-              ],
-            ),
-          );
-          return shouldPop ?? false;
-        } else {
-          // Not on home screen, navigate back to home
+        if (_selectedIndex != 0) {
           setState(() {
             _selectedIndex = 0;
           });
           return false;
         }
+        return true;
       },
       child: Scaffold(
         body: IndexedStack(

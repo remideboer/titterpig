@@ -14,6 +14,9 @@ import '../widgets/stat_value_icon.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/name_formatter.dart';
 import '../models/def_category.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/spell_list_viewmodel.dart';
+import 'spell_selection_screen.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -34,14 +37,28 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   bool _showSpellOverlay = false;
   final LocalCharacterRepository _repository = LocalCharacterRepository();
   SettingsRepository? _settingsRepository;
+  late Character _character;
 
   @override
   void initState() {
     super.initState();
     selectedDefense = widget.character.defCategory;
-    widget.character.updateDerivedStats();
+    _character = widget.character;
+    _character.updateDerivedStats();
     _initializeSettings();
     _updateLastUsed();
+  }
+
+  @override
+  void didUpdateWidget(CharacterSheetScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.character != oldWidget.character) {
+      setState(() {
+        _character = widget.character;
+        selectedDefense = widget.character.defCategory;
+        _character.updateDerivedStats();
+      });
+    }
   }
 
   Future<void> _initializeSettings() async {
@@ -52,15 +69,15 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   }
 
   Future<void> _updateLastUsed() async {
-    widget.character.lastUsed = DateTime.now();
-    await _repository.updateCharacter(widget.character);
+    _character.lastUsed = DateTime.now();
+    await _repository.updateCharacter(_character);
   }
 
   void _selectDefense(DefCategory category) {
     setState(() {
       selectedDefense = selectedDefense == category ? DefCategory.none : category;
-      widget.character.defCategory = selectedDefense;
-      widget.character.updateDerivedStats();
+      _character.defCategory = selectedDefense;
+      _character.updateDerivedStats();
       _updateLastUsed();
     });
   }
@@ -73,16 +90,16 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
 
   void _addSpell(Spell spell) {
     setState(() {
-      widget.character.spells.add(spell);
-      widget.character.updateDerivedStats();
+      _character.spells.add(spell);
+      _character.updateDerivedStats();
       _updateLastUsed();
     });
   }
 
   void _useSpell(Spell spell) {
-    if (widget.character.availablePower >= spell.cost) {
+    if (_character.availablePower >= spell.cost) {
       setState(() {
-        widget.character.availablePower -= spell.cost;
+        _character.availablePower -= spell.cost;
         _updateLastUsed();
       });
     } else {
@@ -94,30 +111,30 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
 
   void _resetPower() {
     setState(() {
-      widget.character.availablePower = widget.character.powerStat.max;
+      _character.availablePower = _character.powerStat.max;
       _updateLastUsed();
     });
   }
 
   void _takeDamage() {
     setState(() {
-      if (widget.character.hpStat.current > 0) {
+      if (_character.hpStat.current > 0) {
         // First try to reduce temp HP if available
-        if (widget.character.tempHp > 0) {
-          widget.character.tempHp--;
+        if (_character.tempHp > 0) {
+          _character.tempHp--;
         } else {
           // If no temp HP, reduce actual HP
-          widget.character.hpStat = widget.character.hpStat.copyWithCurrent(
-            widget.character.hpStat.current - 1
+          _character.hpStat = _character.hpStat.copyWithCurrent(
+            _character.hpStat.current - 1
           );
         }
-      } else if (widget.character.lifeStat.current > 0) {
-        widget.character.decreaseLife();
-        if (widget.character.lifeStat.current == 0) {
+      } else if (_character.lifeStat.current > 0) {
+        _character.decreaseLife();
+        if (_character.lifeStat.current == 0) {
           _showDeathDialog();
         }
       }
-      widget.character.updateDerivedStats();
+      _character.updateDerivedStats();
       _updateLastUsed();
     });
   }
@@ -125,15 +142,15 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   void _heal() {
     setState(() {
       // First try to heal HP if not at max
-      if (widget.character.hpStat.current < widget.character.hpStat.max) {
-        widget.character.hpStat = widget.character.hpStat.copyWithCurrent(
-          widget.character.hpStat.current + 1
+      if (_character.hpStat.current < _character.hpStat.max) {
+        _character.hpStat = _character.hpStat.copyWithCurrent(
+          _character.hpStat.current + 1
         );
-      } else if (widget.character.lifeStat.current < widget.character.lifeStat.max) {
+      } else if (_character.lifeStat.current < _character.lifeStat.max) {
         // If HP is at max, try to heal life
-        widget.character.increaseLife();
+        _character.increaseLife();
       }
-      widget.character.updateDerivedStats();
+      _character.updateDerivedStats();
       _updateLastUsed();
     });
   }
@@ -143,7 +160,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Character Death'),
-        content: Text('${NameFormatter.formatName(widget.character.name)} died :('),
+        content: Text('${NameFormatter.formatName(_character.name)} died :('),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -154,20 +171,39 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     );
   }
 
+  void _showSpellSelection() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SpellSelectionScreen(
+          onSpellSelected: (spell) {
+            setState(() {
+              _character = _character.copyWith(
+                spells: [..._character.spells, spell],
+              );
+            });
+          },
+          selectedSpells: _character.spells,
+          character: _character,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final mainStatSize = screenSize.width * 0.25;
     final svgStatSize = mainStatSize;
-    final isDead = widget.character.lifeStat.current == 0;
+    final isDead = _character.lifeStat.current == 0;
 
     var defOptionScreenProportion = 0.5;
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) {
-          widget.character.updateDerivedStats();
-          await widget.onCharacterUpdated(widget.character);
+          _character.updateDerivedStats();
+          await widget.onCharacterUpdated(_character);
           if (context.mounted) {
             Navigator.of(context).pop();
           }
@@ -176,7 +212,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            '${NameFormatter.formatName(widget.character.name)} (${widget.character.species.name})',
+            '${NameFormatter.formatName(_character.name)} (${_character.species.name})',
             style: AppTheme.titleStyle.copyWith(
               color: isDead ? Colors.grey : null,
             ),
@@ -202,9 +238,9 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildStatBox('VIT', widget.character.vit),
-                      _buildStatBox('ATH', widget.character.ath),
-                      _buildStatBox('WIL', widget.character.wil),
+                      _buildStatBox('VIT', _character.vit),
+                      _buildStatBox('ATH', _character.ath),
+                      _buildStatBox('WIL', _character.wil),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -222,7 +258,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                       Opacity(
                         opacity: isDead ? 0.5 : 1.0,
                         child: PowerIcon(
-                          value: widget.character.powerStat,
+                          value: _character.powerStat,
                           size: svgStatSize,
                         ),
                       ),
@@ -244,7 +280,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                               enabled: !isDead,
                             ),
                             const SizedBox(width: 8),
-                            _buildShieldIcon(widget.character.def, svgStatSize),
+                            _buildShieldIcon(_character.def, svgStatSize),
                             const SizedBox(width: 8),
                             _buildActionButton(
                               icon: Icons.add,
@@ -286,70 +322,90 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                               'ABILITIES',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
-                            IconButton(
+                            TextButton.icon(
+                              onPressed: _showSpellSelection,
                               icon: const Icon(Icons.add),
-                              onPressed: _toggleSpellOverlay,
+                              label: const Text('Add Spell'),
                             ),
                           ],
                         ),
-                        if (widget.character.spells.isNotEmpty) ...[
+                        if (_character.spells.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           // List of learned spells with cost hexagons
                           SizedBox(
                             height: 200, // Fixed height for the scrollable list
                             child: ListView.builder(
-                              itemCount: widget.character.spells.length,
+                              itemCount: _character.spells.length,
                               itemBuilder: (context, index) {
                                 // Sort spells by cost
-                                final sortedSpells = List<Spell>.from(widget.character.spells)
+                                final sortedSpells = List<Spell>.from(_character.spells)
                                   ..sort((a, b) => a.cost.compareTo(b.cost));
                                 final spell = sortedSpells[index];
-                                final canUse = spell.cost <= widget.character.availablePower;
-                                return ListTile(
-                                  contentPadding: const EdgeInsets.only(left: 0),
-                                  leading: _buildHexagon(spell.cost.toString(), ''),
-                                  title: Text(spell.name),
-                                  subtitle: spell.effect.isNotEmpty ? Text(spell.effect) : null,
-                                  trailing: Icon(
-                                    Icons.flash_on,
-                                    color: canUse ? Colors.amber : Colors.grey,
+                                final canUse = spell.cost <= _character.availablePower;
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                    vertical: 4.0,
                                   ),
-                                  onTap: canUse ? () => _useSpell(spell) : null,
-                                  onLongPress: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        title: Text(spell.name),
-                                        content: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text('Cost: ${spell.cost}'),
-                                            if (spell.effect.isNotEmpty) ...[
-                                              const SizedBox(height: 8),
+                                  child: ListTile(
+                                    leading: _buildHexagon(spell.cost.toString(), ''),
+                                    title: Text(spell.name),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        if (spell.damage.isNotEmpty)
+                                          Text('${spell.damage} ${spell.effect}'),
+                                        Text('${spell.type} • Range: ${spell.range}'),
+                                      ],
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.delete),
+                                      onPressed: () {
+                                        setState(() {
+                                          _character = _character.copyWith(
+                                            spells: _character.spells.where((s) => 
+                                              s.name != spell.name || s.source != spell.source
+                                            ).toList(),
+                                          );
+                                        });
+                                      },
+                                    ),
+                                    onLongPress: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: Text(spell.name),
+                                          content: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text('Cost: ${spell.cost}'),
+                                              if (spell.damage.isNotEmpty)
+                                                Text('Damage: ${spell.damage}'),
                                               Text('Effect: ${spell.effect}'),
-                                            ],
-                                            const SizedBox(height: 16),
-                                            Text(
-                                              canUse 
-                                                ? 'You have enough power to use this spell'
-                                                : 'You need ${spell.cost - widget.character.availablePower} more power to use this spell',
-                                              style: TextStyle(
-                                                color: canUse ? Colors.green : Colors.red,
-                                                fontWeight: FontWeight.bold,
+                                              Text('Type: ${spell.type}'),
+                                              Text('Range: ${spell.range}'),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                'You have ${_character.power} power available.',
+                                                style: TextStyle(
+                                                  color: _character.power >= spell.cost
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                ),
                                               ),
+                                            ],
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: const Text('Close'),
                                             ),
                                           ],
                                         ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () => Navigator.of(context).pop(),
-                                            child: const Text('Close'),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
+                                      );
+                                    },
+                                  ),
                                 );
                               },
                             ),
@@ -392,7 +448,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Max Power: ${widget.character.power}',
+                          'Max Power: ${_character.power}',
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 16),
@@ -402,8 +458,8 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                             itemCount: Spell.availableSpells.length,
                             itemBuilder: (context, index) {
                               final spell = Spell.availableSpells[index];
-                              final canAdd = spell.cost <= widget.character.power && 
-                                          !widget.character.spells.any((s) => s.name == spell.name);
+                              final canAdd = spell.cost <= _character.power && 
+                                          !_character.spells.any((s) => s.name == spell.name);
                               return ListTile(
                                 title: Text(
                                   spell.name,
@@ -425,7 +481,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                       onPressed: () => _addSpell(spell),
                                     )
                                   : Tooltip(
-                                      message: spell.cost > widget.character.power 
+                                      message: spell.cost > _character.power 
                                         ? 'Requires more power' 
                                         : 'Already learned',
                                       child: const Icon(Icons.lock, color: Colors.grey),
@@ -446,7 +502,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   }
 
   Widget _buildHpAndLifeDiamonds(double size) {
-    final isDead = widget.character.lifeStat.current == 0;
+    final isDead = _character.lifeStat.current == 0;
     
     return Stack(
       children: [
@@ -456,7 +512,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
           children: [
             StatValueIcon(
               svgAsset: 'assets/svg/hp.svg',
-              value: widget.character.hpStat,
+              value: _character.hpStat,
               size: size,
               color: isDead ? Colors.grey : AppTheme.highlightColor,
             ),
@@ -468,11 +524,11 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                     height: size,
                     colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
                   )
-                : _buildDiamondStat('LIFE', widget.character.lifeStat, null, size),
+                : _buildDiamondStat('LIFE', _character.lifeStat, null, size),
           ],
         ),
         // TEMP HP diamond
-        if (widget.character.tempHp > 0 && !isDead)
+        if (_character.tempHp > 0 && !isDead)
           Positioned(
             left: size * 0.6,
             top: 0,
@@ -549,8 +605,8 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
       onPressed: () {
         setState(() {
           selectedDefense = selectedDefense == category ? DefCategory.none : category;
-          widget.character.defCategory = selectedDefense;
-          widget.character.updateDerivedStats();
+          _character.defCategory = selectedDefense;
+          _character.updateDerivedStats();
           _updateLastUsed();
         });
       },
@@ -714,7 +770,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
             angle: -45 * 3.14159 / 180,
             child: Center(
               child: Text(
-                widget.character.tempHp.toString(),
+                _character.tempHp.toString(),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontSize: size * 0.4,
                 ),

@@ -1,40 +1,47 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/spell.dart';
 
 class SpellRepository {
-  static const String _spellsKey = 'spells';
-  final SharedPreferences _prefs;
+  final String baseUrl;
+  final http.Client client;
 
-  SpellRepository(this._prefs);
+  SpellRepository({
+    required this.baseUrl,
+    http.Client? client,
+  }) : client = client ?? http.Client();
 
   Future<List<Spell>> getSpells() async {
-    final spellsJson = _prefs.getStringList(_spellsKey) ?? [];
-    return spellsJson.map((json) => Spell.fromJson(json)).toList();
-  }
-
-  Future<void> saveSpells(List<Spell> spells) async {
-    final spellsJson = spells.map((spell) => spell.toJson().toString()).toList();
-    await _prefs.setStringList(_spellsKey, spellsJson);
-  }
-
-  Future<void> addSpell(Spell spell) async {
-    final spells = await getSpells();
-    spells.add(spell);
-    await saveSpells(spells);
-  }
-
-  Future<void> updateSpell(Spell spell) async {
-    final spells = await getSpells();
-    final index = spells.indexWhere((s) => s.name == spell.name);
-    if (index != -1) {
-      spells[index] = spell;
-      await saveSpells(spells);
+    try {
+      final response = await client.get(Uri.parse('$baseUrl/spells'));
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => Spell.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load spells: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load spells: $e');
     }
   }
 
-  Future<void> deleteSpell(String spellName) async {
-    final spells = await getSpells();
-    spells.removeWhere((s) => s.name == spellName);
-    await saveSpells(spells);
+  Future<Spell> getSpellById(String id) async {
+    try {
+      final response = await client.get(Uri.parse('$baseUrl/spells/$id'));
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return Spell.fromJson(data);
+      } else {
+        throw Exception('Failed to load spell: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load spell: $e');
+    }
+  }
+
+  void dispose() {
+    client.close();
   }
 } 

@@ -13,6 +13,17 @@ import '../models/def_category.dart';
 import '../theme/app_theme.dart';
 import '../models/spell.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../repositories/settings_repository.dart';
+import '../widgets/shield_icon.dart';
+import '../widgets/heart_icon.dart';
+import '../widgets/power_icon.dart';
+import '../widgets/stat_value_icon.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../utils/name_formatter.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/spell_list_viewmodel.dart';
+import 'spell_selection_screen.dart';
 
 class CharacterCreationScreen extends StatefulWidget {
   final Character? character;

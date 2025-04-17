@@ -1,9 +1,10 @@
 import 'spell.dart';
 import 'stat_value.dart';
-import 'package:ttrpg_character_manager/models/species.dart';
+import 'species.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../repositories/spell_repository.dart';
 import 'def_category.dart';
+import 'package:flutter/foundation.dart';
 
 class Character {
   static const int baseHp = 6;
@@ -229,5 +230,106 @@ class Character {
     );
     
     return character;
+  }
+
+  Character copyWith({
+    String? id,
+    String? name,
+    Species? species,
+    int? vit,
+    int? ath,
+    int? wil,
+    int? tempHp,
+    DefCategory? defCategory,
+    bool? hasShield,
+    List<Spell>? spells,
+    List<String>? sessionLog,
+    String? notes,
+    int? xp,
+    DateTime? createdAt,
+    DateTime? lastUsed,
+  }) {
+    return Character(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      species: species ?? this.species,
+      vit: vit ?? this.vit,
+      ath: ath ?? this.ath,
+      wil: wil ?? this.wil,
+      tempHp: tempHp ?? this._tempHp,
+      defCategory: defCategory ?? this.defCategory,
+      hasShield: hasShield ?? this.hasShield,
+      spells: spells ?? this.spells,
+      sessionLog: sessionLog ?? this.sessionLog,
+      notes: notes ?? this.notes,
+      xp: xp ?? this._xp,
+      createdAt: createdAt ?? this.createdAt,
+      lastUsed: lastUsed ?? this.lastUsed,
+    );
+  }
+
+  void addSpell(Spell spell) {
+    if (!spells.any((s) => s.name == spell.name && s.source == spell.source)) {
+      spells.add(spell);
+    }
+  }
+
+  void removeSpell(Spell spell) {
+    spells.removeWhere((s) => s.name == spell.name && s.source == spell.source);
+  }
+}
+
+class StatBlock {
+  int ath;
+  int dex;
+  int intel;
+  int cha;
+
+  StatBlock({
+    required this.ath,
+    required this.dex,
+    required this.intel,
+    required this.cha,
+  });
+
+  int get totalPoints => ath + dex + intel + cha;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ath': ath,
+      'dex': dex,
+      'intel': intel,
+      'cha': cha,
+    };
+  }
+
+  factory StatBlock.fromJson(Map<String, dynamic> json) {
+    return StatBlock(
+      ath: json['ath'],
+      dex: json['dex'],
+      intel: json['intel'],
+      cha: json['cha'],
+    );
+  }
+}
+
+class LifeStat {
+  int max;
+  int current;
+
+  LifeStat({required this.max, required this.current});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'max': max,
+      'current': current,
+    };
+  }
+
+  factory LifeStat.fromJson(Map<String, dynamic> json) {
+    return LifeStat(
+      max: json['max'],
+      current: json['current'],
+    );
   }
 } 

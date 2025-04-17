@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import '../models/character.dart';
 import '../repositories/local_character_repository.dart';
 import '../theme/app_theme.dart';
+import '../viewmodels/character_list_viewmodel.dart';
 import 'character_creation_screen.dart';
+import 'character_sheet_screen.dart';
 
 enum SortOption {
   lifeStatus,
@@ -34,7 +37,6 @@ class CharacterListScreen extends StatefulWidget {
 
 class _CharacterListScreenState extends State<CharacterListScreen> {
   final LocalCharacterRepository _repository = LocalCharacterRepository();
-  List<Character> _characters = [];
   List<SortCriteria> _sortCriteria = [
     SortCriteria(SortOption.lifeStatus),
     SortCriteria(SortOption.name),
@@ -44,59 +46,9 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCharacters();
-  }
-
-  Future<void> _loadCharacters() async {
-    final characters = await _repository.getAllCharacters();
-    setState(() {
-      _characters = characters..sort(_getSortFunction());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CharacterListViewModel>().loadCharacters();
     });
-  }
-
-  int Function(Character, Character) _getSortFunction() {
-    return (a, b) {
-      for (final criteria in _sortCriteria) {
-        final comparison = _compareByCriteria(a, b, criteria);
-        if (comparison != 0) {
-          return criteria.ascending ? comparison : -comparison;
-        }
-      }
-      return 0;
-    };
-  }
-
-  int _compareByCriteria(Character a, Character b, SortCriteria criteria) {
-    switch (criteria.option) {
-      case SortOption.lifeStatus:
-        final aIsDead = a.lifeStat.current == 0;
-        final bIsDead = b.lifeStat.current == 0;
-        if (aIsDead != bIsDead) return aIsDead ? 1 : -1;
-        return 0;
-      case SortOption.name:
-        return a.name.compareTo(b.name);
-      case SortOption.species:
-        return a.species.name.compareTo(b.species.name);
-      case SortOption.creationDate:
-        return a.createdAt.compareTo(b.createdAt);
-      case SortOption.lastUsed:
-        return a.lastUsed.compareTo(b.lastUsed);
-    }
-  }
-
-  String _getSortOptionText(SortOption option) {
-    switch (option) {
-      case SortOption.lifeStatus:
-        return 'Life Status';
-      case SortOption.name:
-        return 'Name';
-      case SortOption.species:
-        return 'Species';
-      case SortOption.creationDate:
-        return 'Creation Date';
-      case SortOption.lastUsed:
-        return 'Last Used';
-    }
   }
 
   @override
@@ -156,7 +108,6 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                         }
                         final item = _sortCriteria.removeAt(oldIndex);
                         _sortCriteria.insert(newIndex, item);
-                        _characters.sort(_getSortFunction());
                       });
                     },
                     itemBuilder: (context, index) {
@@ -175,7 +126,6 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                                 onSelected: (selected) {
                                   setState(() {
                                     _sortCriteria.removeAt(index);
-                                    _characters.sort(_getSortFunction());
                                   });
                                 },
                               ),
@@ -190,7 +140,6 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                                       criteria.option,
                                       ascending: !criteria.ascending,
                                     );
-                                    _characters.sort(_getSortFunction());
                                   });
                                 },
                               ),
@@ -214,7 +163,6 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                         onSelected: (selected) {
                           setState(() {
                             _sortCriteria.add(SortCriteria(option));
-                            _characters.sort(_getSortFunction());
                           });
                         },
                       );
@@ -224,100 +172,142 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
               ),
             ),
           Expanded(
-            child: ListView.builder(
-              itemCount: _characters.length,
-              itemBuilder: (context, index) {
-                final character = _characters[index];
-                final isDead = character.lifeStat.current == 0;
-                
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  color: isDead ? Colors.grey[100] : null,
-                  child: ListTile(
-                    title: Row(
+            child: Consumer<CharacterListViewModel>(
+              builder: (context, viewModel, child) {
+                if (viewModel.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (viewModel.error != null) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Expanded(
-                          child: Text(
-                            character.name,
-                            style: AppTheme.titleStyle.copyWith(
-                              color: isDead ? Colors.grey[600] : null,
-                            ),
-                          ),
+                        Text('Error: ${viewModel.error}'),
+                        ElevatedButton(
+                          onPressed: () => viewModel.loadCharacters(),
+                          child: const Text('Retry'),
                         ),
-                        if (isDead)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: SvgPicture.asset(
-                              'assets/svg/death-skull.svg',
-                              width: 24,
-                              height: 24,
-                              colorFilter: ColorFilter.mode(
-                                Colors.grey[600]!,
-                                BlendMode.srcIn,
-                              ),
-                            ),
-                          ),
                       ],
                     ),
-                    subtitle: Text(
-                      character.species.name,
-                      style: AppTheme.bodyStyle.copyWith(
-                        color: isDead ? Colors.grey[500] : null,
-                      ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        PopupMenuButton<String>(
-                          icon: Icon(
-                            Icons.more_vert,
-                            color: isDead ? Colors.grey[600] : null,
-                          ),
-                          onSelected: (value) {
-                            switch (value) {
-                              case 'edit':
-                                _editCharacter(character);
-                                break;
-                              case 'delete':
-                                _deleteCharacter(character);
-                                break;
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit),
-                                  SizedBox(width: 8),
-                                  Text('Edit'),
-                                ],
+                  );
+                }
+
+                final characters = viewModel.characters;
+                if (characters.isEmpty) {
+                  return const Center(child: Text('No characters found'));
+                }
+
+                // Sort characters based on current criteria
+                final sortedCharacters = List<Character>.from(characters)
+                  ..sort((a, b) {
+                    for (final criteria in _sortCriteria) {
+                      final comparison = _compareByCriteria(a, b, criteria);
+                      if (comparison != 0) {
+                        return criteria.ascending ? comparison : -comparison;
+                      }
+                    }
+                    return 0;
+                  });
+
+                return ListView.builder(
+                  itemCount: sortedCharacters.length,
+                  itemBuilder: (context, index) {
+                    final character = sortedCharacters[index];
+                    final isDead = character.lifeStat.current == 0;
+                    
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      color: isDead ? Colors.grey[100] : null,
+                      child: ListTile(
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                character.name,
+                                style: AppTheme.titleStyle.copyWith(
+                                  color: isDead ? Colors.grey[600] : null,
+                                ),
                               ),
                             ),
-                            const PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.delete),
-                                  SizedBox(width: 8),
-                                  Text('Delete'),
-                                ],
+                            if (isDead)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8.0),
+                                child: SvgPicture.asset(
+                                  'assets/svg/death-skull.svg',
+                                  width: 24,
+                                  height: 24,
+                                  colorFilter: ColorFilter.mode(
+                                    Colors.grey[600]!,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
                               ),
+                          ],
+                        ),
+                        subtitle: Text(
+                          character.species.name,
+                          style: AppTheme.bodyStyle.copyWith(
+                            color: isDead ? Colors.grey[500] : null,
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            PopupMenuButton<String>(
+                              icon: Icon(
+                                Icons.more_vert,
+                                color: isDead ? Colors.grey[600] : null,
+                              ),
+                              onSelected: (value) {
+                                switch (value) {
+                                  case 'edit':
+                                    _editCharacter(character);
+                                    break;
+                                  case 'delete':
+                                    _deleteCharacter(character);
+                                    break;
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit),
+                                      SizedBox(width: 8),
+                                      Text('Edit'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete),
+                                      SizedBox(width: 8),
+                                      Text('Delete'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Icon(
+                              Icons.chevron_right,
+                              color: isDead ? Colors.grey[600] : null,
                             ),
                           ],
                         ),
-                        Icon(
-                          Icons.chevron_right,
-                          color: isDead ? Colors.grey[600] : null,
-                        ),
-                      ],
-                    ),
-                    onTap: () async {
-                      character.lastUsed = DateTime.now();
-                      await _repository.updateCharacter(character);
-                      widget.onCharacterSelected(character);
-                    },
-                  ),
+                        onTap: () async {
+                          character.lastUsed = DateTime.now();
+                          await _repository.updateCharacter(character);
+                          if (mounted) {
+                            widget.onCharacterSelected(character);
+                          }
+                        },
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -331,7 +321,7 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
             MaterialPageRoute(
               builder: (context) => CharacterCreationScreen(
                 onCharacterSaved: (character) async {
-                  await _loadCharacters();
+                  await context.read<CharacterListViewModel>().loadCharacters();
                   if (mounted) {
                     Navigator.pop(context);
                   }
@@ -365,8 +355,7 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
     );
 
     if (shouldDelete == true) {
-      await _repository.deleteCharacter(character.id);
-      await _loadCharacters();
+      await context.read<CharacterListViewModel>().deleteCharacter(character);
     }
   }
 
@@ -377,19 +366,47 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
         builder: (context) => CharacterCreationScreen(
           character: character,
           onCharacterSaved: (updatedCharacter) {
-            setState(() {
-              final index = _characters.indexWhere((c) => c.id == updatedCharacter.id);
-              if (index != -1) {
-                _characters[index] = updatedCharacter;
-              }
-            });
+            context.read<CharacterListViewModel>().loadCharacters();
           },
         ),
       ),
     );
 
     if (result == true) {
-      await _loadCharacters();
+      await context.read<CharacterListViewModel>().loadCharacters();
+    }
+  }
+
+  String _getSortOptionText(SortOption option) {
+    switch (option) {
+      case SortOption.lifeStatus:
+        return 'Life Status';
+      case SortOption.name:
+        return 'Name';
+      case SortOption.species:
+        return 'Species';
+      case SortOption.creationDate:
+        return 'Creation Date';
+      case SortOption.lastUsed:
+        return 'Last Used';
+    }
+  }
+
+  int _compareByCriteria(Character a, Character b, SortCriteria criteria) {
+    switch (criteria.option) {
+      case SortOption.lifeStatus:
+        final aIsDead = a.lifeStat.current == 0;
+        final bIsDead = b.lifeStat.current == 0;
+        if (aIsDead != bIsDead) return aIsDead ? 1 : -1;
+        return 0;
+      case SortOption.name:
+        return a.name.compareTo(b.name);
+      case SortOption.species:
+        return a.species.name.compareTo(b.species.name);
+      case SortOption.creationDate:
+        return a.createdAt.compareTo(b.createdAt);
+      case SortOption.lastUsed:
+        return a.lastUsed.compareTo(b.lastUsed);
     }
   }
 } 
