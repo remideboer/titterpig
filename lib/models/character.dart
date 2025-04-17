@@ -26,7 +26,7 @@ class Character {
   late int def;
   DefCategory defCategory;
   bool hasShield;
-  List<Spell> spells;
+  List<Spell> _spells;
   List<String> sessionLog;
   String notes;
   int _xp;
@@ -52,7 +52,7 @@ class Character {
   })  : _tempHp = tempHp ?? 0,
         _xp = xp ?? 0,
         defCategory = defCategory ?? DefCategory.none,
-        spells = spells ?? [],
+        _spells = spells ?? [],
         sessionLog = sessionLog ?? [],
         createdAt = createdAt ?? DateTime.now(),
         lastUsed = lastUsed ?? DateTime.now() {
@@ -144,7 +144,7 @@ class Character {
       'def': def,
       'defCategory': defCategory.index,
       'hasShield': hasShield,
-      'spells': spells.map((s) => s.toJson()).toList(),
+      'spells': _spells.map((s) => s.toJson()).toList(),
       'sessionLog': sessionLog,
       'notes': notes,
       'xp': _xp,
@@ -259,7 +259,7 @@ class Character {
       tempHp: tempHp ?? this._tempHp,
       defCategory: defCategory ?? this.defCategory,
       hasShield: hasShield ?? this.hasShield,
-      spells: spells ?? this.spells,
+      spells: spells ?? this._spells,
       sessionLog: sessionLog ?? this.sessionLog,
       notes: notes ?? this.notes,
       xp: xp ?? this._xp,
@@ -268,14 +268,35 @@ class Character {
     );
   }
 
+  List<Spell> get spells => _spells;
+  set spells(List<Spell> newSpells) {
+    _spells = newSpells;
+    updateDerivedStats();
+  }
+
   void addSpell(Spell spell) {
-    if (!spells.any((s) => s.name == spell.name && s.source == spell.source)) {
-      spells.add(spell);
+    if (!_spells.any((s) => s.versionId == spell.versionId)) {
+      _spells.add(spell);
+      updateDerivedStats();
     }
   }
 
   void removeSpell(Spell spell) {
-    spells.removeWhere((s) => s.name == spell.name && s.source == spell.source);
+    _spells.removeWhere((s) => s.versionId == spell.versionId);
+    updateDerivedStats();
+  }
+
+  void updateSpells(List<Spell> updatedSpells) {
+    final Map<String, Spell> currentMap = {
+      for (var spell in _spells) spell.name: spell
+    };
+    
+    _spells = updatedSpells.where((spell) {
+      final currentSpell = currentMap[spell.name];
+      return currentSpell == null || spell.isNewerThan(currentSpell);
+    }).toList();
+    
+    updateDerivedStats();
   }
 }
 

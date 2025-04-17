@@ -8,8 +8,10 @@ class Spell {
   final String type;
   final String source;
   final String range;
+  final DateTime lastUpdated;
+  final String versionId;
 
-  const Spell({
+  Spell({
     required this.name,
     required this.cost,
     this.damage = '',
@@ -17,7 +19,10 @@ class Spell {
     this.type = 'Spell',
     this.source = 'default',
     this.range = 'Self',
-  });
+    DateTime? lastUpdated,
+  }) : 
+    lastUpdated = lastUpdated ?? DateTime.now(),
+    versionId = '${name}_${(lastUpdated ?? DateTime.now()).millisecondsSinceEpoch}';
 
   // Convert Spell to JSON
   Map<String, dynamic> toJson() {
@@ -30,6 +35,8 @@ class Spell {
       'type': type,
       'source': source,
       'range': range,
+      'lastUpdated': lastUpdated.toIso8601String(),
+      'versionId': versionId,
     };
   }
 
@@ -76,12 +83,29 @@ class Spell {
         type: json['type'] as String? ?? 'Spell',
         source: json['source'] as String? ?? 'default',
         range: json['range'] as String? ?? 'Self',
+        lastUpdated: json['lastUpdated'] != null 
+          ? DateTime.parse(json['lastUpdated'] as String)
+          : null,
       );
     } else {
       // Return empty spell for invalid format
       return Spell(name: '', cost: 0, damage: '', effect: '', source: 'default');
     }
   }
+
+  bool isNewerThan(Spell other) {
+    return lastUpdated.isAfter(other.lastUpdated);
+  }
+
+  @override
+  bool operator ==(Object other) =>
+    identical(this, other) ||
+    other is Spell &&
+    runtimeType == other.runtimeType &&
+    versionId == other.versionId;
+
+  @override
+  int get hashCode => versionId.hashCode;
 
   // Default list of available spells
   static final List<Spell> availableSpells = [
