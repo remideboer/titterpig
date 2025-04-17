@@ -42,6 +42,7 @@ Feature: Character Creation
     When I choose "Custom Species"
     And I enter a custom species name
     Then a new species should be created with the human-face icon
+    And the species name should be automatically capitalized
 ```
 
 ### Health and Life System
@@ -98,43 +99,47 @@ Feature: Power and Abilities
   Scenario: Power management
     Given my character has power points
     When I use a spell
-    Then my available power should decrease by the spell's cost
-    When I reset my power
-    Then my available power should return to maximum
+    Then my power points should decrease by the spell's cost
+    When I have insufficient power points
+    Then I should not be able to cast the spell
 
-  Scenario: Spell usage
-    Given I have learned spells
-    When I have enough power
-    Then I can use a spell
-    When I don't have enough power
-    Then I cannot use the spell
-    And I should see a message indicating insufficient power
+  Scenario: Spell selection
+    Given I am on the character creation screen
+    When I open the spell selection overlay
+    Then I should see a list of available spells
+    And I can select multiple spells
+    And the overlay should remain open after selecting a spell
+    When I close the overlay
+    Then my selected spells should be saved with the character
 
-  Scenario: Learning new spells
-    Given I am on the character sheet
-    When I add a new spell
-    Then the spell should be added to my list
-    And it should be sorted by cost
-    When I try to add a spell I already know
-    Then I should not be able to add it again
-    When I try to add a spell that costs more than my maximum power
-    Then I should not be able to add it
+  Scenario: Spell administration
+    Given I am on the spells admin screen
+    When I create a new spell
+    Then I should be taken to a dedicated spell creation screen
+    And I can enter the spell's name, cost, and effect
+    When I edit an existing spell
+    Then I should be taken to a dedicated spell edit screen
+    And I can modify the spell's properties
+    When I delete a spell
+    Then I should be prompted for confirmation
+    And the spell should be removed from the available spells list
 ```
 
-### Character State
+### Character Persistence
 
 ```gherkin
-Feature: Character State
+Feature: Character Persistence
   As a player
-  I want my character's state to be preserved
-  So that I can continue my game later
+  I want my character selection to be remembered
+  So that I can quickly return to my last used character
 
-  Scenario: Saving character state
-    Given I have made changes to my character
-    When I navigate away from the character sheet
-    Then all changes should be saved automatically
-    When I return to the character sheet
-    Then my character should be in the same state as when I left
+  Scenario: Remembering last selected character
+    Given I have multiple characters
+    When I select a character
+    Then that character should be remembered as the last selected
+    When I restart the application
+    Then the last selected character should be automatically loaded
+    And I should be taken to that character's sheet
 ```
 
 ## Getting Started
