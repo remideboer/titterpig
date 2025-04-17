@@ -119,39 +119,64 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
               const Center(child: CircularProgressIndicator())
             else
               Expanded(
-                child: ListView.builder(
-                  itemCount: _availableSpells.length,
-                  itemBuilder: (context, index) {
-                    final spell = _availableSpells[index];
-                    final isSelected = _selectedSpells.any((s) => s.name == spell.name);
-                    final canSelect = spell.cost <= widget.character.powerStat.max;
-                    
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                      child: ListTile(
-                        leading: _buildHexagon(spell.cost.toString(), ''),
-                        title: Text(spell.name),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (spell.damage.isNotEmpty)
-                              Text('${spell.damage} ${spell.effect}'),
-                            Text('${spell.type} • Range: ${spell.range}'),
-                          ],
-                        ),
-                        trailing: isSelected
-                          ? const Icon(Icons.check, color: AppTheme.primaryColor)
-                          : (canSelect
-                              ? IconButton(
-                                  icon: const Icon(Icons.add),
-                                  onPressed: () => _handleSpellSelection(spell),
-                                )
-                              : Tooltip(
-                                  message: 'Requires more power',
-                                  child: const Icon(Icons.lock, color: Colors.grey),
-                                )),
-                        onTap: canSelect ? () => _handleSpellSelection(spell) : null,
-                      ),
+                child: Builder(
+                  builder: (context) {
+                    // Sort spells: selected first, then by cost and name
+                    final sortedSpells = List<Spell>.from(_availableSpells)
+                      ..sort((a, b) {
+                        final aSelected = _selectedSpells.any((s) => s.name == a.name);
+                        final bSelected = _selectedSpells.any((s) => s.name == b.name);
+                        
+                        // Selected spells come first
+                        if (aSelected != bSelected) {
+                          return aSelected ? -1 : 1;
+                        }
+                        
+                        // Then sort by cost
+                        final costCompare = a.cost.compareTo(b.cost);
+                        if (costCompare != 0) {
+                          return costCompare;
+                        }
+                        
+                        // Finally sort by name
+                        return a.name.compareTo(b.name);
+                      });
+
+                    return ListView.builder(
+                      itemCount: sortedSpells.length,
+                      itemBuilder: (context, index) {
+                        final spell = sortedSpells[index];
+                        final isSelected = _selectedSpells.any((s) => s.name == spell.name);
+                        final canSelect = spell.cost <= widget.character.powerStat.max;
+                        
+                        return Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          child: ListTile(
+                            leading: _buildHexagon(spell.cost.toString(), ''),
+                            title: Text(spell.name),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (spell.damage.isNotEmpty)
+                                  Text('${spell.damage} ${spell.effect}'),
+                                Text('${spell.type} • Range: ${spell.range}'),
+                              ],
+                            ),
+                            trailing: isSelected
+                              ? const Icon(Icons.check, color: AppTheme.primaryColor)
+                              : (canSelect
+                                  ? IconButton(
+                                      icon: const Icon(Icons.add),
+                                      onPressed: () => _handleSpellSelection(spell),
+                                    )
+                                  : Tooltip(
+                                      message: 'Requires more power',
+                                      child: const Icon(Icons.lock, color: Colors.grey),
+                                    )),
+                            onTap: canSelect ? () => _handleSpellSelection(spell) : null,
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
