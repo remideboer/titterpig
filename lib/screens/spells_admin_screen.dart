@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/spell.dart';
 import '../theme/app_theme.dart';
+import 'spell_edit_screen.dart';
 
 class SpellsAdminScreen extends StatefulWidget {
   const SpellsAdminScreen({super.key});
@@ -10,100 +11,17 @@ class SpellsAdminScreen extends StatefulWidget {
 }
 
 class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _costController = TextEditingController();
-  final _effectController = TextEditingController();
-  bool _isEditing = false;
-  Spell? _editingSpell;
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _costController.dispose();
-    _effectController.dispose();
-    super.dispose();
-  }
-
   void _showSpellForm({Spell? spell}) {
-    _isEditing = spell != null;
-    _editingSpell = spell;
-    
-    if (spell != null) {
-      _nameController.text = spell.name;
-      _costController.text = spell.cost.toString();
-      _effectController.text = spell.effect;
-    } else {
-      _nameController.clear();
-      _costController.clear();
-      _effectController.clear();
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(_isEditing ? 'Edit Spell' : 'Add Spell'),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-                validator: (value) => value?.isEmpty ?? true ? 'Please enter a name' : null,
-              ),
-              TextFormField(
-                controller: _costController,
-                decoration: const InputDecoration(labelText: 'Cost'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value?.isEmpty ?? true) return 'Please enter a cost';
-                  if (int.tryParse(value!) == null) return 'Please enter a valid number';
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _effectController,
-                decoration: const InputDecoration(labelText: 'Effect'),
-                maxLines: 3,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (_formKey.currentState?.validate() ?? false) {
-                final spell = Spell(
-                  name: _nameController.text,
-                  cost: int.parse(_costController.text),
-                  effect: _effectController.text,
-                );
-
-                setState(() {
-                  if (_isEditing) {
-                    final index = Spell.availableSpells.indexWhere((s) => s.name == _editingSpell?.name);
-                    if (index != -1) {
-                      Spell.availableSpells[index] = spell;
-                    }
-                  } else {
-                    Spell.availableSpells.add(spell);
-                  }
-                });
-
-                Navigator.of(context).pop();
-              }
-            },
-            child: Text(_isEditing ? 'Update' : 'Add'),
-          ),
-        ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SpellEditScreen(spell: spell),
       ),
-    );
+    ).then((result) {
+      if (result == true) {
+        setState(() {});
+      }
+    });
   }
 
   void _deleteSpell(Spell spell) {
