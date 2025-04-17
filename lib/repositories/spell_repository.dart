@@ -8,6 +8,7 @@ class SpellRepository {
   final http.Client? _client;
   static const String _spellStorageKey = 'spells';
   static const String _lastUpdateCheckKey = 'last_spell_update_check';
+  static const String _allSpellsKey = 'all_spells';
 
   SpellRepository({
     required this.baseUrl,
@@ -25,26 +26,33 @@ class SpellRepository {
         now.difference(lastCheck).inHours > 24; // Check daily
 
     if (shouldCheckForUpdates) {
-      try {
-        final response = await _client!.get(Uri.parse('$baseUrl/spells'));
-        if (response.statusCode == 200) {
-          final List<dynamic> jsonData = json.decode(response.body);
-          final apiSpells = jsonData.map((json) => Spell.fromJson(json)).toList();
-          
-          // Compare and update local spells
-          final updatedSpells = await _updateLocalSpells(localSpells, apiSpells);
-          
-          // Update last check timestamp
-          await _setLastUpdateCheck(now);
-          
-          return updatedSpells;
-        }
-      } catch (e) {
-        print('Error fetching spells from API: $e');
-      }
+      // Start background update
+      _updateSpellsInBackground();
     }
     
     return localSpells;
+  }
+
+  Future<void> _updateSpellsInBackground() async {
+    try {
+      final response = await _client!.get(Uri.parse('$baseUrl/spells'));
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        final apiSpells = jsonData.map((json) => Spell.fromJson(json)).toList();
+        
+        // Compare and update local spells
+        final localSpells = await _getLocalSpells();
+        final updatedSpells = await _updateLocalSpells(localSpells, apiSpells);
+        
+        // Update last check timestamp
+        await _setLastUpdateCheck(DateTime.now());
+        
+        // Save all spells to local storage
+        await _setLocalSpells(updatedSpells);
+      }
+    } catch (e) {
+      print('Error updating spells in background: $e');
+    }
   }
 
   Future<Spell?> getSpellById(String id) async {
@@ -55,7 +63,15 @@ class SpellRepository {
   Future<List<Spell>> _getLocalSpells() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = prefs.getString(_spellStorageKey);
-    if (jsonString == null) return [];
+    if (jsonString == null) {
+      // If no spells stored, try to get from all_spells
+      final allSpellsString = prefs.getString(_allSpellsKey);
+      if (allSpellsString != null) {
+        final List<dynamic> jsonData = json.decode(allSpellsString);
+        return jsonData.map((json) => Spell.fromJson(json)).toList();
+      }
+      return [];
+    }
     
     final List<dynamic> jsonData = json.decode(jsonString);
     return jsonData.map((json) => Spell.fromJson(json)).toList();
