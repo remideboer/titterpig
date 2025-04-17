@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../repositories/local_character_repository.dart';
 import '../repositories/spell_repository.dart';
 import 'package:provider/provider.dart';
+import 'spell_detail_screen.dart';
 
 class SpellSelectionScreen extends StatefulWidget {
   final List<Spell> selectedSpells;
@@ -173,7 +174,21 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                                       message: 'Requires more power',
                                       child: const Icon(Icons.lock, color: Colors.grey),
                                     )),
-                            onTap: canSelect ? () => _handleSpellSelection(spell) : null,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SpellDetailScreen(
+                                    spell: spell,
+                                    onSpellSelected: (spell) {
+                                      if (canSelect) {
+                                        _handleSpellSelection(spell);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         );
                       },
