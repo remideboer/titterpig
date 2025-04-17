@@ -377,6 +377,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                               ScaffoldMessenger.of(context).showSnackBar(
                                                 SnackBar(
                                                   content: Text('Used ${spell.name} (${spell.cost} power)'),
+                                                  backgroundColor: AppTheme.greenColor,
                                                   duration: const Duration(seconds: 2),
                                                 ),
                                               );
@@ -384,7 +385,11 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                           } else {
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
-                                                content: Text('Insufficient power to cast ${spell.name} (requires ${spell.cost} power)'),
+                                                content: Text(
+                                                  'Insufficient power to cast ${spell.name} (requires ${spell.cost} power)',
+                                                  style: TextStyle(color: AppTheme.accentColor),
+                                                ),
+                                                backgroundColor: AppTheme.highlightColor,
                                                 duration: const Duration(seconds: 2),
                                               ),
                                             );

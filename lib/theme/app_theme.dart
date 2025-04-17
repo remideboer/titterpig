@@ -6,6 +6,7 @@ class AppTheme {
   static const Color highlightColor = Color(0xFF822000);
   static const Color accentColor = Color(0xFFFFC300);
   static const Color statDisplayColor = Color(0xCCCCCC);
+  static const Color greenColor = Color(0xFF21A007);
 
   // Common border styles
   static BoxDecoration defaultBorder = BoxDecoration(
