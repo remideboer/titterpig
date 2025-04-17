@@ -4,6 +4,9 @@ import 'character_list_screen.dart';
 import 'spell_list_screen.dart';
 import 'spells_admin_screen.dart';
 import '../models/character.dart';
+import '../repositories/local_character_repository.dart';
+import '../repositories/last_selected_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -15,8 +18,35 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   Character? _selectedCharacter;
+  final LocalCharacterRepository _characterRepository = LocalCharacterRepository();
+  late final LastSelectedRepository _lastSelectedRepository;
 
-  void _onCharacterSelected(Character character) {
+  @override
+  void initState() {
+    super.initState();
+    _initializeRepositories();
+  }
+
+  Future<void> _initializeRepositories() async {
+    final prefs = await SharedPreferences.getInstance();
+    _lastSelectedRepository = LastSelectedRepository(prefs);
+    await _loadLastSelectedCharacter();
+  }
+
+  Future<void> _loadLastSelectedCharacter() async {
+    final lastSelectedId = _lastSelectedRepository.getLastSelectedCharacterId();
+    if (lastSelectedId != null) {
+      final character = await _characterRepository.getCharacter(lastSelectedId);
+      if (character != null) {
+        setState(() {
+          _selectedCharacter = character;
+        });
+      }
+    }
+  }
+
+  void _onCharacterSelected(Character character) async {
+    await _lastSelectedRepository.setLastSelectedCharacterId(character.id);
     setState(() {
       _selectedCharacter = character;
       _selectedIndex = 1; // Switch to character sheet tab
