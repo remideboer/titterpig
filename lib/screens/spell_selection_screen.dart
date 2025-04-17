@@ -29,7 +29,7 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
     _selectedSpells = List.from(widget.selectedSpells);
   }
 
-  void _handleSpellSelection(Spell spell) {
+  Future<void> _handleSpellSelection(Spell spell) async {
     setState(() {
       if (_selectedSpells.any((s) => s.name == spell.name)) {
         _selectedSpells.removeWhere((s) => s.name == spell.name);
@@ -37,81 +37,95 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
         _selectedSpells.add(spell);
       }
     });
+    
+    // Save changes immediately without closing
+    await _saveChanges(shouldNavigate: false);
   }
 
-  Future<void> _saveChanges() async {
+  Future<void> _saveChanges({bool shouldNavigate = true}) async {
     final updatedCharacter = widget.character.copyWith(
       spells: List<Spell>.from(_selectedSpells),
     );
     updatedCharacter.updateDerivedStats();
     await _repository.updateCharacter(updatedCharacter);
-    if (mounted) {
+    
+    // Only navigate if explicitly requested
+    if (shouldNavigate && mounted) {
       Navigator.pop(context, updatedCharacter);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manage Spells'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveChanges,
+    return WillPopScope(
+      onWillPop: () async {
+        await _saveChanges(shouldNavigate: true);
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Manage Spells'),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              await _saveChanges(shouldNavigate: true);
+              if (mounted) {
+                Navigator.pop(context);
+              }
+            },
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Max Power: ${widget.character.powerStat.max}',
-              style: Theme.of(context).textTheme.titleMedium,
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Max Power: ${widget.character.powerStat.max}',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: Spell.availableSpells.length,
-              itemBuilder: (context, index) {
-                final spell = Spell.availableSpells[index];
-                final isSelected = _selectedSpells.any((s) => s.name == spell.name);
-                final canSelect = spell.cost <= widget.character.powerStat.max;
-                
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  child: ListTile(
-                    leading: _buildHexagon(spell.cost.toString(), ''),
-                    title: Text(spell.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (spell.damage.isNotEmpty)
-                          Text('${spell.damage} ${spell.effect}'),
-                        Text('${spell.type} • Range: ${spell.range}'),
-                      ],
+            Expanded(
+              child: ListView.builder(
+                itemCount: Spell.availableSpells.length,
+                itemBuilder: (context, index) {
+                  final spell = Spell.availableSpells[index];
+                  final isSelected = _selectedSpells.any((s) => s.name == spell.name);
+                  final canSelect = spell.cost <= widget.character.powerStat.max;
+                  
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    child: ListTile(
+                      leading: _buildHexagon(spell.cost.toString(), ''),
+                      title: Text(spell.name),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (spell.damage.isNotEmpty)
+                            Text('${spell.damage} ${spell.effect}'),
+                          Text('${spell.type} • Range: ${spell.range}'),
+                        ],
+                      ),
+                      trailing: isSelected
+                        ? const Icon(Icons.check, color: AppTheme.primaryColor)
+                        : (canSelect
+                            ? IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: () => _handleSpellSelection(spell),
+                              )
+                            : Tooltip(
+                                message: 'Requires more power',
+                                child: const Icon(Icons.lock, color: Colors.grey),
+                              )),
+                      onTap: canSelect ? () => _handleSpellSelection(spell) : null,
                     ),
-                    trailing: isSelected
-                      ? const Icon(Icons.check, color: AppTheme.primaryColor)
-                      : (canSelect
-                          ? IconButton(
-                              icon: const Icon(Icons.add),
-                              onPressed: () => _handleSpellSelection(spell),
-                            )
-                          : Tooltip(
-                              message: 'Requires more power',
-                              child: const Icon(Icons.lock, color: Colors.grey),
-                            )),
-                    onTap: canSelect ? () => _handleSpellSelection(spell) : null,
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
