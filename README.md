@@ -142,6 +142,47 @@ Feature: Character Persistence
     And I should be taken to that character's sheet
 ```
 
+### Character List Sorting
+
+```gherkin
+Feature: Character List Sorting
+  As a player
+  I want to sort my character list
+  So that I can easily find and organize my characters
+
+  Scenario: Selecting sort criteria
+    Given I am viewing the character list
+    When I click the sort button
+    Then I should see available sort options
+    When I select a sort option
+    Then it should be added to the active sort criteria
+    And the character list should be sorted accordingly
+
+  Scenario: Reordering sort criteria
+    Given I have multiple sort criteria selected
+    When I drag a sort criterion to a new position
+    Then the sort precedence should update
+    And the character list should be reordered based on the new precedence
+
+  Scenario: Toggling sort direction
+    Given I have a sort criterion selected
+    When I click the direction toggle
+    Then the sort direction should change
+    And the character list should be reordered accordingly
+
+  Scenario: Removing sort criteria
+    Given I have a sort criterion selected
+    When I click the sort criterion
+    Then it should be removed from the active sort criteria
+    And the character list should be reordered without that criterion
+
+  Scenario: Multiple sort criteria
+    Given I have multiple sort criteria selected
+    When characters have the same value for the first criterion
+    Then they should be sorted by the second criterion
+    And so on for each subsequent criterion
+```
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
