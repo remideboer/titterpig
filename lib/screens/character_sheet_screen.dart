@@ -160,6 +160,9 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         if (didPop) {
           widget.character.updateDerivedStats();
           await widget.onCharacterUpdated(widget.character);
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
         }
       },
       child: Scaffold(

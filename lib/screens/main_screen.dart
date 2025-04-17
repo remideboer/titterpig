@@ -61,59 +61,90 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          CharacterListScreen(
-            onCharacterSelected: _onCharacterSelected,
-          ),
-          if (_selectedCharacter != null)
-            CharacterSheetScreen(
-              character: _selectedCharacter!,
-              onCharacterUpdated: _onCharacterUpdated,
-            )
-          else
-            const Center(
-              child: Text(
-                'Select a character from the list',
-                style: TextStyle(fontSize: 18),
-              ),
+    return WillPopScope(
+      onWillPop: () async {
+        if (_selectedIndex == 0) {
+          // On home screen, show confirmation dialog
+          final shouldPop = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Exit App?'),
+              content: const Text('Are you sure you want to exit the app?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Exit'),
+                ),
+              ],
             ),
-          const SpellsAdminScreen(),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          if (index == 1 && _selectedCharacter == null) {
-            // Don't allow navigation to character sheet without a selected character
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Please select a character first'),
-                duration: Duration(seconds: 2),
-              ),
-            );
-            return;
-          }
+          );
+          return shouldPop ?? false;
+        } else {
+          // Not on home screen, navigate back to home
           setState(() {
-            _selectedIndex = index;
+            _selectedIndex = 0;
           });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Characters',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Character Sheet',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.auto_awesome),
-            label: 'Spells',
-          ),
-        ],
+          return false;
+        }
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            CharacterListScreen(
+              onCharacterSelected: _onCharacterSelected,
+            ),
+            if (_selectedCharacter != null)
+              CharacterSheetScreen(
+                character: _selectedCharacter!,
+                onCharacterUpdated: _onCharacterUpdated,
+              )
+            else
+              const Center(
+                child: Text(
+                  'Select a character from the list',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+            const SpellsAdminScreen(),
+          ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            if (index == 1 && _selectedCharacter == null) {
+              // Don't allow navigation to character sheet without a selected character
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Please select a character first'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              return;
+            }
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.list),
+              label: 'Characters',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Character Sheet',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.auto_awesome),
+              label: 'Spells',
+            ),
+          ],
+        ),
       ),
     );
   }
