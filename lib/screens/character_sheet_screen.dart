@@ -324,8 +324,8 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                             ),
                             TextButton.icon(
                               onPressed: _showSpellSelection,
-                              icon: const Icon(Icons.add),
-                              label: const Text('Add Spell'),
+                              icon: const Icon(Icons.auto_awesome),
+                              label: const Text('Manage Spells'),
                             ),
                           ],
                         ),
@@ -358,18 +358,22 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                         Text('${spell.type} • Range: ${spell.range}'),
                                       ],
                                     ),
-                                    trailing: IconButton(
-                                      icon: const Icon(Icons.delete),
-                                      onPressed: () {
-                                        setState(() {
-                                          _character = _character.copyWith(
-                                            spells: _character.spells.where((s) => 
-                                              s.name != spell.name || s.source != spell.source
-                                            ).toList(),
-                                          );
-                                        });
-                                      },
+                                    trailing: Icon(
+                                      Icons.flash_on,
+                                      color: canUse ? Colors.amber : Colors.grey,
                                     ),
+                                    onTap: canUse ? () {
+                                      setState(() {
+                                        _character.availablePower -= spell.cost;
+                                        _updateLastUsed();
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Used ${spell.name} (${spell.cost} power)'),
+                                            duration: const Duration(seconds: 2),
+                                          ),
+                                        );
+                                      });
+                                    } : null,
                                     onLongPress: () {
                                       showDialog(
                                         context: context,
@@ -387,9 +391,9 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                               Text('Range: ${spell.range}'),
                                               const SizedBox(height: 8),
                                               Text(
-                                                'You have ${_character.power} power available.',
+                                                'You have ${_character.availablePower} power available.',
                                                 style: TextStyle(
-                                                  color: _character.power >= spell.cost
+                                                  color: canUse
                                                       ? Colors.green
                                                       : Colors.red,
                                                 ),

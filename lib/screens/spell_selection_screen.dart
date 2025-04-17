@@ -46,9 +46,17 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Spells'),
+        title: const Text('Manage Spells'),
         backgroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
       ),
       body: Consumer<SpellListViewModel>(
         builder: (context, viewModel, child) {
@@ -99,15 +107,22 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                     Text('${spell.type} • Range: ${spell.range}'),
                   ],
                 ),
-                trailing: isSelected
-                    ? Icon(
-                        Icons.check_circle,
-                        color: Theme.of(context).primaryColor,
-                      )
-                    : Icon(
-                        Icons.check_circle_outline,
-                        color: isAvailable ? Colors.grey : Colors.grey[300],
-                      ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.flash_on,
+                      color: isAvailable ? Colors.amber : Colors.grey,
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      isSelected ? Icons.check_circle : Icons.check_circle_outline,
+                      color: isSelected 
+                          ? Theme.of(context).primaryColor 
+                          : (isAvailable ? Colors.grey : Colors.grey[300]),
+                    ),
+                  ],
+                ),
                 onTap: isAvailable
                     ? () => _handleSpellSelection(spell)
                     : null,
