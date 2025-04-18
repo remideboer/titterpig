@@ -389,7 +389,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             IconButton(
-                                              icon: const Icon(Icons.flash_on),
+                                              icon: Icon(canUse ? Icons.flash_on : Icons.flash_off),
                                               color: canUse ? AppTheme.highlightColor : Colors.grey,
                                               onPressed: canUse ? () => _castSpell(spell) : null,
                                               tooltip: canUse ? 'Cast spell' : 'Not enough power',
