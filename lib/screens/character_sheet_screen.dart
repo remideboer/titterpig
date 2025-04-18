@@ -407,7 +407,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                           children: [
                                             if (spell.effectValue != null)
                                               Text(
-                                                '${spell.effectValue} ${spell.effect}',
+                                                '${spell.effectValue}',
                                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                                   color: AppTheme.highlightColor,
                                                 ),
