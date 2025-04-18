@@ -4,6 +4,7 @@ import 'species.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../repositories/spell_repository.dart';
 import 'def_category.dart';
+import '../utils/spell_limit_calculator.dart';
 import 'package:flutter/foundation.dart';
 
 class Character {
@@ -270,12 +271,18 @@ class Character {
 
   List<Spell> get spells => _spells;
   set spells(List<Spell> newSpells) {
-    _spells = newSpells;
+    final spellLimit = SpellLimitCalculator.calculateSpellLimit(wil);
+    if (newSpells.length > spellLimit) {
+      _spells = newSpells.sublist(0, spellLimit);
+    } else {
+      _spells = newSpells;
+    }
     updateDerivedStats();
   }
 
   void addSpell(Spell spell) {
-    if (!_spells.any((s) => s.versionId == spell.versionId)) {
+    final spellLimit = SpellLimitCalculator.calculateSpellLimit(wil);
+    if (_spells.length < spellLimit && !_spells.any((s) => s.versionId == spell.versionId)) {
       _spells.add(spell);
       updateDerivedStats();
     }
@@ -287,6 +294,7 @@ class Character {
   }
 
   void updateSpells(List<Spell> updatedSpells) {
+    final spellLimit = SpellLimitCalculator.calculateSpellLimit(wil);
     final Map<String, Spell> currentMap = {
       for (var spell in _spells) spell.name: spell
     };
@@ -295,6 +303,10 @@ class Character {
       final currentSpell = currentMap[spell.name];
       return currentSpell == null || spell.isNewerThan(currentSpell);
     }).toList();
+
+    if (_spells.length > spellLimit) {
+      _spells = _spells.sublist(0, spellLimit);
+    }
     
     updateDerivedStats();
   }

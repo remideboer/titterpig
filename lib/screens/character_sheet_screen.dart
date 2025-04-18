@@ -19,6 +19,7 @@ import 'spell_detail_screen.dart';
 import 'character_creation_screen.dart';
 import 'package:ttrpg_character_manager/widgets/animated_dice.dart';
 import '../utils/sound_manager.dart';
+import '../utils/spell_limit_calculator.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -184,7 +185,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
           ),
           child: SpellSelectionScreen(
             selectedSpells: _character.spells,
-            character: _character,
+            maxSpells: SpellLimitCalculator.calculateSpellLimit(_character.wil),
             onSpellsChanged: (updatedSpells) {
               setState(() {
                 _character.spells = updatedSpells;

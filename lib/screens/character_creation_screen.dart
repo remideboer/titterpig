@@ -12,6 +12,7 @@ import '../models/species_option.dart';
 import '../models/def_category.dart';
 import '../theme/app_theme.dart';
 import '../models/spell.dart';
+import '../utils/spell_limit_calculator.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../repositories/settings_repository.dart';
@@ -131,12 +132,21 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
   }
 
   void _setStatValue(String stat, int value) {
-    switch (stat) {
-      case 'vit': _vit = value; break;
-      case 'ath': _ath = value; break;
-      case 'wil': _wil = value; break;
-      default: throw ArgumentError('Invalid stat: $stat');
-    }
+    setState(() {
+      switch (stat) {
+        case 'vit': _vit = value; break;
+        case 'ath': _ath = value; break;
+        case 'wil': 
+          _wil = value;
+          // If reducing WIL would put us over the spell limit, remove excess spells
+          final spellLimit = SpellLimitCalculator.calculateSpellLimit(_wil);
+          if (_spells.length > spellLimit) {
+            _spells = _spells.sublist(0, spellLimit);
+          }
+          break;
+        default: throw ArgumentError('Invalid stat: $stat');
+      }
+    });
   }
 
   void _selectDefense(DefCategory category) {
@@ -213,6 +223,46 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         Navigator.of(context).pop(savedCharacter);
       }
     });
+  }
+
+  void _showSpellSelection() async {
+    final spellLimit = SpellLimitCalculator.calculateSpellLimit(_wil);
+    if (_spells.length >= spellLimit) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('You can\'t have more than $spellLimit spells with WIL $_wil'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final result = await showDialog<List<Spell>>(
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: SpellSelectionScreen(
+            selectedSpells: _spells,
+            maxSpells: spellLimit,
+            onSpellsChanged: (updatedSpells) {
+              setState(() {
+                _spells = updatedSpells;
+              });
+            },
+          ),
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _spells = result;
+      });
+    }
   }
 
   @override
@@ -458,7 +508,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.add),
-                            onPressed: _toggleSpellOverlay,
+                            onPressed: _showSpellSelection,
                           ),
                         ],
                       ),
