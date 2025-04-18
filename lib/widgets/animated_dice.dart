@@ -86,7 +86,10 @@ class _AnimatedDiceState extends State<AnimatedDice> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Container(
       width: 300,
-      height: 200,
+      constraints: const BoxConstraints(
+        minHeight: 200,
+        maxHeight: 250,
+      ),
       child: Stack(
         children: [
           // Background overlay
@@ -94,6 +97,7 @@ class _AnimatedDiceState extends State<AnimatedDice> with SingleTickerProviderSt
             color: Colors.black54,
             child: Center(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Dice display
@@ -118,15 +122,15 @@ class _AnimatedDiceState extends State<AnimatedDice> with SingleTickerProviderSt
                       );
                     }),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   // Rolling text
                   Text(
                     _isRolling ? 'Rolling...' : '${_calculateTotal()}',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: Colors.white,
                       fontSize: _isRolling ? null : Theme.of(context).textTheme.titleLarge?.fontSize != null 
-                        ? Theme.of(context).textTheme.titleLarge!.fontSize! * 3 
-                        : 48,
+                        ? Theme.of(context).textTheme.titleLarge!.fontSize! * 2.5 
+                        : 40,
                     ),
                   ),
                 ],
