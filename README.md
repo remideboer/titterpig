@@ -24,13 +24,13 @@ A Flutter application for managing tabletop RPG characters, with support for cha
 ## Business Rules
 
 ### Character Creation
-- Total stat points: 6 points to distribute
+- Total stat points: 3 points to distribute
 - Minimum stat value: -3
 - Maximum stat value: 3
 - HP calculation: Base 6 + (2 × VIT)
 - Life calculation: Base 3 + VIT
 - Power calculation: WIL × 3
-- Defense calculation: Base defense from category + 2 if shield is active
+- Defense calculation: ATH + Base defense from category + 2 if shield is active
 
 ### Spell Management
 - Spell cost must be less than or equal to character's power
@@ -39,6 +39,7 @@ A Flutter application for managing tabletop RPG characters, with support for cha
   - 1st level spells cost 2
   - 2nd level spells cost 3
   - And so on...
+- Damage dice conversion: Convert all damage dice to d6 system (e.g., 2d8 becomes 2d6)
 - Spell versioning: Each spell has a unique versionId and lastUpdated timestamp
 - Spell updates: Only newer versions of spells replace existing ones
 
@@ -48,6 +49,7 @@ A Flutter application for managing tabletop RPG characters, with support for cha
 - Heavy: +3 defense
 - None: +0 defense
 - Shield bonus: +2 defense (stacks with category)
+- Base defense: Equal to ATH stat
 
 ## Gherkin Scenarios
 
