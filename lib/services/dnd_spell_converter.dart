@@ -39,9 +39,14 @@ class DndSpellConverter {
     
     if (count == 0 || size == 0) return '';
     
-    // Convert to d6 system
-    final convertedCount = ((count * size) / 6).floor();
-    return '${convertedCount}d6';
+    // Calculate maximum possible damage
+    final maxDamage = count * size;
+    
+    // Convert to d6 system by dividing max damage by 6 and rounding up
+    final convertedCount = (maxDamage / 6).ceil();
+    
+    // Add damage value explanation
+    return '${convertedCount}d6 (1-2=0, 3-5=1, 6=2)';
   }
 
   String _createEffectDescription(DndSpell dndSpell) {

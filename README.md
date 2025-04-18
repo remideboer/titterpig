@@ -39,7 +39,9 @@ A Flutter application for managing tabletop RPG characters, with support for cha
   - 1st level spells cost 1
   - 2nd level spells cost 2
   - And so on...
-- Damage dice conversion: Convert all damage dice to d6 system (e.g., 2d8 becomes 2d6)
+- Damage dice conversion: 
+  - Convert all damage dice to d6 system by dividing maximum value by 6 and rounding up (e.g., 1d8 => 8/6=1.33 => 2d6, 5d4 => 20/6=3.33 => 4d6)
+  - Final d6 values: 1-2 = no damage, 3-5 = 1 damage, 6 = 2 damage
 - Spell versioning: Each spell has a unique versionId and lastUpdated timestamp
 - Spell updates: Only newer versions of spells replace existing ones
 
