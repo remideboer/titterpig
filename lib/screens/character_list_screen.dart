@@ -56,7 +56,6 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Characters'),
-        backgroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(

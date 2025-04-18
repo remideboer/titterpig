@@ -19,6 +19,10 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
   final _nameController = TextEditingController();
   final _costController = TextEditingController();
   final _effectController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _damageController = TextEditingController();
+  final _typeController = TextEditingController();
+  final _rangeController = TextEditingController();
 
   @override
   void initState() {
@@ -27,6 +31,10 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
       _nameController.text = widget.spell!.name;
       _costController.text = widget.spell!.cost.toString();
       _effectController.text = widget.spell!.effect;
+      _descriptionController.text = widget.spell!.description;
+      _damageController.text = widget.spell!.damage;
+      _typeController.text = widget.spell!.type;
+      _rangeController.text = widget.spell!.range;
     }
   }
 
@@ -35,6 +43,10 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
     _nameController.dispose();
     _costController.dispose();
     _effectController.dispose();
+    _descriptionController.dispose();
+    _damageController.dispose();
+    _typeController.dispose();
+    _rangeController.dispose();
     super.dispose();
   }
 
@@ -42,8 +54,12 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       final spell = Spell(
         name: _nameController.text,
-        cost: int.parse(_costController.text),
+        description: _descriptionController.text,
+        cost: int.tryParse(_costController.text) ?? 0,
+        damage: _damageController.text,
         effect: _effectController.text,
+        type: _typeController.text,
+        range: _rangeController.text,
       );
 
       if (widget.spell != null) {
@@ -106,6 +122,39 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
                 border: OutlineInputBorder(),
               ),
               maxLines: 5,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 5,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _damageController,
+              decoration: const InputDecoration(
+                labelText: 'Damage',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _typeController,
+              decoration: const InputDecoration(
+                labelText: 'Type',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _rangeController,
+              decoration: const InputDecoration(
+                labelText: 'Range',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 16),
             // Add more fields here as needed

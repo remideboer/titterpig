@@ -2,25 +2,29 @@ import '../models/dnd_spell.dart';
 import '../models/spell.dart';
 
 class DndSpellConverter {
-  Spell convertToSpell(DndSpell dndSpell) {
-    // Calculate spell cost based on level
-    int cost = _calculateSpellCost(dndSpell.level);
-    
-    // Convert damage dice if present
-    String convertedDamage = '';
-    if (dndSpell.damage.isNotEmpty) {
-      convertedDamage = _convertDamageDice(dndSpell.damage);
-    }
-
-    // Create effect description
-    String effect = _createEffectDescription(dndSpell);
-
+  static Spell convertToSpell(Map<String, dynamic> dndSpell) {
     return Spell(
-      name: dndSpell.name,
-      cost: cost,
-      damage: convertedDamage,
-      effect: effect,
+      name: dndSpell['name'] ?? 'Unknown Spell',
+      description: dndSpell['desc']?.join('\n') ?? 'No description available',
+      cost: _calculateCost(dndSpell),
+      isDndSpell: true,
+      damage: dndSpell['damage']?['damage_at_slot_level']?.values.first ?? '',
+      effect: dndSpell['desc']?.join('\n') ?? '',
+      type: dndSpell['school']?['name'] ?? 'Spell',
+      range: dndSpell['range'] ?? 'Self',
     );
+  }
+
+  static int _calculateCost(Map<String, dynamic> dndSpell) {
+    // Get the spell level from the D&D spell data
+    final level = dndSpell['level'] ?? 0;
+    
+    // Convert D&D spell level to our cost system:
+    // - Cantrips (level 0) cost 1
+    // - 1st level spells cost 2
+    // - 2nd level spells cost 3
+    // - And so on...
+    return level + 1;
   }
 
   int _calculateSpellCost(int level) {

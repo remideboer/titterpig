@@ -1,135 +1,107 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Main colors
-  static const Color primaryColor = Color(0xFF006282);
-  static const Color highlightColor = Color(0xFF822000);
-  static const Color accentColor = Color(0xFFFFC300);
-  static const Color statDisplayColor = Color(0xCCCCCC);
-  static const Color greenColor = Color(0xFF21A007);
+  // Colors
+  static const Color primaryColor = Color(0xFF2C3E50);
+  static const Color accentColor = Color(0xFF3498DB);
+  static const Color highlightColor = Color(0xFFE74C3C);
+  static const Color greenColor = Color(0xFF4CAF50);
+  static const Color redColor = Color(0xFFE57373);
 
-  // Common border styles
-  static BoxDecoration defaultBorder = BoxDecoration(
-    border: Border.all(color: primaryColor, width: 2),
-    borderRadius: BorderRadius.circular(8),
-  );
-
-  static BoxDecoration selectedBorder = BoxDecoration(
-    border: Border.all(color: accentColor, width: 2),
-    color: highlightColor,
-    borderRadius: BorderRadius.circular(8),
-  );
-
-  // Common button styles
-  static ButtonStyle primaryButtonStyle = ElevatedButton.styleFrom(
-    backgroundColor: primaryColor,
-    foregroundColor: Colors.white,
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
-  );
-
-  static ButtonStyle selectedButtonStyle = ElevatedButton.styleFrom(
-    backgroundColor: highlightColor,
-    foregroundColor: Colors.white,
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-      side: const BorderSide(color: accentColor, width: 2),
-    ),
-  );
-
-  // Common text styles
+  // Text Styles
   static const TextStyle titleStyle = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
-    color: primaryColor,
   );
 
   static const TextStyle bodyStyle = TextStyle(
     fontSize: 16,
-    color: primaryColor,
   );
 
-  // Common input decoration
-  static InputDecoration inputDecoration = InputDecoration(
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: primaryColor),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: highlightColor, width: 2),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: primaryColor),
-    ),
+  // Borders
+  static BoxDecoration defaultBorder = BoxDecoration(
+    border: Border.all(color: primaryColor),
+    borderRadius: BorderRadius.circular(8),
   );
 
-  // Complete theme data
-  static ThemeData get themeData {
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.light(
-        primary: primaryColor,
-        secondary: highlightColor,
-        tertiary: accentColor,
+  // Themes
+  static ThemeData get lightTheme => ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: primaryColor,
+      brightness: Brightness.light,
+    ),
+    cardTheme: CardTheme(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        titleTextStyle: titleStyle,
-        iconTheme: IconThemeData(color: primaryColor),
+    ),
+    appBarTheme: const AppBarTheme(
+      centerTitle: true,
+      elevation: 0,
+      backgroundColor: Colors.white,
+      foregroundColor: primaryColor,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
       ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: primaryButtonStyle,
-      ),
-      cardTheme: CardTheme(
-        elevation: 2,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: primaryColor, width: 2),
         ),
       ),
-      inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: primaryColor),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: highlightColor, width: 2),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: primaryColor),
-        ),
-      ),
-      textTheme: const TextTheme(
-        titleLarge: titleStyle,
-        titleMedium: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: primaryColor,
-        ),
-        bodyLarge: bodyStyle,
-        bodyMedium: TextStyle(
-          fontSize: 14,
-          color: primaryColor,
-        ),
-      ),
-    );
-  }
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Colors.white,
+      selectedItemColor: primaryColor,
+      unselectedItemColor: highlightColor,
+      type: BottomNavigationBarType.fixed,
+    ),
+  );
 
-  // Common widget styles
-  static BoxDecoration get cardDecoration => defaultBorder;
-  
-  static BoxDecoration get selectedCardDecoration => selectedBorder;
-  
-  static BoxDecoration get circularDecoration => BoxDecoration(
-    shape: BoxShape.circle,
-    border: Border.all(color: primaryColor, width: 2),
+  static ThemeData get darkTheme => ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: primaryColor,
+      brightness: Brightness.dark,
+    ),
+    cardTheme: CardTheme(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+    ),
+    appBarTheme: const AppBarTheme(
+      centerTitle: true,
+      elevation: 0,
+      backgroundColor: Color(0xFF121212),
+      foregroundColor: Colors.white,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Color(0xFF121212),
+      selectedItemColor: accentColor,
+      unselectedItemColor: Colors.grey,
+      type: BottomNavigationBarType.fixed,
+    ),
   );
 } 

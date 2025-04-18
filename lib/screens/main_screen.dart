@@ -3,13 +3,20 @@ import 'character_sheet_screen.dart';
 import 'character_list_screen.dart';
 import 'spell_list_screen.dart';
 import 'spells_admin_screen.dart';
+import 'settings_screen.dart';
 import '../models/character.dart';
 import '../repositories/local_character_repository.dart';
 import '../repositories/last_selected_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../theme/app_theme.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final Function(bool) onThemeChanged;
+
+  const MainScreen({
+    super.key,
+    required this.onThemeChanged,
+  });
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -20,11 +27,21 @@ class _MainScreenState extends State<MainScreen> {
   Character? _selectedCharacter;
   final LocalCharacterRepository _characterRepository = LocalCharacterRepository();
   late final LastSelectedRepository _lastSelectedRepository;
+  bool _isDarkMode = false;
+  static const String _themeKey = 'isDarkMode';
 
   @override
   void initState() {
     super.initState();
     _initializeRepositories();
+    _loadThemePreference();
+  }
+
+  Future<void> _loadThemePreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isDarkMode = prefs.getBool(_themeKey) ?? false;
+    });
   }
 
   Future<void> _initializeRepositories() async {
@@ -60,18 +77,39 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  Future<bool> _onWillPop() async {
+    if (_selectedIndex != 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+      return false;
+    }
+
+    final shouldExit = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Exit App?'),
+        content: const Text('Do you want to exit the app?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    ) ?? false;
+
+    return shouldExit;
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        if (_selectedIndex != 0) {
-          setState(() {
-            _selectedIndex = 0;
-          });
-          return false;
-        }
-        return true;
-      },
+      onWillPop: _onWillPop,
       child: Scaffold(
         body: IndexedStack(
           index: _selectedIndex,
@@ -92,6 +130,15 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
             const SpellsAdminScreen(),
+            SettingsScreen(
+              isDarkMode: _isDarkMode,
+              onThemeChanged: (value) {
+                setState(() {
+                  _isDarkMode = value;
+                });
+                widget.onThemeChanged(value);
+              },
+            ),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(
@@ -123,6 +170,10 @@ class _MainScreenState extends State<MainScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.auto_awesome),
               label: 'Spells',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings),
+              label: 'Settings',
             ),
           ],
         ),

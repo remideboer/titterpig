@@ -4,8 +4,8 @@ import '../models/character.dart';
 import '../widgets/hexagon_shape.dart';
 import '../theme/app_theme.dart';
 import '../repositories/local_character_repository.dart';
-import '../repositories/spell_repository.dart';
 import 'package:provider/provider.dart';
+import '../viewmodels/spell_list_viewmodel.dart';
 import 'spell_detail_screen.dart';
 
 class SpellSelectionScreen extends StatefulWidget {
@@ -25,7 +25,6 @@ class SpellSelectionScreen extends StatefulWidget {
 class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   late List<Spell> _selectedSpells;
   final LocalCharacterRepository _repository = LocalCharacterRepository();
-  final SpellRepository _spellRepository = SpellRepository(baseUrl: 'https://api.example.com');
   List<Spell> _availableSpells = [];
   bool _isLoading = true;
   double _maxCost = 0;
@@ -44,10 +43,11 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
     });
 
     try {
-      final spells = await _spellRepository.getSpells();
+      final viewModel = context.read<SpellListViewModel>();
+      await viewModel.loadSpells();
       setState(() {
-        _availableSpells = spells;
-        _maxCost = spells.map((s) => s.cost.toDouble()).reduce((a, b) => a > b ? a : b);
+        _availableSpells = viewModel.allSpells;
+        _maxCost = _availableSpells.map((s) => s.cost.toDouble()).reduce((a, b) => a > b ? a : b);
         _costRange = RangeValues(0, _maxCost);
         _isLoading = false;
       });
@@ -89,7 +89,6 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
     updatedCharacter.updateDerivedStats();
     await _repository.updateCharacter(updatedCharacter);
     
-    // Only navigate if explicitly requested
     if (shouldNavigate && mounted) {
       Navigator.pop(context, updatedCharacter);
     }
@@ -99,86 +98,70 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        await _saveChanges(shouldNavigate: true);
+        await _saveChanges(shouldNavigate: false);
         return true;
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Manage Spells'),
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () async {
-              await _saveChanges(shouldNavigate: true);
-              if (mounted) {
-                Navigator.pop(context);
-              }
-            },
+      child: Column(
+        children: [
+          // Header with title and close button
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Manage Spells',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  color: AppTheme.primaryColor,
+                  onPressed: () {
+                    _saveChanges(shouldNavigate: false);
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: () => _saveChanges(shouldNavigate: true),
-            ),
-          ],
-        ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Max Power: ${widget.character.powerStat.max}',
-                style: Theme.of(context).textTheme.titleMedium,
+          // Max power display
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              'Max Power: ${widget.character.powerStat.max}',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: AppTheme.primaryColor,
               ),
             ),
-            // Cost filter range slider
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Filter by Cost: ${_costRange.start.toInt()} - ${_costRange.end.toInt()}',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Text('0'),
-                      Expanded(
-                        child: RangeSlider(
-                          values: _costRange,
-                          min: 0,
-                          max: _maxCost,
-                          divisions: _maxCost.toInt(),
-                          labels: RangeLabels(
-                            _costRange.start.toInt().toString(),
-                            _costRange.end.toInt().toString(),
-                          ),
-                          onChanged: (values) {
-                            setState(() {
-                              _costRange = values;
-                            });
-                          },
-                        ),
-                      ),
-                      Text(_maxCost.toInt().toString()),
-                    ],
-                  ),
-                ],
+          ),
+          // Cost filter range slider
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: RangeSlider(
+              values: _costRange,
+              min: 0,
+              max: _maxCost,
+              divisions: _maxCost.toInt(),
+              activeColor: AppTheme.primaryColor,
+              inactiveColor: AppTheme.highlightColor,
+              labels: RangeLabels(
+                _costRange.start.round().toString(),
+                _costRange.end.round().toString(),
               ),
+              onChanged: (RangeValues values) {
+                setState(() {
+                  _costRange = values;
+                });
+              },
             ),
-            if (_isLoading)
-              const Center(child: CircularProgressIndicator())
-            else
-              Expanded(
-                child: Builder(
-                  builder: (context) {
-                    if (_isLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
+          ),
+          Expanded(
+            child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Consumer<SpellListViewModel>(
+                  builder: (context, viewModel, child) {
                     // Sort spells: selected first, then by cost and name
                     final filteredSpells = _getFilteredSpells();
                     final sortedSpells = List<Spell>.from(filteredSpells)
@@ -212,25 +195,41 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                           margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           child: ListTile(
                             leading: _buildHexagon(spell.cost.toString(), ''),
-                            title: Text(spell.name),
+                            title: Text(
+                              spell.name,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 if (spell.damage.isNotEmpty)
-                                  Text('${spell.damage} ${spell.effect}'),
-                                Text('${spell.type} • Range: ${spell.range}'),
+                                  Text(
+                                    '${spell.damage} ${spell.effect}',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: AppTheme.highlightColor,
+                                    ),
+                                  ),
+                                Text(
+                                  '${spell.type} • Range: ${spell.range}',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppTheme.highlightColor,
+                                  ),
+                                ),
                               ],
                             ),
                             trailing: isSelected
-                              ? const Icon(Icons.check, color: AppTheme.primaryColor)
+                              ? Icon(Icons.check, color: AppTheme.primaryColor)
                               : (canSelect
                                   ? IconButton(
                                       icon: const Icon(Icons.add),
+                                      color: AppTheme.primaryColor,
                                       onPressed: () => _handleSpellSelection(spell),
                                     )
                                   : Tooltip(
                                       message: 'Requires more power',
-                                      child: const Icon(Icons.lock, color: Colors.grey),
+                                      child: Icon(Icons.lock, color: AppTheme.highlightColor),
                                     )),
                             onTap: () {
                               Navigator.push(
@@ -253,9 +252,21 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                     );
                   },
                 ),
+          ),
+          // Save button
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton(
+              onPressed: () => _saveChanges(shouldNavigate: true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: AppTheme.accentColor,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
-          ],
-        ),
+              child: const Text('Save Changes'),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -21,12 +21,12 @@ import 'spell_detail_screen.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
-  final Function(Character) onCharacterUpdated;
+  final Function(Character)? onCharacterUpdated;
 
   const CharacterSheetScreen({
     super.key,
     required this.character,
-    required this.onCharacterUpdated,
+    this.onCharacterUpdated,
   });
 
   @override
@@ -173,12 +173,18 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   }
 
   void _showSpellSelection() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SpellSelectionScreen(
-          selectedSpells: _character.spells,
-          character: _character,
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: SpellSelectionScreen(
+            selectedSpells: _character.spells,
+            character: _character,
+          ),
         ),
       ),
     ).then((updatedCharacter) {
@@ -203,7 +209,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
       onPopInvoked: (didPop) async {
         if (didPop) {
           _character.updateDerivedStats();
-          await widget.onCharacterUpdated(_character);
+          await widget.onCharacterUpdated?.call(_character);
         }
       },
       child: Scaffold(
@@ -214,13 +220,16 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
               color: isDead ? Colors.grey : null,
             ),
           ),
-          backgroundColor: Colors.white,
           elevation: 0,
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: _resetPower,
               tooltip: 'Reset Power',
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => _showEditDialog(context),
             ),
           ],
         ),
@@ -635,7 +644,13 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
               child: Container(
                 width: size,
                 height: size,
-                decoration: AppTheme.defaultBorder,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: AppTheme.primaryColor,
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: Transform.rotate(
                   angle: -45 * 3.14159 / 180,
                   child: Center(
@@ -753,6 +768,16 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         ],
       ),
     );
+  }
+
+  void _showEditDialog(BuildContext context) {
+    // ... existing edit dialog code ...
+  }
+
+  void _updateCharacter(BuildContext context, Character updatedCharacter) {
+    if (widget.onCharacterUpdated != null) {
+      widget.onCharacterUpdated!(updatedCharacter);
+    }
   }
 }
 

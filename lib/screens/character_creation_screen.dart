@@ -237,6 +237,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.character != null ? 'Edit Character' : 'Create Character'),
+        elevation: 0,
       ),
       body: Stack(
         children: [

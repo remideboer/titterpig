@@ -1,167 +1,147 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'models/character.dart';
-import 'models/spell.dart';
-import 'screens/character_list_screen.dart';
-import 'screens/character_sheet_screen.dart';
-import 'screens/spell_list_screen.dart';
+import 'screens/main_screen.dart';
 import 'viewmodels/character_list_viewmodel.dart';
 import 'viewmodels/spell_list_viewmodel.dart';
+import 'theme/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => CharacterListViewModel()),
-        ChangeNotifierProvider(create: (_) => SpellListViewModel()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final isDarkMode = prefs.getBool('isDarkMode') ?? false;
+  
+  runApp(MyApp(isDarkMode: isDarkMode));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  final bool isDarkMode;
+
+  const MyApp({super.key, required this.isDarkMode});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TTRPG Character Manager',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
-      home: const MainScreen(),
-    );
-  }
+  State<MyApp> createState() => _MyAppState();
 }
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
-
-  @override
-  State<MainScreen> createState() => _MainScreenState();
-}
-
-class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
-  Character? _selectedCharacter;
+class _MyAppState extends State<MyApp> {
+  late bool _isDarkMode;
 
   @override
   void initState() {
     super.initState();
-    // Load characters and find the last visited one
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await context.read<CharacterListViewModel>().loadCharacters();
-      final characters = context.read<CharacterListViewModel>().characters;
-      if (characters.isNotEmpty) {
-        // Find the character with the most recent lastUsed date
-        final lastVisited = characters.reduce((a, b) => 
-          a.lastUsed.isAfter(b.lastUsed) ? a : b
-        );
-        setState(() {
-          _selectedCharacter = lastVisited;
-          _selectedIndex = 1; // Switch to character sheet
-        });
-      }
-    });
+    _isDarkMode = widget.isDarkMode;
   }
 
-  void _onCharacterSelected(Character character) {
+  void _handleThemeChange(bool isDarkMode) async {
     setState(() {
-      _selectedCharacter = character;
-      _selectedIndex = 1; // Switch to character sheet
+      _isDarkMode = isDarkMode;
     });
-  }
-
-  void _onCharacterUpdated(Character character) {
-    setState(() {
-      _selectedCharacter = character;
-    });
-    context.read<CharacterListViewModel>().loadCharacters();
-  }
-
-  void _onSpellSelected(Spell spell) {
-    // TODO: Handle spell selection
-  }
-
-  Future<bool> _onWillPop() async {
-    if (_selectedIndex != 0) {
-      // If not on the home screen, go back to home screen
-      setState(() {
-        _selectedIndex = 0;
-      });
-      return false;
-    }
-
-    // If on home screen, show exit confirmation
-    final shouldExit = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Exit App'),
-        content: const Text('Are you sure you want to exit?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Yes'),
-          ),
-        ],
-      ),
-    ) ?? false;
-
-    return shouldExit;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkMode', isDarkMode);
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        body: IndexedStack(
-          index: _selectedIndex,
-          children: [
-            CharacterListScreen(
-              onCharacterSelected: _onCharacterSelected,
-            ),
-            if (_selectedCharacter != null)
-              CharacterSheetScreen(
-                character: _selectedCharacter!,
-                onCharacterUpdated: _onCharacterUpdated,
-              )
-            else
-              const Center(child: Text('Select a character to view their sheet')),
-            SpellListScreen(
-              onSpellSelected: _onSpellSelected,
-            ),
-          ],
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CharacterListViewModel()),
+        ChangeNotifierProvider(create: (_) => SpellListViewModel()),
+      ],
+      child: MaterialApp(
+        title: 'TTRPG Character Manager',
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
+        home: MainScreen(
+          onThemeChanged: _handleThemeChange,
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.people),
-              label: 'Characters',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Sheet',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.auto_awesome),
-              label: 'Spells',
+      ),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
+
+  void _incrementCounter() {
+    setState(() {
+      // This call to setState tells the Flutter framework that something has
+      // changed in this State, which causes it to rerun the build method below
+      // so that the display can reflect the updated values. If we changed
+      // _counter without calling setState(), then the build method would not be
+      // called again, and so nothing would appear to happen.
+      _counter++;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // This method is rerun every time setState is called, for instance as done
+    // by the _incrementCounter method above.
+    //
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
+    return Scaffold(
+      appBar: AppBar(
+        // TRY THIS: Try changing the color here to a specific color (to
+        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+        // change color while the other colors stay the same.
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(widget.title),
+      ),
+      body: Center(
+        // Center is a layout widget. It takes a single child and positions it
+        // in the middle of the parent.
+        child: Column(
+          // Column is also a layout widget. It takes a list of children and
+          // arranges them vertically. By default, it sizes itself to fit its
+          // children horizontally, and tries to be as tall as its parent.
+          //
+          // Column has various properties to control how it sizes itself and
+          // how it positions its children. Here we use mainAxisAlignment to
+          // center the children vertically; the main axis here is the vertical
+          // axis because Columns are vertical (the cross axis would be
+          // horizontal).
+          //
+          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
+          // action in the IDE, or press "p" in the console), to see the
+          // wireframe for each widget.
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text('You have pushed the button this many times:'),
+            Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        tooltip: 'Increment',
+        child: const Icon(Icons.add),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

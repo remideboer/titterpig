@@ -1,11 +1,11 @@
 {
-    "name": "ttrpg_character_manager",
-    "short_name": "ttrpg_character_manager",
+    "name": "TTRPG Character Manager",
+    "short_name": "TTRPG Manager",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "A character management application for tabletop role-playing games",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
