@@ -91,19 +91,19 @@ class Character {
   }
 
   void updateDerivedStats() {
-    final newHp = baseHp + hpPerVit * vit;
+    final newHp = (baseHp + hpPerVit * vit).clamp(1, 999);
     _hp = StatValue(
       current: _hp.current.clamp(0, newHp),
       max: newHp
     );
     
-    final newLife = baseLife + vit;
+    final newLife = (baseLife + vit).clamp(1, 999);
     _life = StatValue(
       current: _life.current.clamp(0, newLife),
       max: newLife
     );
     
-    final newPower = wil * 3;
+    final newPower = (wil * 3).clamp(1, 999);
     _power = StatValue(
       current: _power.current.clamp(0, newPower),
       max: newPower
