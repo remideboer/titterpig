@@ -20,13 +20,14 @@ class _AnimatedDiceState extends State<AnimatedDice> with SingleTickerProviderSt
   late AnimationController _controller;
   late Animation<double> _animation;
   List<int> _results = [];
+  List<int> _displayValues = []; // Track current display values during animation
   bool _isRolling = false;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
@@ -39,8 +40,19 @@ class _AnimatedDiceState extends State<AnimatedDice> with SingleTickerProviderSt
       if (status == AnimationStatus.completed) {
         setState(() {
           _isRolling = false;
+          _displayValues = List.from(_results); // Set final values
         });
         widget.onRollComplete(_calculateTotal());
+      }
+    });
+
+    // Update display values during animation
+    _controller.addListener(() {
+      const intervalValueChange = 0.20; // in percent of total animation
+      if (_isRolling && _controller.value % intervalValueChange < 0.05) { // Update every 10% of animation
+        setState(() {
+          _displayValues = List.generate(widget.count, (_) => math.Random().nextInt(6) + 1);
+        });
       }
     });
 
@@ -58,6 +70,7 @@ class _AnimatedDiceState extends State<AnimatedDice> with SingleTickerProviderSt
     setState(() {
       _isRolling = true;
       _results = List.generate(widget.count, (_) => math.Random().nextInt(6) + 1);
+      _displayValues = List.generate(widget.count, (_) => math.Random().nextInt(6) + 1);
     });
     _controller.forward(from: 0);
   }
@@ -94,10 +107,12 @@ class _AnimatedDiceState extends State<AnimatedDice> with SingleTickerProviderSt
                           return Transform(
                             transform: Matrix4.identity()
                               ..setEntry(3, 2, 0.001)
+                              ..translate(25.0, 25.0)  // Move to center of the die
                               ..rotateX(_animation.value * math.pi * 2)
                               ..rotateY(_animation.value * math.pi * 2)
-                              ..translate(0.0, math.sin(_animation.value * math.pi * 2) * 20.0),
-                            child: _buildDie(_results[index]),
+                              ..rotateZ(_animation.value * math.pi * 2)
+                              ..translate(-25.0, -25.0),  // Move back to original position
+                            child: _buildDie(_isRolling ? _displayValues[index] : _results[index]),
                           );
                         },
                       );
@@ -109,6 +124,9 @@ class _AnimatedDiceState extends State<AnimatedDice> with SingleTickerProviderSt
                     _isRolling ? 'Rolling...' : '${_calculateTotal()}',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: Colors.white,
+                      fontSize: _isRolling ? null : Theme.of(context).textTheme.titleLarge?.fontSize != null 
+                        ? Theme.of(context).textTheme.titleLarge!.fontSize! * 3 
+                        : 48,
                     ),
                   ),
                 ],
