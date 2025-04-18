@@ -35,12 +35,25 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
     _selectedSpells = List.from(widget.selectedSpells);
   }
 
+  bool _isSpellSelected(Spell spell) {
+    return _selectedSpells.any((s) => s.versionId == spell.versionId);
+  }
+
+  Spell _findMatchingSpell(Spell spell) {
+    return _selectedSpells.firstWhere(
+      (s) => s.versionId == spell.versionId,
+      orElse: () => spell,
+    );
+  }
+
   void _toggleSpell(Spell spell) {
     setState(() {
-      if (_selectedSpells.contains(spell)) {
-        _selectedSpells.remove(spell);
+      if (_isSpellSelected(spell)) {
+        _selectedSpells.removeWhere((s) => s.versionId == spell.versionId);
       } else if (_selectedSpells.length < widget.maxSpells) {
-        _selectedSpells.add(spell);
+        // Use the existing spell instance if it's already selected
+        final existingSpell = _findMatchingSpell(spell);
+        _selectedSpells.add(existingSpell);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -105,8 +118,8 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                 }).toList()
                   ..sort((a, b) {
                     // First sort by selection status
-                    final aSelected = _selectedSpells.contains(a);
-                    final bSelected = _selectedSpells.contains(b);
+                    final aSelected = _isSpellSelected(a);
+                    final bSelected = _isSpellSelected(b);
                     if (aSelected != bSelected) {
                       return aSelected ? -1 : 1; // Selected spells first
                     }
@@ -123,7 +136,7 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                   itemCount: spells.length,
                   itemBuilder: (context, index) {
                     final spell = spells[index];
-                    final isSelected = _selectedSpells.contains(spell);
+                    final isSelected = _isSpellSelected(spell);
 
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
