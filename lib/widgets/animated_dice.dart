@@ -106,7 +106,7 @@ class _AnimatedDiceState extends State<AnimatedDice> with SingleTickerProviderSt
                   const SizedBox(height: 16),
                   // Rolling text
                   Text(
-                    _isRolling ? 'Rolling...' : 'Result: ${_calculateTotal()}',
+                    _isRolling ? 'Rolling...' : '${_calculateTotal()}',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: Colors.white,
                     ),
