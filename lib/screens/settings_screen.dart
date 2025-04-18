@@ -26,6 +26,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _isDarkMode = widget.isDarkMode;
   }
 
+  @override
+  void didUpdateWidget(SettingsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isDarkMode != oldWidget.isDarkMode) {
+      setState(() {
+        _isDarkMode = widget.isDarkMode;
+      });
+    }
+  }
+
   Future<void> _toggleTheme(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_themeKey, value);
