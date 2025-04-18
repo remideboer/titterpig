@@ -18,6 +18,7 @@ import 'spell_selection_screen.dart';
 import 'spell_detail_screen.dart';
 import 'character_creation_screen.dart';
 import 'package:ttrpg_character_manager/widgets/animated_dice.dart';
+import '../utils/sound_manager.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -199,6 +200,9 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
 
   void _throwDice(Spell spell) {
     if (spell.effectValue == null) return;
+
+    // Play roll sound
+    SoundManager.playRollSound();
 
     showDialog(
       context: context,
