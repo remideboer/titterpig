@@ -291,10 +291,6 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                                 ),
                               ],
                             ),
-                            Icon(
-                              Icons.chevron_right,
-                              color: isDead ? Colors.grey[600] : null,
-                            ),
                           ],
                         ),
                         onTap: () async {
