@@ -34,6 +34,15 @@ A Flutter application for managing tabletop RPG characters, with support for cha
 
 ### Spell Management
 - Spell cost must be less than or equal to character's power
+- Maximum number of spells follows Fibonacci sequence based on WIL:
+  - WIL 1: 2 spells
+  - WIL 2: 3 spells
+  - WIL 3: 5 spells
+  - And so on...
+- Spell limit is dynamically enforced:
+  - When WIL decreases, excess spells are automatically removed
+  - Cannot add spells beyond the limit
+  - Visual indicator shows current/maximum spells
 - D&D spell conversion:
   - Cantrips (level 0) cost 0
   - 1st level spells cost 1
@@ -78,18 +87,39 @@ Feature: Character Creation
 ### Spell Management
 ```gherkin
 Feature: Spell Management
+  Scenario: Adding spells within WIL limit
+    Given I am viewing a character with WIL 2
+    Then I can see the spell limit is 3
+    When I open the spell selection screen
+    And I select 3 spells
+    Then all spells are added successfully
+    And the spell count shows (3/3)
+    And I cannot add more spells
+
+  Scenario: Reducing WIL affects spell limit
+    Given I have a character with WIL 3 and 5 spells
+    When I reduce WIL to 2
+    Then the spell limit is reduced to 3
+    And excess spells are automatically removed
+    And the spell count shows (3/3)
+
+  Scenario: Viewing spell limits
+    Given I am on the character creation screen
+    When I set WIL to different values
+    Then I see the following spell limits:
+      | WIL | Maximum Spells |
+      | 1   | 2             |
+      | 2   | 3             |
+      | 3   | 5             |
+      | 4   | 8             |
+    And the current/maximum spell count is always visible
+
   Scenario: Adding a spell to a character
     Given I am viewing a character
     When I open the spell selection screen
-    And I select a spell
+    And I select a spell within my WIL-based limit
     Then the spell is added to the character's spell list
     And the spell's cost is deducted from available power
-
-  Scenario: Using a spell
-    Given a character has spells
-    When I use a spell
-    Then the spell's cost is deducted from available power
-    And the spell effect is applied
 
   Scenario: Managing D&D spells
     Given I am in the spell admin screen
@@ -149,6 +179,12 @@ Feature: Defense Management
    - Verify power usage is enforced
    - Verify spell effects are displayed
    - Verify spell versioning works correctly
+   - Verify spell limits based on WIL:
+     * Correct Fibonacci sequence (2, 3, 5, 8, ...)
+     * Visual indicator shows current/maximum spells
+     * Cannot exceed limit when adding spells
+     * Excess spells removed when WIL decreases
+     * Limit updates when WIL changes
 
 2. D&D Spell Integration
    - Verify D&D spells can be loaded
@@ -156,6 +192,7 @@ Feature: Defense Management
    - Verify spell costs are properly converted
    - Verify spell effects are preserved
    - Verify spell versioning is maintained
+   - Verify spell limits are respected during D&D spell import
 
 3. Spell Selection
    - Verify spell filtering works
@@ -163,6 +200,9 @@ Feature: Defense Management
    - Verify spell selection is persisted
    - Verify spell removal works
    - Verify spell updates are properly versioned
+   - Verify WIL-based spell limits are enforced
+   - Verify UI shows current/maximum spell count
+   - Verify appropriate feedback when limit is reached
 
 ### Defense Tests
 1. Defense Categories
