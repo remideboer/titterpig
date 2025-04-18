@@ -1,191 +1,189 @@
 # TTRPG Character Manager
 
-A character management application for tabletop role-playing games.
+A Flutter application for managing tabletop RPG characters, with support for character creation, spell management, and D&D spell integration.
+
+## Core Features
+
+### Character Management
+- Create and edit characters
+- Manage character stats (VIT, ATH, WIL)
+- Track HP, Life, and Power
+- Custom species selection
+- Defense category management
+- Session logging
+- Character notes
+
+### Spell Management
+- Add/remove spells to characters
+- Track spell costs and power usage
+- D&D spell integration
+- Spell effect tracking
+- Spell type categorization
+- Spell editing and versioning
 
 ## Business Rules
 
-### Character Creation and Stats
+### Character Creation
+- Total stat points: 6 points to distribute
+- Minimum stat value: -3
+- Maximum stat value: 3
+- HP calculation: Base 6 + (2 × VIT)
+- Life calculation: Base 3 + VIT
+- Power calculation: WIL × 3
+- Defense calculation: Base defense from category + 2 if shield is active
 
+### Spell Management
+- Spell cost must be less than or equal to character's power
+- D&D spell conversion:
+  - Cantrips (level 0) cost 1
+  - 1st level spells cost 2
+  - 2nd level spells cost 3
+  - And so on...
+- Spell versioning: Each spell has a unique versionId and lastUpdated timestamp
+- Spell updates: Only newer versions of spells replace existing ones
+
+### Defense Categories
+- Light: +1 defense
+- Medium: +2 defense
+- Heavy: +3 defense
+- None: +0 defense
+- Shield bonus: +2 defense (stacks with category)
+
+## Gherkin Scenarios
+
+### Character Creation
 ```gherkin
 Feature: Character Creation
-  As a player
-  I want to create and manage my character
-  So that I can track my character's stats and abilities
-
   Scenario: Creating a new character
     Given I am on the character creation screen
     When I enter a character name
     And I select a species
-    And I distribute my stat points
-    And I select my armor type
-    And I add abilities
-    Then my character should be created with the specified attributes
+    And I allocate stat points
+    And I select a defense category
+    Then I can save the character
+    And the character is created with the specified attributes
 
-  Scenario: Stat point distribution
-    Given I have 3 total stat points to distribute
-    When I increase a stat
-    Then my remaining points should decrease
-    And the stat's derived values should update
-    When I decrease a stat
-    Then my remaining points should increase
-    And the stat's derived values should update
-
-  Scenario: Stat point limits
-    Given I am distributing stat points
-    When I try to increase a stat above 3
-    Then I should not be able to do so
-    When I try to decrease a stat below -3
-    Then I should not be able to do so
-
-  Scenario: Vitality (VIT) requirements
-    Given I am setting my VIT stat
-    When I try to set VIT below -2
-    Then I should not be able to do so
-    And I should see an error message about minimum HP requirements
+  Scenario: Editing an existing character
+    Given I am viewing a character
+    When I click the edit button
+    Then I can modify the character's attributes
+    And the changes are saved when I click update
+    And the character's spells are preserved
 ```
 
-### Health and Life System
-
+### Spell Management
 ```gherkin
-Feature: Health and Life Management
-  As a player
-  I want to track my character's health and life points
-  So that I can manage my character's survival
+Feature: Spell Management
+  Scenario: Adding a spell to a character
+    Given I am viewing a character
+    When I open the spell selection screen
+    And I select a spell
+    Then the spell is added to the character's spell list
+    And the spell's cost is deducted from available power
 
-  Scenario: HP calculation
-    Given I have a VIT stat of X
-    When I create or update my character
-    Then my HP should be calculated as 6 + (2 * VIT)
-    And my HP should never be negative
+  Scenario: Using a spell
+    Given a character has spells
+    When I use a spell
+    Then the spell's cost is deducted from available power
+    And the spell effect is applied
 
-  Scenario: Life calculation
-    Given I have a VIT stat of X
-    When I create or update my character
-    Then my Life should be calculated as 3 + VIT
+  Scenario: Managing D&D spells
+    Given I am in the spell admin screen
+    When I sync D&D spells
+    Then the spells are loaded from the D&D API
+    And converted to the game's spell system
+    And spell costs are properly converted
 
-  Scenario: Taking damage
-    Given I have temporary HP
-    When I take damage
-    Then my temporary HP should decrease first
-    And my actual HP should remain unchanged
-    When I have no temporary HP
-    And I take damage
-    Then my HP should decrease
-    When my HP reaches 0
-    And I take damage
-    Then my Life should decrease
-    When my Life reaches 0
-    Then I should be notified of character death
-
-  Scenario: Healing
-    Given I have less than maximum HP
-    When I heal
-    Then my HP should increase
-    When I have maximum HP
-    And I heal
-    Then my Life should increase if below maximum
+  Scenario: Editing a spell
+    Given I am viewing a spell
+    When I edit the spell details
+    Then the changes are saved with a new version
+    And the updated spell is available to all characters
 ```
 
-### Power and Spell System
-
-```gherkin
-Feature: Power and Spell Management
-  As a player
-  I want to manage my character's power and spells
-  So that I can use magical abilities effectively
-
-  Scenario: Power calculation
-    Given I have a WIL stat of X
-    When I create or update my character
-    Then my Power should be calculated as WIL * 3
-
-  Scenario: Spell casting
-    Given I have available power
-    When I cast a spell
-    Then my available power should decrease by the spell's cost
-    When I try to cast a spell with insufficient power
-    Then I should see a "Not enough power" message
-    And the spell should not be cast
-
-  Scenario: Power reset
-    Given I have used some of my power
-    When I reset my power
-    Then my available power should be restored to maximum
-
-  Scenario: Spell selection
-    Given I am selecting spells
-    When I try to select a spell with cost higher than my maximum power
-    Then I should not be able to select it
-    And I should see a visual indicator that it's unavailable
-    When I select a spell within my power limit
-    Then it should be added to my spell list
-```
-
-### Defense System
-
+### Defense Management
 ```gherkin
 Feature: Defense Management
-  As a player
-  I want to manage my character's defense
-  So that I can protect my character effectively
-
-  Scenario: Defense calculation
-    Given I have selected a defense category
-    When I have a shield
-    Then my defense should be calculated as defense category value + 2
-    When I do not have a shield
-    Then my defense should be equal to the defense category value
-
-  Scenario: Defense selection
-    Given I am selecting my defense
+  Scenario: Changing defense category
+    Given I am viewing a character
     When I select a defense category
-    Then it should be applied to my character
-    When I select the same category again
-    Then it should be removed
+    Then the character's defense value is updated
+    And the shield icon reflects the new category
+    And the defense bonus is applied correctly
 ```
 
-### Spell Filtering
+## Test Scenarios
 
-```gherkin
-Feature: Spell Filtering
-  As a player
-  I want to filter spells by cost
-  So that I can easily find spells within my power range
+### Character Tests
+1. Character Creation
+   - Verify character can be created with valid attributes
+   - Verify stat point allocation is enforced (6 points total)
+   - Verify species selection works
+   - Verify defense category selection works
+   - Verify HP calculation (6 + 2×VIT)
+   - Verify Life calculation (3 + VIT)
+   - Verify Power calculation (WIL × 3)
 
-  Scenario: Cost range filtering
-    Given I am viewing available spells
-    When I adjust the cost range slider
-    Then only spells within the selected cost range should be displayed
-    And the range should be displayed above the slider
-    And the minimum and maximum values should be shown on the slider
+2. Character Editing
+   - Verify existing character can be edited
+   - Verify changes are persisted
+   - Verify stat point constraints are maintained
+   - Verify species changes are saved
+   - Verify spells are preserved during editing
 
-  Scenario: Spell availability
-    Given I am viewing available spells
-    When I have a maximum power of X
-    Then spells with cost higher than X should be visually indicated as unavailable
-    And I should not be able to select them
-```
+3. Character Stats
+   - Verify HP calculation based on VIT
+   - Verify Life calculation based on VIT
+   - Verify Power calculation based on WIL
+   - Verify defense calculation based on ATH and category
+   - Verify shield bonus is applied correctly
 
-### Character Persistence
+### Spell Tests
+1. Spell Management
+   - Verify spells can be added to characters
+   - Verify spell costs are correctly tracked
+   - Verify power usage is enforced
+   - Verify spell effects are displayed
+   - Verify spell versioning works correctly
 
-```gherkin
-Feature: Character Data Persistence
-  As a player
-  I want my character data to be saved
-  So that I can access it across sessions
+2. D&D Spell Integration
+   - Verify D&D spells can be loaded
+   - Verify spell conversion works correctly
+   - Verify spell costs are properly converted
+   - Verify spell effects are preserved
+   - Verify spell versioning is maintained
 
-  Scenario: Character saving
-    Given I have made changes to my character
-    When I navigate away from the character sheet
-    Then the changes should be automatically saved
-    And the last used timestamp should be updated
+3. Spell Selection
+   - Verify spell filtering works
+   - Verify spell cost constraints are enforced
+   - Verify spell selection is persisted
+   - Verify spell removal works
+   - Verify spell updates are properly versioned
 
-  Scenario: Character loading
-    Given I have saved character data
-    When I open the application
-    Then my character data should be loaded correctly
-    And all derived stats should be calculated properly
-```
+### Defense Tests
+1. Defense Categories
+   - Verify defense category selection works
+   - Verify defense value calculation is correct
+   - Verify shield bonus is applied correctly
+   - Verify defense changes are persisted
+   - Verify category bonuses are applied correctly
+
+### UI Tests
+1. Character Sheet
+   - Verify all stats are displayed correctly
+   - Verify spell list is displayed
+   - Verify defense selection UI works
+   - Verify power usage UI works
+   - Verify edit button functionality
+
+2. Spell Selection
+   - Verify spell list is displayed
+   - Verify spell filtering works
+   - Verify spell selection UI works
+   - Verify spell cost constraints are visible
+   - Verify spell version information is displayed
+
+This README reflects the current state of the application, including recent changes to spell management and character editing functionality. All business rules are documented and test scenarios are updated to cover the implemented features.
 
 ## Getting Started
 
