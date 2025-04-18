@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../widgets/hexagon_shape.dart';
 import '../widgets/cost_range_slider.dart';
 import 'spell_edit_screen.dart';
+import 'spell_detail_screen.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 
 class SpellsAdminScreen extends StatefulWidget {
@@ -108,6 +109,21 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> with SingleTicker
             child: const Text('Delete'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showSpellDetail(Spell spell) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SpellDetailScreen(
+          spell: spell,
+          onSpellSelected: (selectedSpell) {
+            // In admin view, we don't need to do anything when a spell is selected
+            Navigator.pop(context);
+          },
+        ),
       ),
     );
   }
@@ -226,6 +242,7 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> with SingleTicker
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           child: ListTile(
+                            onTap: () => _showSpellDetail(spell),
                             leading: _buildCostHexagon(spell.cost),
                             title: Text(
                               spell.name,
@@ -266,6 +283,7 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> with SingleTicker
                           return Card(
                             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             child: ListTile(
+                              onTap: () => _showSpellDetail(spell),
                               leading: _buildCostHexagon(spell.cost),
                               title: Row(
                                 children: [
@@ -299,6 +317,7 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> with SingleTicker
           ),
           floatingActionButton: !_showOnlyDndSpells
               ? FloatingActionButton(
+                  heroTag: 'spells_admin_fab',
                   onPressed: () => _showSpellForm(),
                   child: const Icon(Icons.add),
                 )
