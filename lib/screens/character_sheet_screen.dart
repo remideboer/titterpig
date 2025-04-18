@@ -14,8 +14,6 @@ import '../widgets/stat_value_icon.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/name_formatter.dart';
 import '../models/def_category.dart';
-import 'package:provider/provider.dart';
-import '../viewmodels/spell_list_viewmodel.dart';
 import 'spell_selection_screen.dart';
 import 'spell_detail_screen.dart';
 

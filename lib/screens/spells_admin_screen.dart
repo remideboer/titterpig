@@ -60,6 +60,35 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> with SingleTicker
     _syncAnimationController.stop();
   }
 
+  Future<void> _handlePurge() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Purge D&D Spells'),
+        content: const Text('This will delete all locally stored D&D spells and force a fresh sync. Continue?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Purge'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() => _isSyncing = true);
+      _syncAnimationController.repeat();
+      await context.read<SpellListViewModel>().purgeDndSpells();
+      await context.read<SpellListViewModel>().checkForUpdates();
+      setState(() => _isSyncing = false);
+      _syncAnimationController.stop();
+    }
+  }
+
   void _calculateMaxCost(List<Spell> spells) {
     if (spells.isNotEmpty) {
       setState(() {
@@ -119,10 +148,8 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> with SingleTicker
       MaterialPageRoute(
         builder: (context) => SpellDetailScreen(
           spell: spell,
-          onSpellSelected: (selectedSpell) {
-            // In admin view, we don't need to do anything when a spell is selected
-            Navigator.pop(context);
-          },
+          onSpellSelected: (_) {}, // No-op function since we don't need selection in admin view
+          allowEditing: false,
         ),
       ),
     );
@@ -166,26 +193,16 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> with SingleTicker
             ? viewModel.dndSpells 
             : viewModel.localSpells;
 
-        if (spells.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('No spells available'),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _handleSync,
-                  child: const Text('Sync D&D Spells'),
-                ),
-              ],
-            ),
-          );
-        }
-
         return Scaffold(
           appBar: AppBar(
             title: const Text('Manage Spells'),
             actions: [
+              if (_showOnlyDndSpells)
+                IconButton(
+                  icon: const Icon(Icons.delete_forever),
+                  onPressed: _handlePurge,
+                  tooltip: 'Purge D&D Spells',
+                ),
               IconButton(
                 icon: RotationTransition(
                   turns: _syncAnimationController,
@@ -276,39 +293,53 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> with SingleTicker
                     // D&D spells page
                     RefreshIndicator(
                       onRefresh: _handleRefresh,
-                      child: ListView.builder(
-                        itemCount: _getFilteredSpells(viewModel.dndSpells).length,
-                        itemBuilder: (context, index) {
-                          final spell = _getFilteredSpells(viewModel.dndSpells)[index];
-                          return Card(
-                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            child: ListTile(
-                              onTap: () => _showSpellDetail(spell),
-                              leading: _buildCostHexagon(spell.cost),
-                              title: Row(
+                      child: spells.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Expanded(
-                                    child: Text(
-                                      spell.name,
-                                      style: Theme.of(context).textTheme.titleMedium,
+                                  const Text('No D&D spells available'),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    onPressed: _handleSync,
+                                    child: const Text('Sync D&D Spells'),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: _getFilteredSpells(viewModel.dndSpells).length,
+                              itemBuilder: (context, index) {
+                                final spell = _getFilteredSpells(viewModel.dndSpells)[index];
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: ListTile(
+                                    onTap: () => _showSpellDetail(spell),
+                                    leading: _buildCostHexagon(spell.cost),
+                                    title: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            spell.name,
+                                            style: Theme.of(context).textTheme.titleMedium,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Icon(Icons.cloud_download, size: 16),
+                                      ],
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        if (spell.effect.isNotEmpty) Text('Effect: ${spell.effect}'),
+                                        if (spell.damage.isNotEmpty) Text('Damage: ${spell.damage}'),
+                                        Text('Type: ${spell.type} • Range: ${spell.range}'),
+                                      ],
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  const Icon(Icons.cloud_download, size: 16),
-                                ],
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (spell.effect.isNotEmpty) Text('Effect: ${spell.effect}'),
-                                  if (spell.damage.isNotEmpty) Text('Damage: ${spell.damage}'),
-                                  Text('Type: ${spell.type} • Range: ${spell.range}'),
-                                ],
-                              ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
                     ),
                   ],
                 ),

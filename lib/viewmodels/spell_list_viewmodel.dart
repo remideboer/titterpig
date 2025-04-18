@@ -88,6 +88,12 @@ class SpellListViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> purgeDndSpells() async {
+    _dndSpells.clear();
+    notifyListeners();
+    await _dndSpellRepository.purgeSpells();
+  }
+
   @override
   void dispose() {
     _dndSpellRepository.dispose();

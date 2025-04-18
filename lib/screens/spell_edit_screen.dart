@@ -4,10 +4,12 @@ import '../theme/app_theme.dart';
 
 class SpellEditScreen extends StatefulWidget {
   final Spell? spell;
+  final Function(Spell)? onSave;
 
   const SpellEditScreen({
     super.key,
     this.spell,
+    this.onSave,
   });
 
   @override
@@ -60,6 +62,7 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
         effect: _effectController.text,
         type: _typeController.text,
         range: _rangeController.text,
+        isDndSpell: widget.spell?.isDndSpell ?? false,
       );
 
       if (widget.spell != null) {
@@ -71,6 +74,9 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
         Spell.availableSpells.add(spell);
       }
 
+      if (widget.onSave != null) {
+        widget.onSave!(spell);
+      }
       Navigator.of(context).pop(true);
     }
   }

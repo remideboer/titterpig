@@ -176,6 +176,7 @@ class _SpellListScreenState extends State<SpellListScreen> {
         builder: (context) => SpellDetailScreen(
           spell: spell,
           onSpellSelected: widget.onSpellSelected,
+          allowEditing: true,
         ),
       ),
     );

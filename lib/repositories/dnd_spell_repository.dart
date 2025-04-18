@@ -55,11 +55,15 @@ class DndSpellRepository {
         final spellDetail = await _fetchSpellDetail(spell['url']);
         spells.add(Spell(
           name: spellDetail['name'],
-          description: spellDetail['desc'].join('\n'),
-          cost: spellDetail['level'],
+          description: spellDetail['desc']?.join('\n') ?? 'No description available',
+          cost: spellDetail['level'] + 1, // Convert D&D level to our cost system
           isDndSpell: true,
           versionId: DateTime.now().millisecondsSinceEpoch.toString(),
           lastUpdated: DateTime.now(),
+          damage: spellDetail['damage']?['damage_at_slot_level']?.values.first ?? '',
+          effect: spellDetail['desc']?.join('\n') ?? '',
+          type: spellDetail['school']?['name'] ?? 'Spell',
+          range: spellDetail['range'] ?? 'Self',
         ));
       }
 
@@ -104,6 +108,13 @@ class DndSpellRepository {
     if (await checkForUpdates()) {
       await _fetchAndStoreSpells();
     }
+  }
+
+  Future<void> purgeSpells() async {
+    await initialize();
+    await _prefs.remove(_storageKey);
+    await _prefs.remove(_versionKey);
+    await _prefs.remove(_lastUpdatedKey);
   }
 
   void dispose() {

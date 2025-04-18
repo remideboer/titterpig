@@ -2,22 +2,56 @@ import 'package:flutter/material.dart';
 import '../models/spell.dart';
 import '../widgets/hexagon_shape.dart';
 import '../theme/app_theme.dart';
+import 'spell_edit_screen.dart';
 
 class SpellDetailScreen extends StatelessWidget {
   final Spell spell;
   final Function(Spell) onSpellSelected;
+  final bool allowEditing;
 
   const SpellDetailScreen({
     super.key,
     required this.spell,
     required this.onSpellSelected,
+    this.allowEditing = false,
   });
+
+  void _editSpell(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SpellEditScreen(
+          spell: spell,
+          onSave: (updatedSpell) {
+            Navigator.pop(context);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SpellDetailScreen(
+                  spell: updatedSpell,
+                  onSpellSelected: onSpellSelected,
+                  allowEditing: allowEditing,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(spell.name),
+        actions: [
+          if (allowEditing && !spell.isDndSpell)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => _editSpell(context),
+            ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -42,17 +76,18 @@ class SpellDetailScreen extends StatelessWidget {
             _buildDetailSection('Range', spell.range),
             const SizedBox(height: 32),
 
-            // Select button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  onSpellSelected(spell);
-                  Navigator.pop(context);
-                },
-                child: const Text('Select Spell'),
+            // Only show select button if onSpellSelected is not a no-op
+            if (onSpellSelected.toString() != 'Closure: (Spell) => Null')
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    onSpellSelected(spell);
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Select Spell'),
+                ),
               ),
-            ),
           ],
         ),
       ),
