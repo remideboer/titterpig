@@ -17,6 +17,7 @@ import '../models/def_category.dart';
 import 'spell_selection_screen.dart';
 import 'spell_detail_screen.dart';
 import 'character_creation_screen.dart';
+import 'package:ttrpg_character_manager/widgets/animated_dice.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -193,6 +194,39 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         });
       }
     });
+  }
+
+  void _throwDice(Spell spell) {
+    if (spell.effectValue == null) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.transparent,
+          contentPadding: EdgeInsets.zero,
+          content: Stack(
+            children: [
+              AnimatedDice(
+                count: spell.effectValue!.count,
+                onRollComplete: (result) {
+                  // Don't close automatically, let user close manually
+                },
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -388,6 +422,16 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                         trailing: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
+                                            // Dice icon (only shown for spells with effectValue)
+                                            if (spell.effectValue != null)
+                                              IconButton(
+                                                icon: const Icon(Icons.casino),
+                                                color: canUse ? AppTheme.highlightColor : Colors.grey,
+                                                onPressed: canUse ? () => _throwDice(spell) : null,
+                                                tooltip: canUse ? 'Roll dice' : 'Not enough power',
+                                              )
+                                            else
+                                              const SizedBox(width: 48), // Empty space to maintain alignment
                                             IconButton(
                                               icon: Icon(canUse ? Icons.flash_on : Icons.flash_off),
                                               color: canUse ? AppTheme.highlightColor : Colors.grey,
