@@ -57,7 +57,7 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select Spells (${_selectedSpells.length}/${widget.maxSpells})'),
+        title: Text('(${_selectedSpells.length}/${widget.maxSpells})'),
         actions: [
           TextButton(
             onPressed: () {
