@@ -30,7 +30,7 @@ A Flutter application for managing tabletop RPG characters, with support for cha
 - HP calculation: Base 6 + (2 × VIT)
 - Life calculation: Base 3 + VIT
 - Power calculation: WIL × 3
-- Defense calculation: ATH + Base defense from category + 2 if shield is active
+- Defense calculation: Base defense from category + 2 if shield is active
 
 ### Spell Management
 - Spell cost must be less than or equal to character's power
