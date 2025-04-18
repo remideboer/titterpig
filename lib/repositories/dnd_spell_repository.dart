@@ -11,11 +11,15 @@ class DndSpellRepository {
   late final SharedPreferences _prefs;
   final http.Client _client;
   final String _baseUrl = 'https://www.dnd5eapi.co/api/spells';
+  bool _isInitialized = false;
 
   DndSpellRepository(this._client);
 
   Future<void> initialize() async {
-    _prefs = await SharedPreferences.getInstance();
+    if (!_isInitialized) {
+      _prefs = await SharedPreferences.getInstance();
+      _isInitialized = true;
+    }
   }
 
   Future<List<Spell>> getSpells() async {
@@ -83,6 +87,7 @@ class DndSpellRepository {
   }
 
   Future<bool> checkForUpdates() async {
+    await initialize();
     final lastUpdated = _prefs.getString(_lastUpdatedKey);
     if (lastUpdated == null) return true;
 
@@ -95,6 +100,7 @@ class DndSpellRepository {
   }
 
   Future<void> updateSpells() async {
+    await initialize();
     if (await checkForUpdates()) {
       await _fetchAndStoreSpells();
     }

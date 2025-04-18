@@ -14,15 +14,21 @@ class SpellsAdminScreen extends StatefulWidget {
   State<SpellsAdminScreen> createState() => _SpellsAdminScreenState();
 }
 
-class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
+class _SpellsAdminScreenState extends State<SpellsAdminScreen> with SingleTickerProviderStateMixin {
   double _maxCost = 10;
   RangeValues _costRange = const RangeValues(0, 10);
   bool _showOnlyDndSpells = false;
   final PageController _pageController = PageController();
+  late AnimationController _syncAnimationController;
+  bool _isSyncing = false;
 
   @override
   void initState() {
     super.initState();
+    _syncAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SpellListViewModel>().loadSpells();
     });
@@ -31,7 +37,26 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _syncAnimationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleRefresh() async {
+    if (_showOnlyDndSpells) {
+      setState(() => _isSyncing = true);
+      _syncAnimationController.repeat();
+      await context.read<SpellListViewModel>().checkForUpdates();
+      setState(() => _isSyncing = false);
+      _syncAnimationController.stop();
+    }
+  }
+
+  Future<void> _handleSync() async {
+    setState(() => _isSyncing = true);
+    _syncAnimationController.repeat();
+    await context.read<SpellListViewModel>().checkForUpdates();
+    setState(() => _isSyncing = false);
+    _syncAnimationController.stop();
   }
 
   void _calculateMaxCost(List<Spell> spells) {
@@ -133,7 +158,7 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
                 const Text('No spells available'),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () => viewModel.checkForUpdates(),
+                  onPressed: _handleSync,
                   child: const Text('Sync D&D Spells'),
                 ),
               ],
@@ -146,8 +171,14 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
             title: const Text('Manage Spells'),
             actions: [
               IconButton(
-                icon: const Icon(Icons.sync),
-                onPressed: () => viewModel.checkForUpdates(),
+                icon: RotationTransition(
+                  turns: _syncAnimationController,
+                  child: Icon(
+                    Icons.sync,
+                    color: _isSyncing ? AppTheme.highlightColor : null,
+                  ),
+                ),
+                onPressed: _handleSync,
                 tooltip: 'Sync D&D Spells',
               ),
               IconButton(
@@ -226,37 +257,40 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
                       },
                     ),
                     // D&D spells page
-                    ListView.builder(
-                      itemCount: _getFilteredSpells(viewModel.dndSpells).length,
-                      itemBuilder: (context, index) {
-                        final spell = _getFilteredSpells(viewModel.dndSpells)[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: ListTile(
-                            leading: _buildCostHexagon(spell.cost),
-                            title: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    spell.name,
-                                    style: Theme.of(context).textTheme.titleMedium,
+                    RefreshIndicator(
+                      onRefresh: _handleRefresh,
+                      child: ListView.builder(
+                        itemCount: _getFilteredSpells(viewModel.dndSpells).length,
+                        itemBuilder: (context, index) {
+                          final spell = _getFilteredSpells(viewModel.dndSpells)[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            child: ListTile(
+                              leading: _buildCostHexagon(spell.cost),
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      spell.name,
+                                      style: Theme.of(context).textTheme.titleMedium,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.cloud_download, size: 16),
-                              ],
+                                  const SizedBox(width: 8),
+                                  const Icon(Icons.cloud_download, size: 16),
+                                ],
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (spell.effect.isNotEmpty) Text('Effect: ${spell.effect}'),
+                                  if (spell.damage.isNotEmpty) Text('Damage: ${spell.damage}'),
+                                  Text('Type: ${spell.type} • Range: ${spell.range}'),
+                                ],
+                              ),
                             ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (spell.effect.isNotEmpty) Text('Effect: ${spell.effect}'),
-                                if (spell.damage.isNotEmpty) Text('Damage: ${spell.damage}'),
-                                Text('Type: ${spell.type} • Range: ${spell.range}'),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),

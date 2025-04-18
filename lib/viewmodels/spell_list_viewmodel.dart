@@ -8,6 +8,7 @@ class SpellListViewModel extends ChangeNotifier {
   final List<Spell> _dndSpells = [];
   late final DndSpellRepository _dndSpellRepository;
   bool _isLoading = false;
+  bool _isSyncing = false;
 
   SpellListViewModel() {
     _dndSpellRepository = DndSpellRepository(http.Client());
@@ -17,6 +18,7 @@ class SpellListViewModel extends ChangeNotifier {
   List<Spell> get dndSpells => _dndSpells;
   List<Spell> get localSpells => _localSpells;
   bool get isLoading => _isLoading;
+  bool get isSyncing => _isSyncing;
 
   Future<void> loadSpells() async {
     _isLoading = true;
@@ -72,8 +74,18 @@ class SpellListViewModel extends ChangeNotifier {
   }
 
   Future<void> checkForUpdates() async {
-    await _dndSpellRepository.updateSpells();
-    await loadSpells();
+    _isSyncing = true;
+    notifyListeners();
+
+    try {
+      await _dndSpellRepository.updateSpells();
+      await loadSpells();
+    } catch (e) {
+      print('Error checking for updates: $e');
+    } finally {
+      _isSyncing = false;
+      notifyListeners();
+    }
   }
 
   @override
