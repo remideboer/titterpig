@@ -20,16 +20,13 @@ class DndSpellConverter {
     final level = dndSpell['level'] ?? 0;
     
     // Convert D&D spell level to our cost system:
-    // - Cantrips (level 0) cost 1
-    // - 1st level spells cost 2
-    // - 2nd level spells cost 3
-    // - And so on...
-    return level + 1;
+    // Cost equals level (0 for cantrips, 1 for 1st level, 2 for 2nd level, etc.)
+    return level;
   }
 
   int _calculateSpellCost(int level) {
-    // Base cost is 1 for cantrips, 2 for 1st level, etc.
-    return level + 1;
+    // Cost equals level (0 for cantrips, 1 for 1st level, 2 for 2nd level, etc.)
+    return level;
   }
 
   String _convertDamageDice(String damageDice) {

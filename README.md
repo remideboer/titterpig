@@ -35,9 +35,9 @@ A Flutter application for managing tabletop RPG characters, with support for cha
 ### Spell Management
 - Spell cost must be less than or equal to character's power
 - D&D spell conversion:
-  - Cantrips (level 0) cost 1
-  - 1st level spells cost 2
-  - 2nd level spells cost 3
+  - Cantrips (level 0) cost 0
+  - 1st level spells cost 1
+  - 2nd level spells cost 2
   - And so on...
 - Damage dice conversion: Convert all damage dice to d6 system (e.g., 2d8 becomes 2d6)
 - Spell versioning: Each spell has a unique versionId and lastUpdated timestamp
