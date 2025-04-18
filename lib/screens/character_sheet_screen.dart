@@ -184,16 +184,17 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
           child: SpellSelectionScreen(
             selectedSpells: _character.spells,
             character: _character,
+            onSpellsChanged: (updatedSpells) {
+              setState(() {
+                _character.spells = updatedSpells;
+                _character.updateDerivedStats();
+                _updateLastUsed();
+              });
+            },
           ),
         ),
       ),
-    ).then((updatedCharacter) {
-      if (updatedCharacter != null) {
-        setState(() {
-          _character = updatedCharacter;
-        });
-      }
-    });
+    );
   }
 
   void _throwDice(Spell spell) {

@@ -11,11 +11,13 @@ import 'spell_detail_screen.dart';
 class SpellSelectionScreen extends StatefulWidget {
   final List<Spell> selectedSpells;
   final Character character;
+  final Function(List<Spell>)? onSpellsChanged;
 
   const SpellSelectionScreen({
     super.key,
     required this.selectedSpells,
     required this.character,
+    this.onSpellsChanged,
   });
 
   @override
@@ -24,6 +26,7 @@ class SpellSelectionScreen extends StatefulWidget {
 
 class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   late List<Spell> _selectedSpells;
+  late Character _character;
   final LocalCharacterRepository _repository = LocalCharacterRepository();
   List<Spell> _availableSpells = [];
   bool _isLoading = true;
@@ -35,13 +38,19 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   void initState() {
     super.initState();
     _selectedSpells = List.from(widget.selectedSpells);
+    _character = widget.character;
     _searchController.addListener(_onSearchChanged);
+    
+    // Schedule _loadSpells to run after the build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSpells();
+    });
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _loadSpells();
+    // Remove _loadSpells from here
   }
 
   @override
@@ -93,99 +102,67 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
     });
   }
 
-  Future<void> _handleSpellSelection(Spell spell) async {
+  void _toggleSpellSelection(Spell spell) {
     setState(() {
-      if (_selectedSpells.any((s) => s.name == spell.name)) {
-        _selectedSpells.removeWhere((s) => s.name == spell.name);
+      if (_selectedSpells.contains(spell)) {
+        _selectedSpells.remove(spell);
+        _character.removeSpell(spell);
       } else {
         _selectedSpells.add(spell);
+        _character.addSpell(spell);
       }
+      // Notify parent of changes
+      widget.onSpellsChanged?.call(_selectedSpells);
     });
-    
-    // Save changes immediately without closing
-    await _saveChanges(shouldNavigate: false);
-  }
-
-  Future<void> _saveChanges({bool shouldNavigate = true}) async {
-    final updatedCharacter = widget.character.copyWith(
-      spells: List<Spell>.from(_selectedSpells),
-    );
-    updatedCharacter.updateDerivedStats();
-    await _repository.updateCharacter(updatedCharacter);
-    
-    if (shouldNavigate && mounted) {
-      Navigator.pop(context, updatedCharacter);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        await _saveChanges(shouldNavigate: false);
-        return true;
-      },
-      child: Column(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Manage Spells'),
+        elevation: 0,
+      ),
+      body: Column(
         children: [
-          // Header with title and close button
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Manage Spells',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppTheme.primaryColor,
+          // Selected spells section
+          if (_selectedSpells.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.1),
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppTheme.primaryColor.withOpacity(0.2),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  color: AppTheme.primaryColor,
-                  onPressed: () {
-                    _saveChanges(shouldNavigate: false);
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
-          ),
-          // Max power display
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'Max Power: ${widget.character.powerStat.max}',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppTheme.primaryColor,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Selected Spells (${_selectedSpells.length})',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _selectedSpells.map((spell) {
+                      return Chip(
+                        label: Text(spell.name),
+                        onDeleted: () => _toggleSpellSelection(spell),
+                        deleteIcon: const Icon(Icons.close, size: 18),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
             ),
-          ),
-          // Cost filter range slider
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Text('Cost Range: ${_costRange.start.round()} - ${_costRange.end.round()}'),
-                RangeSlider(
-                  values: _costRange,
-                  min: 0,
-                  max: _maxCost,
-                  divisions: _maxCost > 0 ? _maxCost.toInt() : null,
-                  activeColor: AppTheme.primaryColor,
-                  inactiveColor: AppTheme.highlightColor,
-                  labels: RangeLabels(
-                    _costRange.start.round().toString(),
-                    _costRange.end.round().toString(),
-                  ),
-                  onChanged: (RangeValues values) {
-                    setState(() {
-                      _costRange = values;
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
+          ],
+          // Available spells list
           Expanded(
             child: _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -218,7 +195,7 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                       itemBuilder: (context, index) {
                         final spell = sortedSpells[index];
                         final isSelected = _selectedSpells.any((s) => s.name == spell.name);
-                        final canSelect = spell.cost <= widget.character.powerStat.max;
+                        final canSelect = spell.cost <= _character.powerStat.max;
                         
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -249,12 +226,16 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                               ],
                             ),
                             trailing: isSelected
-                              ? Icon(Icons.check, color: AppTheme.primaryColor)
+                              ? IconButton(
+                                  icon: const Icon(Icons.check_circle),
+                                  color: AppTheme.primaryColor,
+                                  onPressed: () => _toggleSpellSelection(spell),
+                                )
                               : (canSelect
                                   ? IconButton(
-                                      icon: const Icon(Icons.add),
+                                      icon: const Icon(Icons.add_circle_outline),
                                       color: AppTheme.primaryColor,
-                                      onPressed: () => _handleSpellSelection(spell),
+                                      onPressed: () => _toggleSpellSelection(spell),
                                     )
                                   : Tooltip(
                                       message: 'Requires more power',
@@ -266,11 +247,8 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                                 MaterialPageRoute(
                                   builder: (context) => SpellDetailScreen(
                                     spell: spell,
-                                    onSpellSelected: (spell) {
-                                      if (canSelect) {
-                                        _handleSpellSelection(spell);
-                                      }
-                                    },
+                                    onSpellSelected: (_) {},
+                                    allowEditing: false,
                                   ),
                                 ),
                               );
@@ -281,19 +259,6 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                     );
                   },
                 ),
-          ),
-          // Save button
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              onPressed: () => _saveChanges(shouldNavigate: true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: AppTheme.accentColor,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              ),
-              child: const Text('Save Changes'),
-            ),
           ),
         ],
       ),
