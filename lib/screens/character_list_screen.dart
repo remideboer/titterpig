@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../viewmodels/character_list_viewmodel.dart';
 import 'character_creation_screen.dart';
 import 'character_sheet_screen.dart';
+import '../utils/name_formatter.dart';
 
 enum SortOption {
   lifeStatus,
@@ -223,7 +224,7 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                character.name,
+                                NameFormatter.formatName(character.name),
                                 style: AppTheme.titleStyle.copyWith(
                                   color: isDead ? Colors.grey[600] : null,
                                 ),
