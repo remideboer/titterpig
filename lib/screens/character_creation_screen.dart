@@ -502,9 +502,20 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'ABILITIES',
-                            style: Theme.of(context).textTheme.titleMedium,
+                          Row(
+                            children: [
+                              Text(
+                                'ABILITIES',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '(${_spells.length}/${SpellLimitCalculator.calculateSpellLimit(_wil)})',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: AppTheme.highlightColor,
+                                ),
+                              ),
+                            ],
                           ),
                           IconButton(
                             icon: const Icon(Icons.add),
