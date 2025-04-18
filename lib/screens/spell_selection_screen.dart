@@ -102,7 +102,22 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                 final spells = viewModel.allSpells.where((spell) {
                   return spell.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
                          spell.description.toLowerCase().contains(_searchQuery.toLowerCase());
-                }).toList();
+                }).toList()
+                  ..sort((a, b) {
+                    // First sort by selection status
+                    final aSelected = _selectedSpells.contains(a);
+                    final bSelected = _selectedSpells.contains(b);
+                    if (aSelected != bSelected) {
+                      return aSelected ? -1 : 1; // Selected spells first
+                    }
+                    // Then sort by cost
+                    final costComparison = a.cost.compareTo(b.cost);
+                    if (costComparison != 0) {
+                      return costComparison;
+                    }
+                    // Finally sort by name
+                    return a.name.compareTo(b.name);
+                  });
 
                 return ListView.builder(
                   itemCount: spells.length,
