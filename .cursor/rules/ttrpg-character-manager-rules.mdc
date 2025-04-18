@@ -188,3 +188,94 @@ Generate code, corrections, and refactorings that comply with the basic principl
   - User Stories: What the user wants to do (user perspective)
   - Design Decisions: How we'll implement it (technical approach)
   - Specifications: Detailed requirements (testable criteria)
+
+### Git Commit Messages
+
+Follow the Conventional Commits specification with these guidelines:
+
+- Format: `<type>(<scope>): <description>`
+  - Types:
+    - feat: New feature
+    - fix: Bug fix
+    - refactor: Code change that neither fixes a bug nor adds a feature
+    - style: Changes that do not affect the meaning of the code
+    - docs: Documentation only changes
+    - test: Adding missing tests or correcting existing tests
+    - chore: Changes to the build process or auxiliary tools
+  - Scope: Optional, indicates section of codebase (e.g., models, ui, auth)
+  - Description: Present tense, lowercase, no period at end
+
+- Body format:
+  ```
+  <type>(<scope>): <description>
+
+  <detailed explanation of the change>
+
+  - <bullet points for specific changes>
+  - <another specific change>
+
+  <reference to issues/tickets>
+  ```
+
+- Examples:
+  ```
+  fix(models): prevent invalid stat values in character calculations
+
+  Fixes issue where stats could be calculated as 0, causing invalid clamp operations.
+  Ensures game mechanics remain valid while preventing errors.
+
+  - Added minimum value constraints for HP
+  - Added minimum value constraints for Life
+  - Added minimum value constraints for Power
+  - Added upper bounds for all stats
+
+  Fixes #123
+  ```
+
+  ```
+  feat(ui): add spell selection dialog
+
+  Implements new spell selection interface with search and filtering.
+
+  - Added SpellSelectionDialog widget
+  - Implemented spell search functionality
+  - Added spell category filters
+  - Added spell level sorting
+
+  Part of #456
+  ```
+
+When writing commit messages:
+- Be specific about what changed and why
+- Include context that future developers would find helpful
+- Reference any relevant issue numbers
+- Keep lines in description under 72 characters
+- Use bullet points for listing specific changes
+- Separate subject from body with a blank line
+
+### Cursor Commit Message Generation
+
+After making any code changes, Cursor MUST:
+1. Generate a commit message following the above format
+2. Include the commit message in a "Suggested Git Commit" section at the end of the response
+3. Format the suggested commit message in a code block
+4. Ensure the commit message accurately reflects ALL changes made in that response
+5. Include both the short form (first line) and detailed form (with explanation and bullet points)
+
+Example response format:
+```
+[Regular response explaining changes...]
+
+Suggested Git Commit:
+```git
+feat(auth): implement user authentication flow
+
+Add secure authentication system with email/password login.
+
+- Created AuthService for handling authentication
+- Added login and registration forms
+- Implemented secure password hashing
+- Added session management
+
+Part of #789
+```
