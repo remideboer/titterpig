@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
+import 'package:ttrpg_character_manager/utils/sound_manager.dart';
 
 class SettingsScreen extends StatefulWidget {
   final bool isDarkMode;
@@ -19,11 +20,14 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late bool _isDarkMode;
   static const String _themeKey = 'isDarkMode';
+  late bool _isSoundEnabled;
+  final SoundManager _soundManager = SoundManager();
 
   @override
   void initState() {
     super.initState();
     _isDarkMode = widget.isDarkMode;
+    _loadSoundSetting();
   }
 
   @override
@@ -43,6 +47,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _isDarkMode = value;
     });
     widget.onThemeChanged(value);
+  }
+
+  Future<void> _loadSoundSetting() async {
+    await _soundManager.init();
+    setState(() {
+      _isSoundEnabled = !_soundManager.isMuted;
+    });
+  }
+
+  Future<void> _toggleSound() async {
+    await _soundManager.toggleMute();
+    setState(() {
+      _isSoundEnabled = !_soundManager.isMuted;
+    });
   }
 
   @override
@@ -66,6 +84,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             trailing: Switch(
               value: _isDarkMode,
               onChanged: _toggleTheme,
+            ),
+          ),
+          ListTile(
+            title: const Text('Sound Effects'),
+            trailing: Switch(
+              value: _isSoundEnabled,
+              onChanged: (value) => _toggleSound(),
             ),
           ),
         ],

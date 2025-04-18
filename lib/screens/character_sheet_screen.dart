@@ -202,7 +202,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     if (spell.effectValue == null) return;
 
     // Play roll sound
-    SoundManager.playRollSound();
+    SoundManager().playRollSound();
 
     showDialog(
       context: context,
