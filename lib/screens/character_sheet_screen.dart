@@ -16,6 +16,7 @@ import '../utils/name_formatter.dart';
 import '../models/def_category.dart';
 import 'spell_selection_screen.dart';
 import 'spell_detail_screen.dart';
+import 'character_creation_screen.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -769,7 +770,19 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   }
 
   void _showEditDialog(BuildContext context) {
-    // ... existing edit dialog code ...
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CharacterCreationScreen(
+          character: _character,
+          onCharacterSaved: (updatedCharacter) {
+            if (widget.onCharacterUpdated != null) {
+              widget.onCharacterUpdated!(updatedCharacter);
+            }
+          },
+        ),
+      ),
+    );
   }
 
   void _updateCharacter(BuildContext context, Character updatedCharacter) {

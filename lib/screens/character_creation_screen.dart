@@ -68,8 +68,10 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
       _wil = widget.character!.wil;
       _remainingPoints = 0;
       _selectedDefense = widget.character!.defCategory;
+      _spells = List.from(widget.character!.spells);
     } else {
       _selectedDefense = DefCategory.none;
+      _spells = [];
     }
   }
 
