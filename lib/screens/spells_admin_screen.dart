@@ -18,6 +18,7 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
   double _maxCost = 10;
   RangeValues _costRange = const RangeValues(0, 10);
   bool _showOnlyDndSpells = false;
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
@@ -25,6 +26,12 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SpellListViewModel>().loadSpells();
     });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   void _calculateMaxCost(List<Spell> spells) {
@@ -144,9 +151,16 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
                 tooltip: 'Sync D&D Spells',
               ),
               IconButton(
-                icon: Icon(_showOnlyDndSpells ? Icons.list : Icons.cloud),
-                onPressed: () => setState(() => _showOnlyDndSpells = !_showOnlyDndSpells),
-                tooltip: _showOnlyDndSpells ? 'Show All Spells' : 'Show Only D&D Spells',
+                icon: Icon(_showOnlyDndSpells ? Icons.cloud_done : Icons.cloud_off),
+                onPressed: () {
+                  setState(() => _showOnlyDndSpells = !_showOnlyDndSpells);
+                  _pageController.animateToPage(
+                    _showOnlyDndSpells ? 1 : 0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                tooltip: _showOnlyDndSpells ? 'Show Local Spells' : 'Show D&D Spells',
               ),
             ],
           ),
@@ -165,54 +179,86 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
                 ),
               ),
               Expanded(
-                child: ListView.builder(
-                  itemCount: _getFilteredSpells(spells).length,
-                  itemBuilder: (context, index) {
-                    final spell = _getFilteredSpells(spells)[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: ListTile(
-                        leading: _buildCostHexagon(spell.cost),
-                        title: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                spell.name,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                            ),
-                            if (spell.isDndSpell) ...[
-                              const SizedBox(width: 8),
-                              const Icon(Icons.cloud_download, size: 16),
-                            ],
-                          ],
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (spell.effect.isNotEmpty) Text('Effect: ${spell.effect}'),
-                            if (spell.damage.isNotEmpty) Text('Damage: ${spell.damage}'),
-                            Text('Type: ${spell.type} • Range: ${spell.range}'),
-                          ],
-                        ),
-                        trailing: !spell.isDndSpell
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit),
-                                    onPressed: () => _showSpellForm(spell: spell),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete),
-                                    onPressed: () => _deleteSpell(spell),
-                                  ),
-                                ],
-                              )
-                            : null,
-                      ),
-                    );
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _showOnlyDndSpells = index == 1;
+                    });
                   },
+                  children: [
+                    // Local spells page
+                    ListView.builder(
+                      itemCount: _getFilteredSpells(viewModel.localSpells).length,
+                      itemBuilder: (context, index) {
+                        final spell = _getFilteredSpells(viewModel.localSpells)[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: ListTile(
+                            leading: _buildCostHexagon(spell.cost),
+                            title: Text(
+                              spell.name,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (spell.effect.isNotEmpty) Text('Effect: ${spell.effect}'),
+                                if (spell.damage.isNotEmpty) Text('Damage: ${spell.damage}'),
+                                Text('Type: ${spell.type} • Range: ${spell.range}'),
+                              ],
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () => _showSpellForm(spell: spell),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () => _deleteSpell(spell),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    // D&D spells page
+                    ListView.builder(
+                      itemCount: _getFilteredSpells(viewModel.dndSpells).length,
+                      itemBuilder: (context, index) {
+                        final spell = _getFilteredSpells(viewModel.dndSpells)[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: ListTile(
+                            leading: _buildCostHexagon(spell.cost),
+                            title: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    spell.name,
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(Icons.cloud_download, size: 16),
+                              ],
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (spell.effect.isNotEmpty) Text('Effect: ${spell.effect}'),
+                                if (spell.damage.isNotEmpty) Text('Damage: ${spell.damage}'),
+                                Text('Type: ${spell.type} • Range: ${spell.range}'),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],
