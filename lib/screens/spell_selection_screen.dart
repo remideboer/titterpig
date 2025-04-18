@@ -29,12 +29,26 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   bool _isLoading = true;
   double _maxCost = 0;
   RangeValues _costRange = const RangeValues(0, 0);
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _selectedSpells = List.from(widget.selectedSpells);
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _loadSpells();
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadSpells() async {
@@ -65,8 +79,18 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
 
   List<Spell> _getFilteredSpells() {
     return _availableSpells.where((spell) => 
-      spell.cost >= _costRange.start && spell.cost <= _costRange.end
+      spell.cost >= _costRange.start && 
+      spell.cost <= _costRange.end &&
+      (_searchController.text.isEmpty || 
+       spell.name.toLowerCase().contains(_searchController.text.toLowerCase()) ||
+       spell.description.toLowerCase().contains(_searchController.text.toLowerCase()))
     ).toList();
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      // Trigger rebuild to update filtered spells
+    });
   }
 
   Future<void> _handleSpellSelection(Spell spell) async {
@@ -138,23 +162,28 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
           ),
           // Cost filter range slider
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: RangeSlider(
-              values: _costRange,
-              min: 0,
-              max: _maxCost,
-              divisions: _maxCost.toInt(),
-              activeColor: AppTheme.primaryColor,
-              inactiveColor: AppTheme.highlightColor,
-              labels: RangeLabels(
-                _costRange.start.round().toString(),
-                _costRange.end.round().toString(),
-              ),
-              onChanged: (RangeValues values) {
-                setState(() {
-                  _costRange = values;
-                });
-              },
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Text('Cost Range: ${_costRange.start.round()} - ${_costRange.end.round()}'),
+                RangeSlider(
+                  values: _costRange,
+                  min: 0,
+                  max: _maxCost,
+                  divisions: _maxCost > 0 ? _maxCost.toInt() : null,
+                  activeColor: AppTheme.primaryColor,
+                  inactiveColor: AppTheme.highlightColor,
+                  labels: RangeLabels(
+                    _costRange.start.round().toString(),
+                    _costRange.end.round().toString(),
+                  ),
+                  onChanged: (RangeValues values) {
+                    setState(() {
+                      _costRange = values;
+                    });
+                  },
+                ),
+              ],
             ),
           ),
           Expanded(

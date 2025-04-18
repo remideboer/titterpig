@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 import '../models/spell.dart';
+import '../models/die.dart';
 import '../services/dnd_spell_converter.dart';
 import 'spell_detail_screen.dart';
 import '../widgets/hexagon_shape.dart';
@@ -126,8 +127,8 @@ class _SpellListScreenState extends State<SpellListScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(spell.description),
-                            if (spell.damage.isNotEmpty)
-                              Text('${spell.damage} ${spell.effect}'),
+                            if (spell.effectValue != null)
+                              Text('${spell.effectValue}'),
                             Text('${spell.type} • Range: ${spell.range}'),
                             Text(
                               'Cost: ${spell.cost}',
@@ -209,11 +210,6 @@ class _SpellListScreenState extends State<SpellListScreen> {
               ),
             ),
             TextField(
-              decoration: const InputDecoration(labelText: 'Damage'),
-              controller: TextEditingController(text: spell.damage),
-              onChanged: (value) => spell = spell.copyWith(damage: value),
-            ),
-            TextField(
               decoration: const InputDecoration(labelText: 'Effect'),
               controller: TextEditingController(text: spell.effect),
               onChanged: (value) => spell = spell.copyWith(effect: value),
@@ -227,6 +223,14 @@ class _SpellListScreenState extends State<SpellListScreen> {
               decoration: const InputDecoration(labelText: 'Range'),
               controller: TextEditingController(text: spell.range),
               onChanged: (value) => spell = spell.copyWith(range: value),
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Effect Value'),
+              controller: TextEditingController(text: spell.effectValue?.toString() ?? ''),
+              keyboardType: TextInputType.number,
+              onChanged: (value) => spell = spell.copyWith(
+                effectValue: value.isNotEmpty ? Die.fromDndDice(1, int.parse(value)) : null,
+              ),
             ),
           ],
         ),
@@ -271,10 +275,6 @@ class _SpellListScreenState extends State<SpellListScreen> {
               ),
             ),
             TextField(
-              decoration: const InputDecoration(labelText: 'Damage'),
-              onChanged: (value) => _newSpell = _newSpell.copyWith(damage: value),
-            ),
-            TextField(
               decoration: const InputDecoration(labelText: 'Effect'),
               onChanged: (value) => _newSpell = _newSpell.copyWith(effect: value),
             ),
@@ -285,6 +285,13 @@ class _SpellListScreenState extends State<SpellListScreen> {
             TextField(
               decoration: const InputDecoration(labelText: 'Range'),
               onChanged: (value) => _newSpell = _newSpell.copyWith(range: value),
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Effect Value'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) => _newSpell = _newSpell.copyWith(
+                effectValue: value.isNotEmpty ? Die.fromDndDice(1, int.parse(value)) : null,
+              ),
             ),
           ],
         ),
@@ -309,7 +316,7 @@ class _SpellListScreenState extends State<SpellListScreen> {
     name: '',
     description: '',
     cost: 0,
-    damage: '',
+    effectValue: null,
     effect: '',
     type: 'Spell',
     range: 'Self',

@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'die.dart';
 
 @immutable
 class Spell {
-  static const int currentSaveVersion = 2; // Increment this when making breaking changes to the save format
+  static const int currentSaveVersion = 3; // Increment version for breaking changes
 
   final String name;
   final String description;
@@ -10,7 +11,7 @@ class Spell {
   final bool isDndSpell;
   final String versionId;
   final DateTime lastUpdated;
-  final String damage;
+  final Die? effectValue;
   final String effect;
   final String type;
   final String range;
@@ -22,13 +23,14 @@ class Spell {
     this.isDndSpell = false,
     String? versionId,
     DateTime? lastUpdated,
-    this.damage = '',
+    Die? effectValue,
     this.effect = '',
     this.type = 'Spell',
     this.range = 'Self',
   }) : 
     versionId = versionId ?? DateTime.now().millisecondsSinceEpoch.toString(),
-    lastUpdated = lastUpdated ?? DateTime.now();
+    lastUpdated = lastUpdated ?? DateTime.now(),
+    effectValue = effectValue;
 
   Spell copyWith({
     String? name,
@@ -37,7 +39,7 @@ class Spell {
     bool? isDndSpell,
     String? versionId,
     DateTime? lastUpdated,
-    String? damage,
+    Die? effectValue,
     String? effect,
     String? type,
     String? range,
@@ -49,7 +51,7 @@ class Spell {
       isDndSpell: isDndSpell ?? this.isDndSpell,
       versionId: versionId ?? this.versionId,
       lastUpdated: lastUpdated ?? this.lastUpdated,
-      damage: damage ?? this.damage,
+      effectValue: effectValue ?? this.effectValue,
       effect: effect ?? this.effect,
       type: type ?? this.type,
       range: range ?? this.range,
@@ -66,7 +68,7 @@ class Spell {
       'isDndSpell': isDndSpell,
       'versionId': versionId,
       'lastUpdated': lastUpdated.toIso8601String(),
-      'damage': damage,
+      'effectValue': effectValue?.count,
       'effect': effect,
       'type': type,
       'range': range,
@@ -75,6 +77,10 @@ class Spell {
 
   // Create Spell from JSON
   factory Spell.fromJson(Map<String, dynamic> json) {
+    final effectValue = json['effectValue'] != null 
+        ? Die(json['effectValue'] as int)
+        : null;
+
     return Spell(
       name: json['name'] ?? 'Unknown Spell',
       description: json['description'] ?? 'No description available',
@@ -84,12 +90,15 @@ class Spell {
       lastUpdated: json['lastUpdated'] != null 
           ? DateTime.parse(json['lastUpdated'])
           : DateTime.now(),
-      damage: json['damage'] ?? '',
+      effectValue: effectValue,
       effect: json['effect'] ?? '',
       type: json['type'] ?? 'Spell',
       range: json['range'] ?? 'Self',
     );
   }
+
+  // For backward compatibility
+  String get damage => effectValue?.toString() ?? '';
 
   bool isNewerThan(Spell other) {
     return lastUpdated.isAfter(other.lastUpdated);
@@ -113,7 +122,7 @@ class Spell {
       description: 'Deal fire damage to all targets in area',
       cost: 3,
       isDndSpell: true,
-      damage: '2d6',
+      effectValue: Die(2),
       effect: 'Deal fire damage to all targets in area',
       type: 'Offensive',
       range: '20ft radius',
@@ -123,7 +132,7 @@ class Spell {
       description: 'Restore HP to target',
       cost: 2,
       isDndSpell: true,
-      damage: '2d6',
+      effectValue: Die(2),
       effect: 'Restore HP to target',
       type: 'Support',
       range: 'Touch',
@@ -133,7 +142,6 @@ class Spell {
       description: 'Gain temporary HP',
       cost: 1,
       isDndSpell: true,
-      damage: '',
       effect: 'Gain temporary HP',
       type: 'Defensive',
       range: 'Self',
@@ -143,7 +151,7 @@ class Spell {
       description: 'Deal lightning damage in a line',
       cost: 2,
       isDndSpell: true,
-      damage: '1d6',
+      effectValue: Die(1),
       effect: 'Deal lightning damage in a line',
       type: 'Offensive',
       range: '60ft line',
@@ -153,7 +161,6 @@ class Spell {
       description: 'Move to any unoccupied space',
       cost: 2,
       isDndSpell: true,
-      damage: '',
       effect: 'Move to any unoccupied space',
       type: 'Utility',
       range: '30ft',

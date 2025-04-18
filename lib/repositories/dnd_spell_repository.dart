@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../models/spell.dart';
+import '../services/dnd_spell_converter.dart';
 
 class DndSpellRepository {
   static const String _storageKey = 'dnd_spells';
@@ -53,18 +54,8 @@ class DndSpellRepository {
       final List<Spell> spells = [];
       for (var spell in spellList) {
         final spellDetail = await _fetchSpellDetail(spell['url']);
-        spells.add(Spell(
-          name: spellDetail['name'],
-          description: spellDetail['desc']?.join('\n') ?? 'No description available',
-          cost: spellDetail['level'] + 1, // Convert D&D level to our cost system
-          isDndSpell: true,
-          versionId: DateTime.now().millisecondsSinceEpoch.toString(),
-          lastUpdated: DateTime.now(),
-          damage: spellDetail['damage']?['damage_at_slot_level']?.values.first ?? '',
-          effect: spellDetail['desc']?.join('\n') ?? '',
-          type: spellDetail['school']?['name'] ?? 'Spell',
-          range: spellDetail['range'] ?? 'Self',
-        ));
+        final convertedSpell = DndSpellConverter.convertToSpell(spellDetail);
+        spells.add(convertedSpell);
       }
 
       await _storeSpells(spells);

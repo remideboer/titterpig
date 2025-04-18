@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/spell.dart';
+import '../models/die.dart';
 import '../theme/app_theme.dart';
 
 class SpellEditScreen extends StatefulWidget {
@@ -22,7 +23,7 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
   final _costController = TextEditingController();
   final _effectController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _damageController = TextEditingController();
+  final _effectValueController = TextEditingController();
   final _typeController = TextEditingController();
   final _rangeController = TextEditingController();
 
@@ -34,7 +35,7 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
       _costController.text = widget.spell!.cost.toString();
       _effectController.text = widget.spell!.effect;
       _descriptionController.text = widget.spell!.description;
-      _damageController.text = widget.spell!.damage;
+      _effectValueController.text = widget.spell!.effectValue?.count.toString() ?? '';
       _typeController.text = widget.spell!.type;
       _rangeController.text = widget.spell!.range;
     }
@@ -46,7 +47,7 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
     _costController.dispose();
     _effectController.dispose();
     _descriptionController.dispose();
-    _damageController.dispose();
+    _effectValueController.dispose();
     _typeController.dispose();
     _rangeController.dispose();
     super.dispose();
@@ -58,11 +59,13 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
         name: _nameController.text,
         description: _descriptionController.text,
         cost: int.tryParse(_costController.text) ?? 0,
-        damage: _damageController.text,
         effect: _effectController.text,
         type: _typeController.text,
         range: _rangeController.text,
         isDndSpell: widget.spell?.isDndSpell ?? false,
+        effectValue: _effectValueController.text.isNotEmpty 
+            ? Die(int.parse(_effectValueController.text))
+            : null,
       );
 
       if (widget.spell != null) {
@@ -140,11 +143,12 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
             ),
             const SizedBox(height: 16),
             TextFormField(
-              controller: _damageController,
+              controller: _effectValueController,
               decoration: const InputDecoration(
-                labelText: 'Damage',
+                labelText: 'Effect Value',
                 border: OutlineInputBorder(),
               ),
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -163,7 +167,6 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            // Add more fields here as needed
           ],
         ),
       ),
