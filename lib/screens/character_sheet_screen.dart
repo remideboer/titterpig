@@ -358,58 +358,52 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                     final spell = sortedSpells[index];
                                     final canUse = spell.cost <= _character.availablePower;
                                     return Card(
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 8.0,
-                                        vertical: 4.0,
-                                      ),
+                                      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                       child: ListTile(
                                         leading: _buildHexagon(spell.cost.toString(), ''),
-                                        title: Text(spell.name),
+                                        title: Text(
+                                          spell.name,
+                                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                            color: AppTheme.primaryColor,
+                                          ),
+                                        ),
                                         subtitle: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            if (spell.damage.isNotEmpty)
-                                              Text('${spell.damage} ${spell.effect}'),
-                                            Text('${spell.type} • Range: ${spell.range}'),
+                                            if (spell.effectValue != null)
+                                              Text(
+                                                '${spell.effectValue} ${spell.effect}',
+                                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                  color: AppTheme.highlightColor,
+                                                ),
+                                              ),
+                                            Text(
+                                              '${spell.type} • Range: ${spell.range}',
+                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                color: AppTheme.highlightColor,
+                                              ),
+                                            ),
                                           ],
                                         ),
-                                        trailing: Icon(
-                                          Icons.flash_on,
-                                          color: canUse ? Colors.amber : Colors.grey,
+                                        trailing: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(Icons.flash_on),
+                                              color: canUse ? AppTheme.highlightColor : Colors.grey,
+                                              onPressed: canUse ? () => _castSpell(spell) : null,
+                                              tooltip: canUse ? 'Cast spell' : 'Not enough power',
+                                            ),
+                                          ],
                                         ),
                                         onTap: () {
-                                          if (canUse) {
-                                            setState(() {
-                                              _character.availablePower -= spell.cost;
-                                              _updateLastUsed();
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('Used ${spell.name} (${spell.cost} power)'),
-                                                  backgroundColor: AppTheme.greenColor,
-                                                  duration: const Duration(seconds: 2),
-                                                ),
-                                              );
-                                            });
-                                          } else {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  'Insufficient power to cast ${spell.name} (requires ${spell.cost} power)',
-                                                  style: TextStyle(color: AppTheme.accentColor),
-                                                ),
-                                                backgroundColor: AppTheme.highlightColor,
-                                                duration: const Duration(seconds: 2),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        onLongPress: () {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) => SpellDetailScreen(
                                                 spell: spell,
-                                                onSpellSelected: (_) {}, // No-op function since we don't want selection in character sheet
+                                                onSpellSelected: (_) {},
+                                                allowEditing: false,
                                               ),
                                             ),
                                           );
@@ -788,6 +782,33 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   void _updateCharacter(BuildContext context, Character updatedCharacter) {
     if (widget.onCharacterUpdated != null) {
       widget.onCharacterUpdated!(updatedCharacter);
+    }
+  }
+
+  void _castSpell(Spell spell) {
+    if (_character.availablePower >= spell.cost) {
+      setState(() {
+        _character.availablePower -= spell.cost;
+        _updateLastUsed();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Used ${spell.name} (${spell.cost} power)'),
+            backgroundColor: AppTheme.greenColor,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Insufficient power to cast ${spell.name} (requires ${spell.cost} power)',
+            style: TextStyle(color: AppTheme.accentColor),
+          ),
+          backgroundColor: AppTheme.highlightColor,
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 }
