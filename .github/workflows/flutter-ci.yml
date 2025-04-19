@@ -2,53 +2,84 @@ name: Flutter CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - 'dev/**'
+      - 'feature/**'
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - 'dev/**'
 
 jobs:
-  build-and-test:
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.x'
-        channel: 'stable'
-    
-    - name: Install dependencies
-      run: flutter pub get
+      - uses: actions/checkout@v4
       
-    - name: Run tests
-      run: flutter test
-      
-    - name: Analyze project source
-      run: flutter analyze
-    
-    - name: Build APK
-      run: flutter build apk --release
-      
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: release-apk
-        path: build/app/outputs/flutter-apk/app-release.apk
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+          
+      - name: Install dependencies
+        run: flutter pub get
         
-    - name: Build Web
-      run: flutter build web
+      - name: Run static analysis
+        run: flutter analyze
+        
+      - name: Run tests with coverage
+        run: flutter test --coverage
+        
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: success()
+        with:
+          file: coverage/lcov.info
+          fail_ci_if_error: true
+
+  build-and-release:
+    name: Build and Release
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       
-    - name: Upload Web Build
-      uses: actions/upload-artifact@v4
-      with:
-        name: web-build
-        path: build/web
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Build APK
+        run: flutter build apk --release
+      
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+      
+      - name: Build Web
+        run: flutter build web
+      
+      - name: Upload Web Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web
 
   build-windows:
+    name: Build Windows
+    needs: test
+    if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -69,6 +100,32 @@ jobs:
         with:
           name: windows-build
           path: build/windows/x64/runner/Release/
+
+  build-dev:
+    name: Development Build
+    needs: test
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Build Debug APK
+        run: flutter build apk --debug
+      
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
 
   build-android:
     runs-on: ubuntu-latest

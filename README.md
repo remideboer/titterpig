@@ -440,3 +440,78 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## Development
+
+### Building and Testing
+
+The project includes automated test runs before builds. You can build the project in several ways:
+
+#### Using Android Studio
+1. Open the Run/Debug Configurations dropdown (next to the run button)
+2. Select one of the following configurations:
+   - `Flutter Debug APK with Tests`: Runs tests and builds debug APK
+   - `Flutter Debug Windows with Tests`: Runs tests and builds debug Windows app
+   - `Flutter Tests Only`: Runs all tests with coverage
+
+You can also create custom run configurations:
+1. Click "Edit Configurations..."
+2. Click the "+" button and select "Shell Script"
+3. Set the "Script text" field to:
+   ```bash
+   flutter test && flutter build <platform> --debug
+   ```
+   Replace `<platform>` with: apk, appbundle, web, windows, macos, linux, or ios
+
+#### Using VS Code Tasks
+1. Open the Command Palette (Ctrl+Shift+P / Cmd+Shift+P)
+2. Type "Tasks: Run Task"
+3. Select one of the following tasks:
+   - `Flutter: Build Debug APK (with tests)`
+   - `Flutter: Build Debug Windows (with tests)`
+   - `Flutter: Build Debug Web (with tests)`
+   - `Flutter: Run Tests Only`
+
+#### Using Scripts Directly
+For Windows (PowerShell):
+```powershell
+.\scripts\build.ps1 <build_type> <platform>
+```
+
+For Linux/macOS (Bash):
+```bash
+./scripts/build.sh <build_type> <platform>
+```
+
+Build types:
+- `debug`: Development build with debugging enabled
+- `profile`: Performance profiling build
+- `release`: Production release build
+
+Platforms:
+- `apk`: Android APK
+- `appbundle`: Android App Bundle
+- `web`: Web application
+- `windows`: Windows desktop application
+- `macos`: macOS desktop application
+- `linux`: Linux desktop application
+- `ios`: iOS application
+
+Example:
+```bash
+./scripts/build.sh debug apk
+```
+
+The build scripts will:
+1. Run static analysis
+2. Execute all tests
+3. Only proceed with the build if all tests pass
+4. Create the build for the specified platform
+
+### Continuous Integration
+
+The project uses GitHub Actions for CI/CD, which:
+- Runs tests on all branches
+- Builds debug versions for development branches
+- Creates release builds for the main branch
+- Uploads build artifacts for each successful build

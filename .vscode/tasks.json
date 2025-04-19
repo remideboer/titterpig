@@ -1,0 +1,73 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Flutter: Build Debug APK (with tests)",
+            "type": "shell",
+            "windows": {
+                "command": ".\\scripts\\build.ps1 debug apk"
+            },
+            "linux": {
+                "command": "./scripts/build.sh debug apk"
+            },
+            "osx": {
+                "command": "./scripts/build.sh debug apk"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Flutter: Build Debug Windows (with tests)",
+            "type": "shell",
+            "windows": {
+                "command": ".\\scripts\\build.ps1 debug windows"
+            },
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Flutter: Build Debug Web (with tests)",
+            "type": "shell",
+            "windows": {
+                "command": ".\\scripts\\build.ps1 debug web"
+            },
+            "linux": {
+                "command": "./scripts/build.sh debug web"
+            },
+            "osx": {
+                "command": "./scripts/build.sh debug web"
+            },
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Flutter: Run Tests Only",
+            "type": "shell",
+            "command": "flutter test",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        }
+    ]
+} 
