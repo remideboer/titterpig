@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/spell.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
+import '../models/die.dart';
 
 class SpellEditScreen extends StatefulWidget {
   final Spell? spell;
@@ -16,6 +17,14 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _costController;
+  late TextEditingController _effectController;
+  late TextEditingController _dieCountController;
+  String _selectedType = 'Spell';
+  String _selectedRange = 'Self';
+
+  // Predefined options
+  final List<String> _types = ['Spell', 'Support', 'Offensive', 'Defensive', 'Utility'];
+  final List<String> _ranges = ['Self', 'Touch', '15ft', '30ft', '60ft'];
 
   @override
   void initState() {
@@ -23,6 +32,10 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
     _nameController = TextEditingController(text: widget.spell?.name ?? '');
     _descriptionController = TextEditingController(text: widget.spell?.description ?? '');
     _costController = TextEditingController(text: widget.spell?.cost.toString() ?? '0');
+    _effectController = TextEditingController(text: widget.spell?.effect ?? '');
+    _dieCountController = TextEditingController(text: widget.spell?.effectValue?.count.toString() ?? '0');
+    _selectedType = widget.spell?.type ?? 'Spell';
+    _selectedRange = widget.spell?.range ?? 'Self';
   }
 
   @override
@@ -30,15 +43,23 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     _costController.dispose();
+    _effectController.dispose();
+    _dieCountController.dispose();
     super.dispose();
   }
 
   void _saveSpell(BuildContext context) {
     final viewModel = context.read<SpellListViewModel>();
+    final dieCount = int.tryParse(_dieCountController.text) ?? 0;
+    
     final newSpell = Spell(
       name: _nameController.text,
       description: _descriptionController.text,
       cost: int.tryParse(_costController.text) ?? 0,
+      effect: _effectController.text,
+      effectValue: dieCount > 0 ? Die(dieCount) : null,
+      type: _selectedType,
+      range: _selectedRange,
     );
 
     if (widget.spell != null) {
@@ -56,15 +77,19 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
       appBar: AppBar(
         title: Text(widget.spell == null ? 'Create Spell' : 'Edit Spell'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: () => _saveSpell(context),
+          Hero(
+            tag: 'spell-edit-save-button',
+            child: IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: () => _saveSpell(context),
+            ),
           ),
         ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: _nameController,
@@ -83,13 +108,82 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
               maxLines: 3,
             ),
             const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _costController,
+                    decoration: const InputDecoration(
+                      labelText: 'Cost',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextField(
+                    controller: _dieCountController,
+                    decoration: const InputDecoration(
+                      labelText: 'Number of Dice',
+                      border: OutlineInputBorder(),
+                      helperText: 'Leave 0 for no dice',
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             TextField(
-              controller: _costController,
+              controller: _effectController,
               decoration: const InputDecoration(
-                labelText: 'Cost',
+                labelText: 'Effect',
+                border: OutlineInputBorder(),
+                helperText: 'e.g., "Deal damage to target", "Heal target"',
+              ),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _selectedType,
+              decoration: const InputDecoration(
+                labelText: 'Type',
                 border: OutlineInputBorder(),
               ),
-              keyboardType: TextInputType.number,
+              items: _types.map((type) {
+                return DropdownMenuItem(
+                  value: type,
+                  child: Text(type),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedType = value;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _selectedRange,
+              decoration: const InputDecoration(
+                labelText: 'Range',
+                border: OutlineInputBorder(),
+              ),
+              items: _ranges.map((range) {
+                return DropdownMenuItem(
+                  value: range,
+                  child: Text(range),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedRange = value;
+                  });
+                }
+              },
             ),
           ],
         ),
