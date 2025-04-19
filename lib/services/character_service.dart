@@ -4,13 +4,9 @@ import '../models/def_category.dart';
 /// Service class for managing character-related calculations and validations.
 class CharacterService {
   static const int totalPoints = 3;
-  static const int maxStat = 3;
   static const int minStat = -3;
-
-  /// Validates if a stat value is within the allowed range.
-  static bool isValidStatValue(int value) {
-    return value >= minStat && value <= maxStat;
-  }
+  static const int maxStat = 3;  // Maximum value for any base stat
+  static const int minLife = 1;  // Minimum allowed LIFE value
 
   /// Validates if a VIT value would result in valid HP (>= 2).
   /// 
@@ -24,6 +20,13 @@ class CharacterService {
   static bool isValidVitForHp(int vit) {
     final hp = calculateHp(vit);
     return hp >= 2;
+  }
+
+  /// Validates if a VIT value would result in valid LIFE (>= 1).
+  /// LIFE is calculated as 3 + VIT, so VIT must be >= -2.
+  static bool isValidVitForLife(int vit) {
+    final life = calculateLife(vit);
+    return life >= minLife;
   }
 
   /// Calculates HP based on VIT.
@@ -52,8 +55,10 @@ class CharacterService {
 
   /// Validates if a stat can be updated with the given delta.
   /// 
-  /// For VIT specifically, this ensures that the resulting HP stays >= 2
-  /// as per BR-13.
+  /// Priority of constraints:
+  /// 1. VIT must result in HP >= 2 (highest priority)
+  /// 2. VIT must result in LIFE >= 1
+  /// 3. General minimum stat value of -3 (lowest priority)
   static bool canUpdateStat({
     required int currentValue,
     required int delta,
@@ -61,11 +66,19 @@ class CharacterService {
     bool isVit = false,
   }) {
     final newValue = currentValue + delta;
-    
-    if (!isValidStatValue(newValue)) return false;
-    if (isVit && !isValidVitForHp(newValue)) return false;
-    
     final newRemaining = remainingPoints - delta;
-    return newRemaining >= 0;
+    
+    // Check if we have enough points
+    if (newRemaining < 0) return false;
+    
+    // For VIT, check HP and LIFE requirements first
+    if (isVit) {
+      if (!isValidVitForHp(newValue)) return false;
+      if (!isValidVitForLife(newValue)) return false;
+      return true;  // If HP and LIFE are valid, allow any value
+    }
+    
+    // For other stats, check the minimum value
+    return newValue >= minStat;
   }
 } 

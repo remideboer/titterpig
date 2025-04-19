@@ -32,23 +32,28 @@ class CharacterGeneratorService {
   /// Generates random stats following the rules:
   /// - Total points: 3
   /// - Each stat between -3 and 3
-  /// - VIT must result in HP >= 2
+  /// - VIT must result in HP >= 2 and Life >= 1
   Map<String, int> _generateValidStats() {
     while (true) {
       final stats = _generateRandomStats();
       final vit = stats['vit']!;
       
-      // Verify HP rule (BR-13)
-      if (CharacterService.isValidVitForHp(vit)) {
+      // Verify both HP and Life rules (BR-08, BR-13)
+      if (CharacterService.isValidVitForHp(vit) && 
+          CharacterService.isValidVitForLife(vit)) {
         return stats;
       }
     }
   }
 
   Map<String, int> _generateRandomStats() {
-    // Initialize with minimum values
+    // Initialize with minimum valid VIT (-2) and minimum values for others
     var remainingPoints = CharacterService.totalPoints;
-    var stats = {'vit': CharacterService.minStat, 'ath': CharacterService.minStat, 'wil': CharacterService.minStat};
+    var stats = {
+      'vit': -2,  // Start at -2 to ensure valid HP and Life
+      'ath': CharacterService.minStat, 
+      'wil': CharacterService.minStat
+    };
     
     // Randomly distribute points
     while (remainingPoints > 0) {

@@ -103,6 +103,32 @@ Related Business Rules: BR-13
 - None: +0 defense
 - Shield bonus: +2 defense (stacks with category)
 
+Rule ID: BR-08
+Description: Base Character Stats
+Each character has three base stats (VIT, ATH, WIL) that determine their derived stats:
+- VIT (Vitality): Affects HP and Life
+- ATH (Athletics): Affects Defense
+- WIL (Willpower): Affects Power and maximum spells
+
+Rules:
+- Each stat starts at -3 and can be increased using stat points
+- Total of 3 stat points to distribute during character creation
+- Stat constraints follow this priority order:
+  1. VIT must result in HP >= 2 (HP = 6 + (2 × VIT))
+  2. VIT must result in Life >= 1 (Life = 3 + VIT)
+  3. All other stats have a minimum of -3
+- Power is calculated as (WIL × 3), clamped to minimum 0
+
+Examples:
+- VIT constraint by HP: VIT cannot be less than -2 (6 + (2 × -2) = 2 HP)
+- VIT constraint by Life: VIT cannot be less than -2 (3 + -2 = 1 Life)
+- ATH and WIL can go down to -3 (minimum stat value)
+- Valid stat distribution: VIT -2, ATH -3, WIL -1 (total points: 3)
+- Invalid VIT value: VIT -3 (results in HP = 0 and Life = 0)
+- Power calculation: WIL -1 gives Power 0 (-3 clamped to 0)
+
+Dependencies: None
+
 Rule ID: BR-13
 Description: Character creation/editing screen maintains context of the current section (Stats/Background) when opened
 Validation: Verify that editing a character opens to the same section that was being viewed

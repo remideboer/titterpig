@@ -60,13 +60,13 @@ class Character {
         sessionLog = sessionLog ?? [],
         createdAt = createdAt ?? DateTime.now(),
         lastUsed = lastUsed ?? DateTime.now() {
-    final newHp = (baseHp + hpPerVit * vit).clamp(1, 999);
-    final newLife = (baseLife + vit).clamp(1, 999);
-    final newPower = (wil * 3).clamp(minPower, 999);
+    final newHp = baseHp + hpPerVit * vit;
+    final newLife = baseLife + vit;
+    final newPower = wil * 3;
     
-    _hp = StatValue.full(newHp);
+    _hp = StatValue.full(newHp < 2 ? 2 : newHp);
     _life = StatValue.full(newLife);
-    _power = StatValue.full(newPower);
+    _power = StatValue.full(newPower < minPower ? minPower : newPower);
     def = this.defCategory.defValue + (hasShield ? 2 : 0);
   }
 
@@ -94,22 +94,22 @@ class Character {
   }
 
   void updateDerivedStats() {
-    final newHp = (baseHp + hpPerVit * vit).clamp(1, 999);
+    final newHp = baseHp + hpPerVit * vit;
     _hp = StatValue(
-      current: _hp.current.clamp(0, newHp),
-      max: newHp
+      current: _hp.current.clamp(0, newHp < 2 ? 2 : newHp),
+      max: newHp < 2 ? 2 : newHp
     );
     
-    final newLife = (baseLife + vit).clamp(1, 999);
+    final newLife = baseLife + vit;
     _life = StatValue(
       current: _life.current.clamp(0, newLife),
       max: newLife
     );
     
-    final newPower = (wil * 3).clamp(minPower, 999);
+    final newPower = wil * 3;
     _power = StatValue(
-      current: _power.current.clamp(0, newPower),
-      max: newPower
+      current: _power.current.clamp(0, newPower < minPower ? minPower : newPower),
+      max: newPower < minPower ? minPower : newPower
     );
     
     def = defCategory.defValue + (hasShield ? 2 : 0);

@@ -9,6 +9,12 @@ class MockCharacterService extends Mock implements CharacterService {
     final hp = 6 + (2 * vit);
     return hp >= 2;
   }
+
+  @override
+  bool isValidVitForLife(int vit) {
+    final life = 3 + vit;
+    return life >= 1;
+  }
 }
 
 void main() {
@@ -32,7 +38,7 @@ void main() {
       expect(character.lastUsed, isNotNull);
 
       // Verify stats follow rules
-      expect(character.vit, inInclusiveRange(-3, 3));
+      expect(character.vit, inInclusiveRange(-2, 3), 'VIT must be >= -2 to satisfy HP and Life constraints');
       expect(character.ath, inInclusiveRange(-3, 3));
       expect(character.wil, inInclusiveRange(-3, 3));
 
@@ -42,7 +48,11 @@ void main() {
 
       // Verify HP rule is followed
       final hp = 6 + (2 * character.vit);
-      expect(hp, greaterThanOrEqualTo(2));
+      expect(hp, greaterThanOrEqualTo(2), 'HP must be >= 2');
+
+      // Verify Life rule is followed
+      final life = 3 + character.vit;
+      expect(life, greaterThanOrEqualTo(1), 'Life must be >= 1');
     });
 
     test('generates appropriate names for each species', () {
@@ -77,7 +87,7 @@ void main() {
         final character = generator.generateRandomCharacter();
         
         // Verify stat ranges
-        expect(character.vit, inInclusiveRange(-3, 3));
+        expect(character.vit, inInclusiveRange(-2, 3), 'VIT must be >= -2 to satisfy HP and Life constraints');
         expect(character.ath, inInclusiveRange(-3, 3));
         expect(character.wil, inInclusiveRange(-3, 3));
 
@@ -87,7 +97,27 @@ void main() {
 
         // Verify HP rule
         final hp = 6 + (2 * character.vit);
-        expect(hp, greaterThanOrEqualTo(2));
+        expect(hp, greaterThanOrEqualTo(2), 'HP must be >= 2');
+
+        // Verify Life rule
+        final life = 3 + character.vit;
+        expect(life, greaterThanOrEqualTo(1), 'Life must be >= 1');
+      }
+    });
+
+    test('never generates invalid VIT values', () {
+      for (var i = 0; i < 100; i++) {
+        final character = generator.generateRandomCharacter();
+        
+        // VIT should never be -3 as it would violate both HP and Life constraints
+        expect(character.vit, isNot(equals(-3)), 'VIT should never be -3');
+        
+        // Double-check both constraints
+        final hp = 6 + (2 * character.vit);
+        final life = 3 + character.vit;
+        
+        expect(hp, greaterThanOrEqualTo(2), 'HP must be >= 2');
+        expect(life, greaterThanOrEqualTo(1), 'Life must be >= 1');
       }
     });
   });

@@ -476,19 +476,19 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: _buildStatBox('VIT', _vit, () => _updateStat('vit', -1), () => _updateStat('vit', 1)),
+                  child: _buildStatInput('VIT', _vit, () => _updateStat('vit', -1), () => _updateStat('vit', 1)),
                 ),
               ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: _buildStatBox('ATH', _ath, () => _updateStat('ath', -1), () => _updateStat('ath', 1)),
+                  child: _buildStatInput('ATH', _ath, () => _updateStat('ath', -1), () => _updateStat('ath', 1)),
                 ),
               ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: _buildStatBox('WIL', _wil, () => _updateStat('wil', -1), () => _updateStat('wil', 1)),
+                  child: _buildStatInput('WIL', _wil, () => _updateStat('wil', -1), () => _updateStat('wil', 1)),
                 ),
               ),
             ],
@@ -846,7 +846,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
     );
   }
 
-  Widget _buildStatBox(String label, int value, VoidCallback onDecrement, VoidCallback onIncrement) {
+  Widget _buildStatInput(String label, int value, VoidCallback onIncrement, VoidCallback onDecrement) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       decoration: BoxDecoration(
@@ -869,7 +869,9 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                   child: IconButton(
                     icon: const Icon(Icons.remove, size: 16),
                     padding: EdgeInsets.zero,
-                    onPressed: value > CharacterService.minStat ? onDecrement : null,
+                    onPressed: label == 'VIT' 
+                        ? (CharacterService.isValidVitForHp(value - 1) ? onIncrement : null)
+                        : onIncrement,
                   ),
                 ),
                 Padding(
@@ -885,7 +887,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                   child: IconButton(
                     icon: const Icon(Icons.add, size: 16),
                     padding: EdgeInsets.zero,
-                    onPressed: value < CharacterService.maxStat ? onIncrement : null,
+                    onPressed: onDecrement,
                   ),
                 ),
               ],
