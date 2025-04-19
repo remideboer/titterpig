@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../repositories/local_character_repository.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
+import '../widgets/spell_list_item.dart';
 import 'spell_detail_screen.dart';
 
 class SpellSelectionScreen extends StatefulWidget {
@@ -54,18 +55,13 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
     ).toList();
   }
 
-  void _addSpell(Spell spell) {
-    if (_currentSpells.length < widget.maxSpells) {
-      setState(() {
-        _currentSpells.add(spell);
-        widget.onSpellsChanged(_currentSpells);
-      });
-    }
-  }
-
-  void _removeSpell(Spell spell) {
+  void _toggleSpell(Spell spell) {
     setState(() {
-      _currentSpells.remove(spell);
+      if (_currentSpells.contains(spell)) {
+        _currentSpells.remove(spell);
+      } else if (_currentSpells.length < widget.maxSpells) {
+        _currentSpells.add(spell);
+      }
       widget.onSpellsChanged(_currentSpells);
     });
   }
@@ -81,8 +77,7 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => viewModel.refreshSpells(),
-            tooltip: 'Refresh Spells',
+            onPressed: () => viewModel.loadSpells(),
           ),
         ],
       ),
@@ -101,6 +96,7 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                         onPressed: () => _searchController.clear(),
                       )
                     : null,
+                border: const OutlineInputBorder(),
               ),
             ),
           ),
@@ -111,34 +107,20 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                 final spell = spells[index];
                 final isSelected = _currentSpells.contains(spell);
                 final canAdd = _currentSpells.length < widget.maxSpells;
-                return ListTile(
-                  title: Text(spell.name),
-                  subtitle: Text(
-                    spell.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Cost: ${spell.cost}'),
-                      if (isSelected)
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: () => _removeSpell(spell),
-                        )
-                      else if (canAdd)
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () => _addSpell(spell),
+                
+                return SpellListItem(
+                  spell: spell,
+                  actions: SpellListItemActions(
+                    spell: spell,
+                    actions: [
+                      IconButton(
+                        icon: Icon(
+                          isSelected ? Icons.check_circle : Icons.add_circle_outline,
+                          color: isSelected ? Colors.green : null,
                         ),
+                        onPressed: (isSelected || canAdd) ? () => _toggleSpell(spell) : null,
+                      ),
                     ],
-                  ),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SpellDetailScreen(spell: spell),
-                    ),
                   ),
                 );
               },

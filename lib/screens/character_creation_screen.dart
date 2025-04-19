@@ -29,6 +29,7 @@ import '../models/background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/character_generator_service.dart';
 import '../providers/providers.dart';
+import '../widgets/spell_list_item.dart';
 
 class CharacterCreationScreen extends ConsumerStatefulWidget {
   final Character? character;
@@ -587,18 +588,20 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                       itemCount: _spells.length,
                       itemBuilder: (context, index) {
                         final spell = _spells[index];
-                        return ListTile(
-                          contentPadding: const EdgeInsets.only(left: 0),
-                          leading: _buildHexagon(spell.cost.toString(), ''),
-                          title: Text(spell.name),
-                          subtitle: spell.effect.isNotEmpty ? Text(spell.effect) : null,
-                          trailing: IconButton(
-                            icon: const Icon(Icons.remove),
-                            onPressed: () {
-                              setState(() {
-                                _spells.removeAt(index);
-                              });
-                            },
+                        return SpellListItem(
+                          spell: spell,
+                          actions: SpellListItemActions(
+                            spell: spell,
+                            actions: [
+                              IconButton(
+                                icon: const Icon(Icons.remove),
+                                onPressed: () {
+                                  setState(() {
+                                    _spells.removeAt(index);
+                                  });
+                                },
+                              ),
+                            ],
                           ),
                         );
                       },

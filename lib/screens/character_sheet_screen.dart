@@ -21,6 +21,7 @@ import 'package:ttrpg_character_manager/widgets/animated_dice.dart';
 import '../utils/sound_manager.dart';
 import '../utils/spell_limit_calculator.dart';
 import '../widgets/character_background_view.dart';
+import '../widgets/spell_list_item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
@@ -504,63 +505,23 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                               itemBuilder: (context, index) {
                                 final spell = sortedSpells[index];
                                 final canUse = spell.cost <= _character.availablePower;
-                                return Card(
-                                  margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                  child: ListTile(
-                                    leading: _buildHexagon(spell.cost.toString(), ''),
-                                    title: Text(
-                                      spell.name,
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        color: AppTheme.primaryColor,
-                                      ),
-                                    ),
-                                    subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        if (spell.effectValue != null)
-                                          Text(
-                                            '${spell.effectValue}',
-                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                              color: AppTheme.highlightColor,
-                                            ),
-                                          ),
-                                        Text(
-                                          '${spell.type} • Range: ${spell.range}',
-                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                            color: AppTheme.highlightColor,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        // Dice icon (only shown for spells with effectValue)
-                                        if (spell.effectValue != null)
-                                          IconButton(
-                                            icon: const Icon(Icons.casino),
-                                            color: canUse ? AppTheme.highlightColor : Colors.grey,
-                                            onPressed: canUse ? () => _throwDice(spell) : null,
-                                            tooltip: canUse ? 'Roll dice' : 'Not enough power',
-                                          )
-                                        else
-                                          const SizedBox(width: 48), // Empty space to maintain alignment
+                                return SpellListItem(
+                                  spell: spell,
+                                  actions: SpellListItemActions(
+                                    spell: spell,
+                                    actions: [
+                                      if (spell.effectValue != null)
                                         IconButton(
-                                          icon: Icon(canUse ? Icons.flash_on : Icons.flash_off),
-                                          color: canUse ? AppTheme.highlightColor : Colors.grey,
-                                          onPressed: canUse ? () => _castSpell(spell) : null,
-                                          tooltip: canUse ? 'Cast spell' : 'Not enough power',
+                                          icon: const Icon(Icons.casino),
+                                          onPressed: canUse ? () => _throwDice(spell) : null,
+                                          color: canUse ? null : Colors.grey,
                                         ),
-                                      ],
-                                    ),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => SpellDetailScreen(spell: spell),
-                                        ),
-                                      );
-                                    },
+                                      IconButton(
+                                        icon: const Icon(Icons.play_arrow),
+                                        onPressed: canUse ? () => _castSpell(spell) : null,
+                                        color: canUse ? null : Colors.grey,
+                                      ),
+                                    ],
                                   ),
                                 );
                               },
