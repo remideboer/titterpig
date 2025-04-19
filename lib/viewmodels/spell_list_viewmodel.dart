@@ -9,6 +9,7 @@ class SpellListViewModel extends ChangeNotifier {
   String _searchQuery = '';
   bool _isLoading = false;
   late RangeValues _costRange;
+  Set<String> _selectedTypes = {};
 
   SpellListViewModel(this._repository) {
     loadSpells();
@@ -18,6 +19,11 @@ class SpellListViewModel extends ChangeNotifier {
   List<Spell> get allSpells => _spells;
   bool get isLoading => _isLoading;
   RangeValues get costRange => _costRange;
+  Set<String> get selectedTypes => _selectedTypes;
+  
+  Set<String> get availableTypes {
+    return _spells.map((s) => s.type).toSet();
+  }
   
   double get maxSpellCost {
     if (_spells.isEmpty) return 10;
@@ -33,7 +39,9 @@ class SpellListViewModel extends ChangeNotifier {
       final matchesCost = spell.cost >= _costRange.start && 
                          spell.cost <= _costRange.end;
       
-      return matchesSearch && matchesCost;
+      final matchesType = _selectedTypes.isEmpty || _selectedTypes.contains(spell.type);
+      
+      return matchesSearch && matchesCost && matchesType;
     }).toList();
   }
 
@@ -92,6 +100,20 @@ class SpellListViewModel extends ChangeNotifier {
 
   void setCostRange(RangeValues range) {
     _costRange = range;
+    notifyListeners();
+  }
+
+  void toggleType(String type) {
+    if (_selectedTypes.contains(type)) {
+      _selectedTypes.remove(type);
+    } else {
+      _selectedTypes.add(type);
+    }
+    notifyListeners();
+  }
+
+  void clearSelectedTypes() {
+    _selectedTypes.clear();
     notifyListeners();
   }
 
