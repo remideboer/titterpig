@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'screens/main_screen.dart';
 import 'viewmodels/character_list_viewmodel.dart';
 import 'viewmodels/spell_list_viewmodel.dart';
+import 'repositories/spell_repository.dart';
 import 'theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,7 +51,9 @@ class _MyAppState extends State<MyApp> {
     return provider.MultiProvider(
       providers: [
         provider.ChangeNotifierProvider(create: (_) => CharacterListViewModel()),
-        provider.ChangeNotifierProvider(create: (_) => SpellListViewModel()),
+        provider.ChangeNotifierProvider(
+          create: (_) => SpellListViewModel(SpellRepository()),
+        ),
       ],
       child: MaterialApp(
         title: 'TTRPG Character Manager',

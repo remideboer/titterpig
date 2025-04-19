@@ -1,172 +1,96 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/spell.dart';
-import '../models/die.dart';
-import '../theme/app_theme.dart';
+import '../viewmodels/spell_list_viewmodel.dart';
 
 class SpellEditScreen extends StatefulWidget {
   final Spell? spell;
-  final Function(Spell)? onSave;
 
-  const SpellEditScreen({
-    super.key,
-    this.spell,
-    this.onSave,
-  });
+  const SpellEditScreen({Key? key, this.spell}) : super(key: key);
 
   @override
-  State<SpellEditScreen> createState() => _SpellEditScreenState();
+  _SpellEditScreenState createState() => _SpellEditScreenState();
 }
 
 class _SpellEditScreenState extends State<SpellEditScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _costController = TextEditingController();
-  final _effectController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _effectValueController = TextEditingController();
-  final _typeController = TextEditingController();
-  final _rangeController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _costController;
 
   @override
   void initState() {
     super.initState();
-    if (widget.spell != null) {
-      _nameController.text = widget.spell!.name;
-      _costController.text = widget.spell!.cost.toString();
-      _effectController.text = widget.spell!.effect;
-      _descriptionController.text = widget.spell!.description;
-      _effectValueController.text = widget.spell!.effectValue?.count.toString() ?? '';
-      _typeController.text = widget.spell!.type;
-      _rangeController.text = widget.spell!.range;
-    }
+    _nameController = TextEditingController(text: widget.spell?.name ?? '');
+    _descriptionController = TextEditingController(text: widget.spell?.description ?? '');
+    _costController = TextEditingController(text: widget.spell?.cost.toString() ?? '0');
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _costController.dispose();
-    _effectController.dispose();
     _descriptionController.dispose();
-    _effectValueController.dispose();
-    _typeController.dispose();
-    _rangeController.dispose();
+    _costController.dispose();
     super.dispose();
   }
 
-  void _saveSpell() {
-    if (_formKey.currentState?.validate() ?? false) {
-      final spell = Spell(
-        name: _nameController.text,
-        description: _descriptionController.text,
-        cost: int.tryParse(_costController.text) ?? 0,
-        effect: _effectController.text,
-        type: _typeController.text,
-        range: _rangeController.text,
-        isDndSpell: widget.spell?.isDndSpell ?? false,
-        effectValue: _effectValueController.text.isNotEmpty 
-            ? Die(int.parse(_effectValueController.text))
-            : null,
-      );
+  void _saveSpell(BuildContext context) {
+    final viewModel = context.read<SpellListViewModel>();
+    final newSpell = Spell(
+      name: _nameController.text,
+      description: _descriptionController.text,
+      cost: int.tryParse(_costController.text) ?? 0,
+    );
 
-      if (widget.spell != null) {
-        final index = Spell.availableSpells.indexWhere((s) => s.name == widget.spell?.name);
-        if (index != -1) {
-          Spell.availableSpells[index] = spell;
-        }
-      } else {
-        Spell.availableSpells.add(spell);
-      }
-
-      if (widget.onSave != null) {
-        widget.onSave!(spell);
-      }
-      Navigator.of(context).pop(true);
+    if (widget.spell != null) {
+      viewModel.updateSpell(widget.spell!, newSpell);
+    } else {
+      viewModel.addSpell(newSpell);
     }
+
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.spell != null ? 'Edit Spell' : 'Create Spell'),
+        title: Text(widget.spell == null ? 'Create Spell' : 'Edit Spell'),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
-            onPressed: _saveSpell,
+            onPressed: () => _saveSpell(context),
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
           children: [
-            TextFormField(
+            TextField(
               controller: _nameController,
               decoration: const InputDecoration(
                 labelText: 'Name',
                 border: OutlineInputBorder(),
               ),
-              validator: (value) => value?.isEmpty ?? true ? 'Please enter a name' : null,
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+            TextField(
               controller: _costController,
               decoration: const InputDecoration(
                 labelText: 'Cost',
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value?.isEmpty ?? true) return 'Please enter a cost';
-                if (int.tryParse(value!) == null) return 'Please enter a valid number';
-                return null;
-              },
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _effectController,
-              decoration: const InputDecoration(
-                labelText: 'Effect',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 5,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 5,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _effectValueController,
-              decoration: const InputDecoration(
-                labelText: 'Effect Value',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _typeController,
-              decoration: const InputDecoration(
-                labelText: 'Type',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _rangeController,
-              decoration: const InputDecoration(
-                labelText: 'Range',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
           ],
         ),
       ),

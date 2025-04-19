@@ -9,74 +9,80 @@ import '../viewmodels/spell_list_viewmodel.dart';
 import 'spell_detail_screen.dart';
 
 class SpellSelectionScreen extends StatefulWidget {
+  final Function(List<Spell>) onSpellsChanged;
   final List<Spell> selectedSpells;
   final int maxSpells;
-  final Function(List<Spell>) onSpellsChanged;
 
   const SpellSelectionScreen({
-    super.key,
+    Key? key,
+    required this.onSpellsChanged,
     required this.selectedSpells,
     required this.maxSpells,
-    required this.onSpellsChanged,
-  });
+  }) : super(key: key);
 
   @override
-  State<SpellSelectionScreen> createState() => _SpellSelectionScreenState();
+  _SpellSelectionScreenState createState() => _SpellSelectionScreenState();
 }
 
 class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
-  late List<Spell> _selectedSpells;
-  String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  late List<Spell> _currentSpells;
 
   @override
   void initState() {
     super.initState();
-    _selectedSpells = List.from(widget.selectedSpells);
+    _currentSpells = List.from(widget.selectedSpells);
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
   }
 
-  bool _isSpellSelected(Spell spell) {
-    return _selectedSpells.any((s) => s.versionId == spell.versionId);
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
-  Spell _findMatchingSpell(Spell spell) {
-    return _selectedSpells.firstWhere(
-      (s) => s.versionId == spell.versionId,
-      orElse: () => spell,
-    );
+  List<Spell> _filterSpells(List<Spell> spells) {
+    if (_searchQuery.isEmpty) return spells;
+    return spells.where((spell) =>
+      spell.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+      spell.description.toLowerCase().contains(_searchQuery.toLowerCase())
+    ).toList();
   }
 
-  void _toggleSpell(Spell spell) {
+  void _addSpell(Spell spell) {
+    if (_currentSpells.length < widget.maxSpells) {
+      setState(() {
+        _currentSpells.add(spell);
+        widget.onSpellsChanged(_currentSpells);
+      });
+    }
+  }
+
+  void _removeSpell(Spell spell) {
     setState(() {
-      if (_isSpellSelected(spell)) {
-        _selectedSpells.removeWhere((s) => s.versionId == spell.versionId);
-      } else if (_selectedSpells.length < widget.maxSpells) {
-        // Use the existing spell instance if it's already selected
-        final existingSpell = _findMatchingSpell(spell);
-        _selectedSpells.add(existingSpell);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('You can\'t select more than ${widget.maxSpells} spells'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-      widget.onSpellsChanged(_selectedSpells);
+      _currentSpells.remove(spell);
+      widget.onSpellsChanged(_currentSpells);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<SpellListViewModel>();
+    final spells = _filterSpells(viewModel.allSpells);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('(${_selectedSpells.length}/${widget.maxSpells})'),
+        title: Text('Select Spell (${_currentSpells.length}/${widget.maxSpells})'),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(_selectedSpells);
-            },
-            child: const Text('Done'),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => viewModel.refreshSpells(),
+            tooltip: 'Refresh Spells',
           ),
         ],
       ),
@@ -88,107 +94,52 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
               controller: _searchController,
               decoration: InputDecoration(
                 labelText: 'Search Spells',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() {
-                      _searchQuery = '';
-                    });
-                  },
-                ),
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () => _searchController.clear(),
+                      )
+                    : null,
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
             ),
           ),
           Expanded(
-            child: Consumer<SpellListViewModel>(
-              builder: (context, viewModel, child) {
-                if (viewModel.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final spells = viewModel.allSpells.where((spell) {
-                  return spell.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                         spell.description.toLowerCase().contains(_searchQuery.toLowerCase());
-                }).toList()
-                  ..sort((a, b) {
-                    // First sort by selection status
-                    final aSelected = _isSpellSelected(a);
-                    final bSelected = _isSpellSelected(b);
-                    if (aSelected != bSelected) {
-                      return aSelected ? -1 : 1; // Selected spells first
-                    }
-                    // Then sort by cost
-                    final costComparison = a.cost.compareTo(b.cost);
-                    if (costComparison != 0) {
-                      return costComparison;
-                    }
-                    // Finally sort by name
-                    return a.name.compareTo(b.name);
-                  });
-
-                return ListView.builder(
-                  itemCount: spells.length,
-                  itemBuilder: (context, index) {
-                    final spell = spells[index];
-                    final isSelected = _isSpellSelected(spell);
-
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                      child: ListTile(
-                        leading: _buildHexagon(spell.cost.toString(), ''),
-                        title: Text(
-                          spell.name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppTheme.primaryColor,
-                          ),
+            child: ListView.builder(
+              itemCount: spells.length,
+              itemBuilder: (context, index) {
+                final spell = spells[index];
+                final isSelected = _currentSpells.contains(spell);
+                final canAdd = _currentSpells.length < widget.maxSpells;
+                return ListTile(
+                  title: Text(spell.name),
+                  subtitle: Text(
+                    spell.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Cost: ${spell.cost}'),
+                      if (isSelected)
+                        IconButton(
+                          icon: const Icon(Icons.remove),
+                          onPressed: () => _removeSpell(spell),
+                        )
+                      else if (canAdd)
+                        IconButton(
+                          icon: const Icon(Icons.add),
+                          onPressed: () => _addSpell(spell),
                         ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (spell.effectValue != null)
-                              Text(
-                                '${spell.effectValue}',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppTheme.highlightColor,
-                                ),
-                              ),
-                            Text(
-                              '${spell.type} • Range: ${spell.range}',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppTheme.highlightColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: IconButton(
-                          icon: isSelected
-                              ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
-                              : _selectedSpells.length < widget.maxSpells
-                                  ? const Icon(Icons.add_circle_outline)
-                                  : const Icon(Icons.block, color: Colors.grey),
-                          onPressed: () => _toggleSpell(spell),
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SpellDetailScreen(
-                                spell: spell,
-                                onSpellSelected: (_) {},
-                                allowEditing: false,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
+                    ],
+                  ),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SpellDetailScreen(spell: spell),
+                    ),
+                  ),
                 );
               },
             ),

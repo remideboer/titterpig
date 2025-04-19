@@ -249,7 +249,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
       return;
     }
 
-    final result = await showDialog<List<Spell>>(
+    final result = await showDialog<void>(
       context: context,
       builder: (context) => Dialog(
         child: ConstrainedBox(
@@ -269,12 +269,6 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
         ),
       ),
     );
-
-    if (result != null) {
-      setState(() {
-        _spells = result;
-      });
-    }
   }
 
   void _generateRandomCharacter() {

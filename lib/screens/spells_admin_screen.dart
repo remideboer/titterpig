@@ -1,360 +1,125 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/spell.dart';
-import '../theme/app_theme.dart';
-import '../widgets/hexagon_shape.dart';
-import '../widgets/cost_range_slider.dart';
-import 'spell_edit_screen.dart';
-import 'spell_detail_screen.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
+import 'spell_edit_screen.dart';
 
 class SpellsAdminScreen extends StatefulWidget {
-  const SpellsAdminScreen({super.key});
+  const SpellsAdminScreen({Key? key}) : super(key: key);
 
   @override
-  State<SpellsAdminScreen> createState() => _SpellsAdminScreenState();
+  _SpellsAdminScreenState createState() => _SpellsAdminScreenState();
 }
 
-class _SpellsAdminScreenState extends State<SpellsAdminScreen> with SingleTickerProviderStateMixin {
-  double _maxCost = 10;
-  RangeValues _costRange = const RangeValues(0, 10);
-  bool _showOnlyDndSpells = false;
-  final PageController _pageController = PageController();
-  late AnimationController _syncAnimationController;
-  bool _isSyncing = false;
+class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _syncAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SpellListViewModel>().loadSpells();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
     });
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
-    _syncAnimationController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleRefresh() async {
-    if (_showOnlyDndSpells) {
-      setState(() => _isSyncing = true);
-      _syncAnimationController.repeat();
-      await context.read<SpellListViewModel>().checkForUpdates();
-      setState(() => _isSyncing = false);
-      _syncAnimationController.stop();
-    }
-  }
-
-  Future<void> _handleSync() async {
-    setState(() => _isSyncing = true);
-    _syncAnimationController.repeat();
-    await context.read<SpellListViewModel>().checkForUpdates();
-    setState(() => _isSyncing = false);
-    _syncAnimationController.stop();
-  }
-
-  Future<void> _handlePurge() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Purge D&D Spells'),
-        content: const Text('This will delete all locally stored D&D spells and force a fresh sync. Continue?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Purge'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      setState(() => _isSyncing = true);
-      _syncAnimationController.repeat();
-      await context.read<SpellListViewModel>().purgeDndSpells();
-      await context.read<SpellListViewModel>().checkForUpdates();
-      setState(() => _isSyncing = false);
-      _syncAnimationController.stop();
-    }
-  }
-
-  void _calculateMaxCost(List<Spell> spells) {
-    if (spells.isNotEmpty) {
-      setState(() {
-        _maxCost = spells.map((s) => s.cost.toDouble()).reduce((a, b) => a > b ? a : b);
-        _costRange = RangeValues(0, _maxCost);
-      });
-    }
-  }
-
-  List<Spell> _getFilteredSpells(List<Spell> spells) {
-    return spells.where((spell) => 
-      spell.cost >= _costRange.start && spell.cost <= _costRange.end
+  List<Spell> _filterSpells(List<Spell> spells) {
+    if (_searchQuery.isEmpty) return spells;
+    return spells.where((spell) =>
+      spell.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+      spell.description.toLowerCase().contains(_searchQuery.toLowerCase())
     ).toList();
-  }
-
-  void _showSpellForm({Spell? spell}) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SpellEditScreen(spell: spell),
-      ),
-    ).then((result) {
-      if (result == true) {
-        setState(() {
-          _calculateMaxCost(context.read<SpellListViewModel>().localSpells);
-        });
-      }
-    });
-  }
-
-  void _deleteSpell(Spell spell) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Spell'),
-        content: Text('Are you sure you want to delete ${spell.name}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<SpellListViewModel>().removeSpell(spell);
-              Navigator.pop(context);
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSpellDetail(Spell spell) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SpellDetailScreen(
-          spell: spell,
-          onSpellSelected: (_) {}, // No-op function since we don't need selection in admin view
-          allowEditing: false,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCostHexagon(int cost) {
-    return SizedBox(
-      width: 40,
-      height: 40,
-      child: Stack(
-        children: [
-          HexagonContainer(
-            size: 40,
-            fillColor: AppTheme.primaryColor,
-            borderColor: AppTheme.highlightColor,
-            borderWidth: 2,
-            child: Center(
-              child: Text(
-                cost.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SpellListViewModel>(
-      builder: (context, viewModel, child) {
-        if (viewModel.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    final viewModel = context.watch<SpellListViewModel>();
+    final spells = _filterSpells(viewModel.allSpells);
 
-        final spells = _showOnlyDndSpells 
-            ? viewModel.dndSpells 
-            : viewModel.localSpells;
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Manage Spells'),
-            actions: [
-              if (_showOnlyDndSpells)
-                IconButton(
-                  icon: const Icon(Icons.delete_forever),
-                  onPressed: _handlePurge,
-                  tooltip: 'Purge D&D Spells',
-                ),
-              IconButton(
-                icon: RotationTransition(
-                  turns: _syncAnimationController,
-                  child: Icon(
-                    Icons.sync,
-                    color: _isSyncing ? AppTheme.highlightColor : null,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Manage Spells'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => viewModel.refreshSpells(),
+            tooltip: 'Refresh Spells',
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search Spells',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () => _searchController.clear(),
+                      )
+                    : null,
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: spells.length,
+              itemBuilder: (context, index) {
+                final spell = spells[index];
+                return ListTile(
+                  title: Text(spell.name),
+                  subtitle: Text(
+                    spell.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                onPressed: _handleSync,
-                tooltip: 'Sync D&D Spells',
-              ),
-              IconButton(
-                icon: Icon(_showOnlyDndSpells ? Icons.cloud_done : Icons.cloud_off),
-                onPressed: () {
-                  setState(() => _showOnlyDndSpells = !_showOnlyDndSpells);
-                  _pageController.animateToPage(
-                    _showOnlyDndSpells ? 1 : 0,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
-                tooltip: _showOnlyDndSpells ? 'Show Local Spells' : 'Show D&D Spells',
-              ),
-            ],
-          ),
-          body: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: CostRangeSlider(
-                  maxCost: _maxCost,
-                  currentRange: _costRange,
-                  onChanged: (values) {
-                    setState(() {
-                      _costRange = values;
-                    });
-                  },
-                ),
-              ),
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _showOnlyDndSpells = index == 1;
-                    });
-                  },
-                  children: [
-                    // Local spells page
-                    ListView.builder(
-                      itemCount: _getFilteredSpells(viewModel.localSpells).length,
-                      itemBuilder: (context, index) {
-                        final spell = _getFilteredSpells(viewModel.localSpells)[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: ListTile(
-                            onTap: () => _showSpellDetail(spell),
-                            leading: _buildCostHexagon(spell.cost),
-                            title: Text(
-                              spell.name,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (spell.effect.isNotEmpty) Text('Effect: ${spell.effect}'),
-                                if (spell.damage.isNotEmpty) Text('Damage: ${spell.damage}'),
-                                Text('Type: ${spell.type} • Range: ${spell.range}'),
-                              ],
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit),
-                                  onPressed: () => _showSpellForm(spell: spell),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  onPressed: () => _deleteSpell(spell),
-                                ),
-                              ],
-                            ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Cost: ${spell.cost}'),
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SpellEditScreen(spell: spell),
                           ),
-                        );
-                      },
-                    ),
-                    // D&D spells page
-                    RefreshIndicator(
-                      onRefresh: _handleRefresh,
-                      child: spells.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text('No D&D spells available'),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _handleSync,
-                                    child: const Text('Sync D&D Spells'),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ListView.builder(
-                              itemCount: _getFilteredSpells(viewModel.dndSpells).length,
-                              itemBuilder: (context, index) {
-                                final spell = _getFilteredSpells(viewModel.dndSpells)[index];
-                                return Card(
-                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  child: ListTile(
-                                    onTap: () => _showSpellDetail(spell),
-                                    leading: _buildCostHexagon(spell.cost),
-                                    title: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            spell.name,
-                                            style: Theme.of(context).textTheme.titleMedium,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        const Icon(Icons.cloud_download, size: 16),
-                                      ],
-                                    ),
-                                    subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        if (spell.effect.isNotEmpty) Text('Effect: ${spell.effect}'),
-                                        if (spell.damage.isNotEmpty) Text('Damage: ${spell.damage}'),
-                                        Text('Type: ${spell.type} • Range: ${spell.range}'),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => viewModel.removeSpell(spell),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
-          floatingActionButton: !_showOnlyDndSpells
-              ? FloatingActionButton(
-                  heroTag: 'spells_admin_fab',
-                  onPressed: () => _showSpellForm(),
-                  child: const Icon(Icons.add),
-                )
-              : null,
-        );
-      },
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SpellEditScreen(),
+          ),
+        ),
+        tooltip: 'Add Spell',
+        child: const Icon(Icons.add),
+      ),
     );
   }
 } 

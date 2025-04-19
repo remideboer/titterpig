@@ -541,11 +541,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => SpellDetailScreen(
-                                            spell: spell,
-                                            onSpellSelected: (_) {},
-                                            allowEditing: false,
-                                          ),
+                                          builder: (context) => SpellDetailScreen(spell: spell),
                                         ),
                                       );
                                     },
