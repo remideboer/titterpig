@@ -658,6 +658,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
             'DEF',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               fontSize: size * 0.18,
+              color: Colors.white,
             ),
           ),
         ],
@@ -763,6 +764,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                           tempValue.toString(),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontSize: size * 0.3,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -801,6 +803,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                           value.toString(),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontSize: size * 0.3,
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -808,6 +811,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                           '/${value.maxString}',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             fontSize: size * 0.18,
+                            color: Colors.white,
                           ),
                         ),
                       ],
@@ -827,6 +831,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                   label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontSize: size * 0.18,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -893,14 +898,14 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
           Text(
             label, 
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppTheme.accentColor,
+              color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
           ),
           Text(
             value.toString(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppTheme.accentColor,
+              color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
           ),

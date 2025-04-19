@@ -25,7 +25,7 @@ class SingleValueIcon extends BaseValueIcon {
     return Text(
       value.toString(),
       style: textStyle ?? Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: AppTheme.accentColor,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: size * 0.4,
           ),

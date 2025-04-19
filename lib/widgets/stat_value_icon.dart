@@ -24,21 +24,21 @@ class StatValueIcon extends BaseValueIcon {
         Text(
           value.toString(),
           style: textStyle ?? Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppTheme.accentColor,
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: size * 0.4,
               ),
         ),
         // Max value positioned lower but centered horizontally
-     Text(
-              '/${value.maxString}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.accentColor, // 0.7 * 255 ≈ 179
+        Text(
+          '/${value.maxString}',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: size * 0.2,
-                  ),
-            ),
-      Spacer()
+              ),
+        ),
+        Spacer()
       ],
     );
   }
