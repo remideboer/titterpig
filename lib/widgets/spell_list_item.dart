@@ -3,6 +3,7 @@ import '../models/spell.dart';
 import '../screens/spell_detail_screen.dart';
 import '../widgets/hexagon_cost.dart';
 import '../theme/app_theme.dart';
+import '../utils/snackbar_service.dart';
 
 class SpellListItemActions extends StatelessWidget {
   final Spell spell;
@@ -14,16 +15,6 @@ class SpellListItemActions extends StatelessWidget {
     required this.actions,
   }) : super(key: key);
 
-  void _showInsufficientPowerMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Insufficient power to cast this spell'),
-        backgroundColor: Colors.orange[700],
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -33,7 +24,7 @@ class SpellListItemActions extends StatelessWidget {
           return IconButton(
             icon: action.icon,
             onPressed: action.onPressed == null 
-              ? () => _showInsufficientPowerMessage(context)
+              ? () => SnackBarService.showInsufficientPowerMessage(context)
               : action.onPressed,
             color: action.onPressed == null ? Colors.grey : AppTheme.highlightColor,
           );

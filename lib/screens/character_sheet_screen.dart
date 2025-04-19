@@ -22,6 +22,7 @@ import '../utils/sound_manager.dart';
 import '../utils/spell_limit_calculator.dart';
 import '../widgets/character_background_view.dart';
 import '../widgets/spell_list_item.dart';
+import '../utils/snackbar_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
@@ -112,15 +113,10 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
 
   Future<void> _handleSpellUse(Spell spell, {bool shouldRollDice = false}) async {
     if (_character.availablePower < spell.cost) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Insufficient power to cast ${spell.name} (requires ${spell.cost} power)',
-            style: TextStyle(color: AppTheme.accentColor),
-          ),
-          backgroundColor: AppTheme.highlightColor,
-          duration: const Duration(seconds: 2),
-        ),
+      SnackBarService.showInsufficientPowerMessage(
+        context,
+        spellName: spell.name,
+        requiredPower: spell.cost,
       );
       return;
     }
@@ -129,13 +125,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     setState(() {
       _character.availablePower -= spell.cost;
       _updateLastUsed();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Used ${spell.name} (${spell.cost} power)'),
-          backgroundColor: AppTheme.greenColor,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      SnackBarService.showSpellCastMessage(context, spell.name, spell.cost);
     });
 
     // Then roll dice if needed
