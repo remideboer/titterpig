@@ -6,26 +6,22 @@ import '../repositories/background_template_repository.dart';
 class BackgroundEditorState {
   final Background? currentBackground;
   final String? selectedTemplateId;
-  final bool isEditing;
   final List<Background> availableTemplates;
 
   const BackgroundEditorState({
     this.currentBackground,
     this.selectedTemplateId,
-    this.isEditing = false,
     this.availableTemplates = const [],
   });
 
   BackgroundEditorState copyWith({
     Background? currentBackground,
     String? selectedTemplateId,
-    bool? isEditing,
     List<Background>? availableTemplates,
   }) {
     return BackgroundEditorState(
       currentBackground: currentBackground ?? this.currentBackground,
       selectedTemplateId: selectedTemplateId ?? this.selectedTemplateId,
-      isEditing: isEditing ?? this.isEditing,
       availableTemplates: availableTemplates ?? this.availableTemplates,
     );
   }
@@ -51,26 +47,9 @@ class BackgroundEditorController extends StateNotifier<BackgroundEditorState> {
     if (template == null) return;
 
     state = state.copyWith(
-      currentBackground: Background.fromTemplate(template: template),
+      currentBackground: Background.fromTemplate(template: template).toCustomized(),
       selectedTemplateId: templateId,
-      isEditing: false,
     );
-  }
-
-  /// Start editing the current background
-  void startEditing() {
-    if (state.currentBackground == null) return;
-
-    final background = state.currentBackground!;
-    if (!background.isCustomized && state.selectedTemplateId != null) {
-      // Convert to customized version if editing a template
-      state = state.copyWith(
-        currentBackground: background.toCustomized(),
-        isEditing: true,
-      );
-    } else {
-      state = state.copyWith(isEditing: true);
-    }
   }
 
   /// Update the current background
@@ -81,7 +60,7 @@ class BackgroundEditorController extends StateNotifier<BackgroundEditorState> {
     String? parents,
     String? siblings,
   }) {
-    if (state.currentBackground == null || !state.isEditing) return;
+    if (state.currentBackground == null) return;
 
     state = state.copyWith(
       currentBackground: state.currentBackground!.copyWith(
@@ -111,28 +90,11 @@ class BackgroundEditorController extends StateNotifier<BackgroundEditorState> {
         siblings: siblings,
       ),
       selectedTemplateId: null,
-      isEditing: true,
     );
   }
 
-  /// Save the current background
+  /// Get the current background
   Background? saveBackground() {
-    final background = state.currentBackground;
-    if (background == null) return null;
-
-    state = state.copyWith(isEditing: false);
-    return background;
-  }
-
-  /// Cancel editing
-  void cancelEditing() {
-    if (!state.isEditing) return;
-
-    if (state.selectedTemplateId != null) {
-      // Revert to template
-      selectTemplate(state.selectedTemplateId!);
-    } else {
-      state = state.copyWith(isEditing: false);
-    }
+    return state.currentBackground;
   }
 } 

@@ -51,8 +51,15 @@ class BackgroundEditor extends ConsumerWidget {
                         parents: '',
                         siblings: '',
                       );
+                      if (onSave != null) {
+                        onSave!(controller.saveBackground()!);
+                      }
                     } else {
                       controller.selectTemplate(value);
+                      // Automatically save when template is selected
+                      if (onSave != null) {
+                        onSave!(controller.saveBackground()!);
+                      }
                     }
                   },
                 ),
@@ -65,8 +72,12 @@ class BackgroundEditor extends ConsumerWidget {
                       helperText: 'The name of your background',
                     ),
                     initialValue: state.currentBackground!.name,
-                    onChanged: (value) => controller.updateBackground(name: value),
-                    enabled: state.isEditing,
+                    onChanged: (value) {
+                      controller.updateBackground(name: value);
+                      if (onSave != null) {
+                        onSave!(controller.saveBackground()!);
+                      }
+                    },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -76,9 +87,13 @@ class BackgroundEditor extends ConsumerWidget {
                       alignLabelWithHint: true,
                     ),
                     initialValue: state.currentBackground!.description,
-                    onChanged: (value) => controller.updateBackground(description: value),
+                    onChanged: (value) {
+                      controller.updateBackground(description: value);
+                      if (onSave != null) {
+                        onSave!(controller.saveBackground()!);
+                      }
+                    },
                     maxLines: 5,
-                    enabled: state.isEditing,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -87,8 +102,12 @@ class BackgroundEditor extends ConsumerWidget {
                       helperText: 'Where your character was born',
                     ),
                     initialValue: state.currentBackground!.placeOfBirth,
-                    onChanged: (value) => controller.updateBackground(placeOfBirth: value),
-                    enabled: state.isEditing,
+                    onChanged: (value) {
+                      controller.updateBackground(placeOfBirth: value);
+                      if (onSave != null) {
+                        onSave!(controller.saveBackground()!);
+                      }
+                    },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -97,8 +116,12 @@ class BackgroundEditor extends ConsumerWidget {
                       helperText: 'Information about your character\'s parents',
                     ),
                     initialValue: state.currentBackground!.parents,
-                    onChanged: (value) => controller.updateBackground(parents: value),
-                    enabled: state.isEditing,
+                    onChanged: (value) {
+                      controller.updateBackground(parents: value);
+                      if (onSave != null) {
+                        onSave!(controller.saveBackground()!);
+                      }
+                    },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -107,36 +130,12 @@ class BackgroundEditor extends ConsumerWidget {
                       helperText: 'Information about your character\'s siblings',
                     ),
                     initialValue: state.currentBackground!.siblings,
-                    onChanged: (value) => controller.updateBackground(siblings: value),
-                    enabled: state.isEditing,
-                  ),
-                  const SizedBox(height: 24),
-                  // Action Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (!state.isEditing)
-                        ElevatedButton(
-                          onPressed: () => controller.startEditing(),
-                          child: const Text('Edit'),
-                        )
-                      else ...[
-                        TextButton(
-                          onPressed: () => controller.cancelEditing(),
-                          child: const Text('Cancel'),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: () {
-                            final background = controller.saveBackground();
-                            if (background != null && onSave != null) {
-                              onSave!(background);
-                            }
-                          },
-                          child: const Text('Save'),
-                        ),
-                      ],
-                    ],
+                    onChanged: (value) {
+                      controller.updateBackground(siblings: value);
+                      if (onSave != null) {
+                        onSave!(controller.saveBackground()!);
+                      }
+                    },
                   ),
                 ],
               ],
