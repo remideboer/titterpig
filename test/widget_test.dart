@@ -9,7 +9,7 @@ void main() {
   testWidgets('App starts and shows character list', (WidgetTester tester) async {
     await tester.pumpWidget(
       const ProviderScope(
-        child: MyApp(),
+        child: MyApp(isDarkMode: false),
       ),
     );
 
