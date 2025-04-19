@@ -475,10 +475,15 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                           'ABILITIES',
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
-                        TextButton.icon(
-                          onPressed: _showSpellSelection,
-                          icon: const Icon(Icons.auto_awesome),
-                          label: const Text('Manage Spells'),
+                        Tooltip(
+                          message: _character.power < 1 
+                              ? 'Insufficient maximum power to learn spells (requires WIL 1 or higher)'
+                              : 'Manage your character\'s spells',
+                          child: TextButton.icon(
+                            onPressed: _character.power >= 1 ? _showSpellSelection : null,
+                            icon: const Icon(Icons.auto_awesome),
+                            label: const Text('Manage Spells'),
+                          ),
                         ),
                       ],
                     ),

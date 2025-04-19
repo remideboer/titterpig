@@ -589,3 +589,49 @@ Examples:
 - Within selected spells, "Shield (1)" appears before "Fireball (3)"
 - Two cost-1 spells are sorted alphabetically: "Blast" before "Shield"
 Dependencies: BR-12 (Character Spell Limit)
+
+Rule ID: BR-17
+Description: Manage Spells Option Availability
+When a character's maximum power (WIL × 3) is less than the minimum spell cost in the game (1), 
+the "Manage Spells" option in the character sheet screen should be disabled.
+
+Validation:
+- Character's maximum power must be >= 1 for the Manage Spells option to be enabled
+- Maximum power is calculated as WIL × 3
+- The button should be disabled and show a tooltip explaining why when maximum power < 1
+- The button should be enabled when maximum power >= 1
+
+Examples:
+- Character with WIL -1 has max power -3: Manage Spells disabled
+- Character with WIL 0 has max power 0: Manage Spells disabled
+- Character with WIL 1 has max power 3: Manage Spells enabled
+- Character with WIL 2 has max power 6: Manage Spells enabled
+
+Dependencies:
+- BR-12 (Spell Selection Sort Order)
+- BR-13 (Character HP Minimum)
+
+Rule ID: BR-18
+Description: Character Power Calculation and Minimum Value
+A character's power is calculated as WIL × 3, but can never be less than 0. This affects:
+- Initial character creation
+- Stat updates
+- Derived stat calculations
+- Spell management availability
+
+Validation:
+- Power is calculated as WIL × 3
+- Power value is clamped to minimum 0
+- Characters with negative WIL still have 0 power
+- Spell management is disabled when power < 1
+- Available power can't go below 0
+
+Examples:
+- WIL -1 gives power 0: (-1 × 3 = -3, clamped to 0)
+- WIL 0 gives power 0: (0 × 3 = 0)
+- WIL 1 gives power 3: (1 × 3 = 3)
+- WIL 2 gives power 6: (2 × 3 = 6)
+
+Dependencies:
+- BR-17 (Manage Spells Option Availability)
+- BR-08 (Base Character Stats)

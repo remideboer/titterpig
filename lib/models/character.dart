@@ -13,6 +13,7 @@ class Character {
   static const int hpPerVit = 2;
   static const int baseLife = 3;
   static const int currentSaveVersion = 2; // Increment this when making breaking changes to the save format
+  static const int minPower = 0; // Minimum power value
 
   final String id;
   final String name;
@@ -59,9 +60,9 @@ class Character {
         sessionLog = sessionLog ?? [],
         createdAt = createdAt ?? DateTime.now(),
         lastUsed = lastUsed ?? DateTime.now() {
-    final newHp = baseHp + hpPerVit * vit;
-    final newLife = baseLife + vit;
-    final newPower = wil * 3;
+    final newHp = (baseHp + hpPerVit * vit).clamp(1, 999);
+    final newLife = (baseLife + vit).clamp(1, 999);
+    final newPower = (wil * 3).clamp(minPower, 999);
     
     _hp = StatValue.full(newHp);
     _life = StatValue.full(newLife);
@@ -105,7 +106,7 @@ class Character {
       max: newLife
     );
     
-    final newPower = (wil * 3).clamp(1, 999);
+    final newPower = (wil * 3).clamp(minPower, 999);
     _power = StatValue(
       current: _power.current.clamp(0, newPower),
       max: newPower
