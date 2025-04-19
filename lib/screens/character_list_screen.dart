@@ -311,6 +311,7 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'character-list-fab',
         onPressed: () {
           _navigateToCreateCharacter();
         },

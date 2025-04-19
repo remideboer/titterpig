@@ -143,6 +143,7 @@ class _CharacterOverviewScreenState extends State<CharacterOverviewScreen> {
               },
             ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'character-overview-fab',
         onPressed: _navigateToCreateCharacter,
         child: const Icon(Icons.add),
         tooltip: 'Add Character',
