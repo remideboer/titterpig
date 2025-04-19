@@ -50,6 +50,20 @@ Acceptance Criteria:
 
 Related Business Rules: BR-13, BR-14
 
+Story ID: JS-46
+When I am creating or modifying a character's VIT stat
+I want to be prevented from setting values that would make HP less than 2
+So that my character remains viable in combat
+
+Acceptance Criteria:
+1. Calculate HP as 6 + (2 × VIT)
+2. Prevent VIT changes that would result in HP < 2
+3. Show feedback when attempting invalid VIT changes
+4. Allow VIT changes that keep HP >= 2
+5. Apply this rule in both character creation and modification
+
+Related Business Rules: BR-13
+
 ## Business Rules
 
 ### Character Creation
@@ -110,6 +124,14 @@ Examples:
 - Selecting a template immediately shows the template content
 - Changes persist when switching between stats and background views
 Dependencies: BR-13 (Screen Context Maintenance)
+
+Rule ID: BR-13
+Description: Character HP must always be 2 or greater
+Validation: HP is calculated as 6 + (2 × VIT), and must be >= 2
+Examples:
+- VIT -2 gives HP 2: 6 + (2 × -2) = 2 (valid)
+- VIT -3 gives HP 0: 6 + (2 × -3) = 0 (invalid)
+Dependencies: BR-08 (Base Character Stats)
 
 ## Features
 
