@@ -1,31 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ttrpg_character_manager/main.dart';
 import 'package:ttrpg_character_manager/models/character.dart';
-import 'package:ttrpg_character_manager/models/species.dart';
 import 'package:ttrpg_character_manager/services/character_service.dart';
+import 'package:ttrpg_character_manager/services/spell_service.dart';
+import 'package:ttrpg_character_manager/providers/providers.dart';
+import 'package:riverpod/riverpod.dart';
+
+class MockCharacterService extends Mock implements CharacterService {
+  @override
+  Future<List<Character>> loadCharacters() async {
+    return [];
+  }
+}
+
+class MockSpellService extends Mock implements SpellService {
+  @override
+  Future<void> fetchSpellComponents() async {}
+
+  @override
+  Future<void> createSpell({
+    required String name,
+    required List<String> componentIds,
+    String? description,
+  }) async {}
+}
 
 void main() {
-  testWidgets('App starts and shows character list', (WidgetTester tester) async {
-    // Initialize SharedPreferences
+  testWidgets('App loads and displays character list screen', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
-      'sound_muted': false,
-      'isDarkMode': false,
+      'soundEnabled': false,
     });
 
+    final mockCharacterService = MockCharacterService();
+    final mockSpellService = MockSpellService();
+
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MyApp(isDarkMode: false),
+      ProviderScope(
+        overrides: [
+          characterServiceProvider.overrideWithValue(mockCharacterService),
+          spellServiceProvider.overrideWithValue(mockSpellService),
+        ],
+        child: const MyApp(),
       ),
     );
 
-    // Wait for all async operations to complete
     await tester.pumpAndSettle();
 
-    // Verify we're on the character list screen
-    expect(find.text('Select a character from the list'), findsOneWidget);
+    expect(find.text('Characters'), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsOneWidget);
   });
 
   group('Character Model Tests', () {

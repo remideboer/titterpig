@@ -133,6 +133,15 @@ Examples:
 - VIT -3 gives HP 0: 6 + (2 × -3) = 0 (invalid)
 Dependencies: BR-08 (Base Character Stats)
 
+Rule ID: BR-14
+Description: Character spells use custom components instead of DnD spell system
+Validation: Verify that spells only use the custom component system
+Examples:
+- Spell components are defined by the game system
+- No references to DnD spells or spell levels
+- Components will be fetched from a dedicated API (future implementation)
+Dependencies: BR-12 (Character Spell Limit)
+
 ## Features
 
 ### Character Background System
@@ -452,15 +461,27 @@ The project includes automated test runs before builds. You can build the projec
 2. Select one of the following configurations:
    - `Flutter Debug APK with Tests`: Runs tests and builds debug APK
    - `Flutter Debug Windows with Tests`: Runs tests and builds debug Windows app
-   - `Flutter Tests Only`: Runs all tests with coverage
+   - `All Flutter Tests`: Runs all tests in the test directory with coverage
+   - `Flutter Tests Only`: Runs widget_test.dart with coverage
 
 You can also create custom run configurations:
 1. Click "Edit Configurations..."
-2. Click the "+" button and select "Shell Script"
-3. Set the "Script text" field to:
-   ```bash
-   flutter test && flutter build <platform> --debug
-   ```
+2. For running specific test files:
+   - Click "+" and select "Flutter Test"
+   - Set the "Test File" to your test file
+   - Add "--coverage" to "Additional Args" if you want coverage reports
+3. For running all tests:
+   - Click "+" and select "Shell Script"
+   - Set the "Script text" field to:
+     ```bash
+     flutter test --coverage test/
+     ```
+4. For test-driven builds:
+   - Click "+" and select "Shell Script"
+   - Set the "Script text" field to:
+     ```bash
+     flutter test && flutter build <platform> --debug
+     ```
    Replace `<platform>` with: apk, appbundle, web, windows, macos, linux, or ios
 
 #### Using VS Code Tasks
@@ -515,3 +536,28 @@ The project uses GitHub Actions for CI/CD, which:
 - Builds debug versions for development branches
 - Creates release builds for the main branch
 - Uploads build artifacts for each successful build
+
+### Testing
+
+Before running tests for the first time or after changing any mocked classes:
+
+1. Generate mock classes:
+   ```bash
+   flutter pub run build_runner build
+   ```
+   Or use the "Generate Mocks" run configuration in Android Studio.
+
+2. Run tests using one of these methods:
+   - VS Code: Use the "Flutter: Run Tests Only" task
+   - Android Studio: Use "All Flutter Tests" configuration
+   - Command line: `flutter test --coverage`
+
+The test suite includes:
+- Widget tests with mocked HTTP client for API calls
+- Model tests for character stats and validation
+- Service tests for business logic
+
+Note: Tests automatically mock external dependencies like:
+- HTTP client for D&D API calls
+- SharedPreferences for settings
+- File system access
