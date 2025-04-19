@@ -21,12 +21,9 @@ class SpellListItemActions extends StatelessWidget {
       children: actions.map((action) {
         if (action is IconButton) {
           return IconButton(
-            icon: IconTheme(
-              data: IconThemeData(color: AppTheme.highlightColor),
-              child: action.icon,
-            ),
+            icon: action.icon,
             onPressed: action.onPressed,
-            color: AppTheme.highlightColor,
+            color: action.onPressed == null ? Colors.grey : AppTheme.highlightColor,
           );
         }
         return action;
@@ -49,28 +46,28 @@ class SpellListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SpellDetailScreen(spell: spell),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-        child: Row(
-          children: [
-            // Left side - Cost in hexagon
-            HexagonCost(
-              cost: spell.cost,
-              backgroundColor: AppTheme.primaryColor,
-              borderColor: AppTheme.highlightColor,
-              textColor: Colors.white,
-            ),
-            const SizedBox(width: 12),
-            
-            // Middle - Spell details
-            Expanded(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      child: Row(
+        children: [
+          // Left side - Cost in hexagon
+          HexagonCost(
+            cost: spell.cost,
+            backgroundColor: AppTheme.primaryColor,
+            borderColor: AppTheme.highlightColor,
+            textColor: Colors.white,
+          ),
+          const SizedBox(width: 12),
+          
+          // Middle - Spell details
+          Expanded(
+            child: InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SpellDetailScreen(spell: spell),
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -118,11 +115,11 @@ class SpellListItem extends StatelessWidget {
                 ],
               ),
             ),
-            
-            // Right side - Actions
-            actions,
-          ],
-        ),
+          ),
+          
+          // Right side - Actions
+          actions,
+        ],
       ),
     );
   }

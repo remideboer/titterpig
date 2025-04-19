@@ -529,13 +529,13 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                       if (spell.effectValue != null)
                                         IconButton(
                                           icon: const Icon(Icons.casino),
-                                          onPressed: canUse ? () => _throwDice(spell) : null,
-                                          color: canUse ? null : Colors.grey,
+                                          onPressed: canUse ? () => _handleSpellUse(spell, shouldRollDice: true) : null,
+                                          color: canUse ? AppTheme.highlightColor : Colors.grey,
                                         ),
                                       IconButton(
-                                        icon: const Icon(Icons.play_arrow),
-                                        onPressed: canUse ? () => _castSpell(spell) : null,
-                                        color: canUse ? null : Colors.grey,
+                                        icon: Icon(canUse ? Icons.flash_on : Icons.flash_off),
+                                        onPressed: canUse ? () => _handleSpellUse(spell) : null,
+                                        color: canUse ? AppTheme.highlightColor : Colors.grey,
                                       ),
                                     ],
                                   ),
