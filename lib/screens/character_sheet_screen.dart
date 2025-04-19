@@ -471,9 +471,20 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'ABILITIES',
-                          style: Theme.of(context).textTheme.titleMedium,
+                        Row(
+                          children: [
+                            Text(
+                              'ABILITIES',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '(${_character.spells.length}/${SpellLimitCalculator.calculateSpellLimit(_character.wil)})',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: AppTheme.highlightColor,
+                              ),
+                            ),
+                          ],
                         ),
                         Tooltip(
                           message: _character.power < 1 

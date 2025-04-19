@@ -108,6 +108,20 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
         
         return Column(
           children: [
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Spells (${_currentSpells.length}/${widget.maxSpells})',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppTheme.highlightColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: TextField(

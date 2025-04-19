@@ -635,3 +635,31 @@ Examples:
 Dependencies:
 - BR-17 (Manage Spells Option Availability)
 - BR-08 (Base Character Stats)
+
+Rule ID: BR-19
+Description: Spell Count Display
+The current number of selected spells and maximum selectable spells must be consistently displayed in a (x/n) format, where:
+- x = number of currently selected spells
+- n = maximum number of selectable spells (based on WIL)
+This count must be shown in:
+- Spell selection menu header
+- Character sheet screen in the abilities section header
+
+Validation:
+- Format must be exactly "(x/n)" with no spaces
+- Count must update immediately when spells are added/removed
+- Count must update when WIL changes affect maximum spells
+- Count must be visible without scrolling in both locations
+- Maximum spells (n) must follow the Fibonacci sequence based on WIL
+
+Examples:
+- New character, no spells: "(0/2)" for WIL 1
+- 2 spells selected, WIL 2: "(2/3)"
+- 3 spells selected, WIL 3: "(3/5)"
+- After removing a spell: "(2/5)"
+- After reducing WIL: "(2/3)"
+
+Dependencies:
+- BR-12 (Spell Selection Sort Order)
+- BR-17 (Manage Spells Option Availability)
+- BR-18 (Character Power Calculation)
