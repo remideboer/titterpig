@@ -32,11 +32,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class CharacterCreationScreen extends ConsumerStatefulWidget {
   final Character? character;
   final Function(Character)? onCharacterSaved;
+  final int initialPage;
 
   const CharacterCreationScreen({
     Key? key,
     this.character,
     this.onCharacterSaved,
+    this.initialPage = 0,
   }) : super(key: key);
 
   @override
@@ -48,8 +50,8 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
   final _repository = LocalCharacterRepository();
   final _speciesRepository = SpeciesRepository();
   final _nameGeneratorService = NameGeneratorService(NameDataRepository());
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
+  late final PageController _pageController;
+  late int _currentPage;
   
   int _vit = 0;
   int _ath = 0;
@@ -66,6 +68,8 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
   @override
   void initState() {
     super.initState();
+    _currentPage = widget.initialPage;
+    _pageController = PageController(initialPage: widget.initialPage);
     _loadSpecies();
     if (widget.character != null) {
       _nameController.text = widget.character!.name;

@@ -21,6 +21,21 @@ A Flutter application for managing tabletop RPG characters, with support for cha
 - Spell type categorization
 - Spell editing and versioning
 
+## Job Stories
+
+Story ID: JS-46
+When I am viewing a character's empty background section
+I want to be taken directly to the background editor when clicking "Add Background"
+So that I can immediately start filling in the background information without extra navigation
+
+Acceptance Criteria:
+1. When clicking "Add Background" from the background view, the edit screen opens directly to the background section
+2. The background editor is immediately ready for input
+3. Navigation between stats and background sections remains available
+4. All changes are saved automatically as they are made
+
+Related Business Rules: BR-12
+
 ## Business Rules
 
 ### Character Creation
@@ -61,6 +76,14 @@ A Flutter application for managing tabletop RPG characters, with support for cha
 - None: +0 defense
 - Shield bonus: +2 defense (stacks with category)
 - Base defense: Equal to ATH stat
+
+Rule ID: BR-13
+Description: Character creation/editing screen maintains context of the current section (Stats/Background) when opened
+Validation: Verify that editing a character opens to the same section that was being viewed
+Examples:
+- Opening editor from background view shows background section
+- Opening editor from stats view shows stats section
+Dependencies: None
 
 ## Features
 

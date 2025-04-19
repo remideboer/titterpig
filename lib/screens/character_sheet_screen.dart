@@ -285,6 +285,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
       MaterialPageRoute(
         builder: (context) => CharacterCreationScreen(
           character: _character,
+          initialPage: _currentPage,
         ),
       ),
     );
