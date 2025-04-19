@@ -592,3 +592,15 @@ Note: Tests automatically mock external dependencies like:
 - HTTP client for D&D API calls
 - SharedPreferences for settings
 - File system access
+
+Rule ID: BR-16
+Description: Spell selection list maintains a consistent, prioritized sort order
+Validation: Verify that spells are sorted in the following priority order:
+1. Selected spells appear at the top of the list
+2. Within each group (selected/unselected), spells are sorted by cost (ascending)
+3. Spells with equal cost are sorted alphabetically by name
+Examples:
+- Selected spells "Fireball (3)" and "Shield (1)" appear before unselected "Blast (1)"
+- Within selected spells, "Shield (1)" appears before "Fireball (3)"
+- Two cost-1 spells are sorted alphabetically: "Blast" before "Shield"
+Dependencies: BR-12 (Character Spell Limit)

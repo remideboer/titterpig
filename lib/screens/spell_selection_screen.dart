@@ -47,12 +47,33 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
     super.dispose();
   }
 
-  List<Spell> _filterSpells(List<Spell> spells) {
-    if (_searchQuery.isEmpty) return spells;
-    return spells.where((spell) =>
-      spell.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-      spell.description.toLowerCase().contains(_searchQuery.toLowerCase())
-    ).toList();
+  List<Spell> _filterAndSortSpells(List<Spell> spells) {
+    // First, filter spells based on search query
+    var filteredSpells = spells;
+    if (_searchQuery.isNotEmpty) {
+      filteredSpells = spells.where((spell) =>
+        spell.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+        spell.description.toLowerCase().contains(_searchQuery.toLowerCase())
+      ).toList();
+    }
+
+    // Then sort the filtered spells
+    return filteredSpells..sort((a, b) {
+      // First, sort by selection status
+      final isSelectedA = _currentSpells.contains(a);
+      final isSelectedB = _currentSpells.contains(b);
+      if (isSelectedA != isSelectedB) {
+        return isSelectedB ? 1 : -1; // Selected spells come first
+      }
+
+      // Then sort by cost
+      if (a.cost != b.cost) {
+        return a.cost.compareTo(b.cost);
+      }
+
+      // Finally, sort by name
+      return a.name.compareTo(b.name);
+    });
   }
 
   void _toggleSpell(Spell spell) {
@@ -69,7 +90,7 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<SpellListViewModel>();
-    final spells = _filterSpells(viewModel.allSpells);
+    final spells = _filterAndSortSpells(viewModel.allSpells);
 
     return Scaffold(
       appBar: AppBar(
