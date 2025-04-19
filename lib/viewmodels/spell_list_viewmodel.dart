@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../models/spell.dart';
 import '../repositories/spell_repository.dart';
 
@@ -7,20 +8,33 @@ class SpellListViewModel extends ChangeNotifier {
   List<Spell> _spells = [];
   String _searchQuery = '';
   bool _isLoading = false;
+  late RangeValues _costRange;
 
   SpellListViewModel(this._repository) {
     loadSpells();
+    _costRange = const RangeValues(0, 10); // Default range
   }
 
   List<Spell> get allSpells => _spells;
   bool get isLoading => _isLoading;
+  RangeValues get costRange => _costRange;
+  
+  double get maxSpellCost {
+    if (_spells.isEmpty) return 10;
+    return _spells.map((s) => s.cost.toDouble()).reduce((a, b) => a > b ? a : b);
+  }
   
   List<Spell> get filteredSpells {
-    if (_searchQuery.isEmpty) return _spells;
-    return _spells.where((spell) => 
-      spell.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-      spell.description.toLowerCase().contains(_searchQuery.toLowerCase())
-    ).toList();
+    return _spells.where((spell) {
+      final matchesSearch = _searchQuery.isEmpty ||
+          spell.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          spell.description.toLowerCase().contains(_searchQuery.toLowerCase());
+      
+      final matchesCost = spell.cost >= _costRange.start && 
+                         spell.cost <= _costRange.end;
+      
+      return matchesSearch && matchesCost;
+    }).toList();
   }
 
   String get searchQuery => _searchQuery;
@@ -31,6 +45,10 @@ class SpellListViewModel extends ChangeNotifier {
       notifyListeners();
       debugPrint('Loading spells in ViewModel...');
       _spells = await _repository.getSpells();
+      // Update cost range max if needed
+      if (_costRange.end > maxSpellCost) {
+        _costRange = RangeValues(_costRange.start, maxSpellCost);
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -69,6 +87,11 @@ class SpellListViewModel extends ChangeNotifier {
 
   void clearSearchQuery() {
     _searchQuery = '';
+    notifyListeners();
+  }
+
+  void setCostRange(RangeValues range) {
+    _costRange = range;
     notifyListeners();
   }
 

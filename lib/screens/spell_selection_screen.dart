@@ -7,6 +7,7 @@ import '../repositories/local_character_repository.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 import '../widgets/spell_list_item.dart';
+import '../widgets/cost_range_slider.dart';
 import 'spell_detail_screen.dart';
 
 class SpellSelectionScreen extends StatefulWidget {
@@ -29,6 +30,8 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   late List<Spell> _currentSpells;
+  late RangeValues _costRange;
+  double _maxSpellCost = 0;
 
   @override
   void initState() {
@@ -39,6 +42,13 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
         _searchQuery = _searchController.text;
       });
     });
+    
+    // Initialize cost range based on available spells
+    _maxSpellCost = Provider.of<SpellListViewModel>(context, listen: false)
+        .allSpells
+        .map((s) => s.cost.toDouble())
+        .reduce((a, b) => a > b ? a : b);
+    _costRange = RangeValues(0, _maxSpellCost);
   }
 
   @override
@@ -48,14 +58,17 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   }
 
   List<Spell> _filterAndSortSpells(List<Spell> spells) {
-    // First, filter spells based on search query
-    var filteredSpells = spells;
-    if (_searchQuery.isNotEmpty) {
-      filteredSpells = spells.where((spell) =>
-        spell.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        spell.description.toLowerCase().contains(_searchQuery.toLowerCase())
-      ).toList();
-    }
+    // First, filter spells based on search query and cost range
+    var filteredSpells = spells.where((spell) {
+      final matchesSearch = _searchQuery.isEmpty ||
+          spell.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          spell.description.toLowerCase().contains(_searchQuery.toLowerCase());
+      
+      final matchesCost = spell.cost >= _costRange.start && 
+                         spell.cost <= _costRange.end;
+      
+      return matchesSearch && matchesCost;
+    }).toList();
 
     // Then sort the filtered spells
     return filteredSpells..sort((a, b) {
@@ -89,66 +102,65 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<SpellListViewModel>();
-    final spells = _filterAndSortSpells(viewModel.allSpells);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Select Spell (${_currentSpells.length}/${widget.maxSpells})'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => viewModel.loadSpells(),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Search Spells',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () => _searchController.clear(),
-                      )
-                    : null,
-                border: const OutlineInputBorder(),
+    return Consumer<SpellListViewModel>(
+      builder: (context, spellListViewModel, child) {
+        final filteredSpells = _filterAndSortSpells(spellListViewModel.allSpells);
+        
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  labelText: 'Search Spells',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: spells.length,
-              itemBuilder: (context, index) {
-                final spell = spells[index];
-                final isSelected = _currentSpells.contains(spell);
-                final canAdd = _currentSpells.length < widget.maxSpells;
-                
-                return SpellListItem(
-                  spell: spell,
-                  actions: SpellListItemActions(
-                    spell: spell,
-                    actions: [
-                      IconButton(
-                        icon: Icon(
-                          isSelected ? Icons.check_circle : Icons.add_circle_outline,
-                          color: isSelected ? Colors.green : null,
-                        ),
-                        onPressed: (isSelected || canAdd) ? () => _toggleSpell(spell) : null,
-                      ),
-                    ],
-                  ),
-                );
+            CostRangeSlider(
+              values: _costRange,
+              min: 0,
+              max: _maxSpellCost,
+              label: 'Filter by Cost',
+              onChanged: (RangeValues values) {
+                setState(() {
+                  _costRange = values;
+                });
               },
             ),
-          ),
-        ],
-      ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.builder(
+                itemCount: filteredSpells.length,
+                itemBuilder: (context, index) {
+                  final spell = filteredSpells[index];
+                  final isSelected = _currentSpells.contains(spell);
+                  
+                  return SpellListItem(
+                    spell: spell,
+                    actions: SpellListItemActions(
+                      spell: spell,
+                      actions: [
+                        IconButton(
+                          icon: Icon(
+                            isSelected ? Icons.check_circle : Icons.add_circle_outline,
+                            color: isSelected ? Colors.green : null,
+                          ),
+                          onPressed: () => _toggleSpell(spell),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

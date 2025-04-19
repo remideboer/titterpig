@@ -69,7 +69,6 @@ Related Business Rules: BR-13
 ### Character Creation
 - Total stat points: 3 points to distribute
 - Minimum stat value: -3
-- Maximum stat value: 3
 - HP calculation: Base 6 + (2 × VIT)
 - Life calculation: Base 3 + VIT
 - Power calculation: WIL × 3
@@ -103,7 +102,6 @@ Related Business Rules: BR-13
 - Heavy: +3 defense
 - None: +0 defense
 - Shield bonus: +2 defense (stacks with category)
-- Base defense: Equal to ATH stat
 
 Rule ID: BR-13
 Description: Character creation/editing screen maintains context of the current section (Stats/Background) when opened
@@ -467,19 +465,6 @@ Feature: Defense Management
    - Verify proper view transitions
 
 This README reflects the current state of the application, including recent changes to spell management and character editing functionality. All business rules are documented and test scenarios are updated to cover the implemented features.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
 
 ## Development
 

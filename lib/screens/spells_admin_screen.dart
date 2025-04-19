@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/spell.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 import '../widgets/spell_list_item.dart';
+import '../widgets/cost_range_slider.dart';
 import 'spell_edit_screen.dart';
 
 class SpellsAdminScreen extends StatelessWidget {
@@ -25,7 +26,7 @@ class SpellsAdminScreen extends StatelessWidget {
           body: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(16.0),
                 child: TextField(
                   onChanged: viewModel.setSearchQuery,
                   decoration: const InputDecoration(
@@ -35,6 +36,14 @@ class SpellsAdminScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              CostRangeSlider(
+                values: viewModel.costRange,
+                min: 0,
+                max: viewModel.maxSpellCost,
+                label: 'Filter by Cost',
+                onChanged: viewModel.setCostRange,
+              ),
+              const SizedBox(height: 8),
               if (viewModel.isLoading)
                 const Center(child: CircularProgressIndicator())
               else
