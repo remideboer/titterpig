@@ -11,6 +11,122 @@ practices, design patterns and scalable architectural designs.
 Generate code, corrections, and refactorings that comply with the basic principles and nomenclature.
 Prefer the use of reusable, DRY screen elements.
 
+### Code Quality and Refactoring
+
+Cursor MUST continuously monitor for code smells and apply appropriate refactoring techniques.
+When code smells are detected, Cursor MUST either prevent the change
+or suggest/apply proper refactoring patterns.
+
+#### Code Smell Categories to Monitor
+
+1. Bloaters
+   - Long Method (> 20 lines)
+   - Large Class (> 200 lines)
+   - Primitive Obsession
+   - Long Parameter List (> 4 parameters)
+   - Data Clumps
+
+2. Object-Orientation Abusers
+   - Switch Statements
+   - Temporary Field
+   - Refused Bequest
+   - Alternative Classes with Different Interfaces
+
+3. Change Preventers
+   - Divergent Change
+   - Shotgun Surgery
+   - Parallel Inheritance Hierarchies
+
+4. Dispensables
+   - Comments (when they explain complex code that should be refactored)
+   - Duplicate Code
+   - Lazy Class
+   - Data Class
+   - Dead Code
+   - Speculative Generality
+
+5. Couplers
+   - Feature Envy
+   - Inappropriate Intimacy
+   - Message Chains
+   - Middle Man
+   - Insider Trading
+
+#### Common Refactoring Techniques to Apply
+
+1. Composing Methods
+   - Extract Method: Move code fragment into a separate method
+   - Inline Method: Replace method call with method body
+   - Replace Temp with Query: Extract expression into method
+   - Replace Method with Method Object: Transform method into separate class
+
+2. Moving Features
+   - Move Method: Move method to another class
+   - Move Field: Move field to another class
+   - Extract Class: Split class into two
+   - Inline Class: Merge two classes
+
+3. Organizing Data
+   - Encapsulate Field: Make field private and provide accessors
+   - Replace Data Value with Object: Replace primitive with object
+   - Replace Array with Object: Replace array with object
+   - Replace Type Code with Class: Replace primitive type code with class
+
+4. Simplifying Conditional Expressions
+   - Decompose Conditional: Split complex conditional into methods
+   - Consolidate Conditional Expression: Combine similar conditionals
+   - Replace Nested Conditional with Guard Clauses: Flatten conditionals
+   - Replace Conditional with Polymorphism: Replace conditional with inheritance
+
+5. Making Method Calls Simpler
+   - Rename Method: Change method name to better reflect purpose
+   - Add Parameter: Add parameter to method
+   - Remove Parameter: Remove unused parameter
+   - Separate Query from Modifier: Split method into query and modifier
+
+6. Dealing with Generalization
+   - Pull Up Field: Move field to superclass
+   - Pull Up Method: Move method to superclass
+   - Push Down Field: Move field to subclass
+   - Push Down Method: Move method to subclass
+   - Extract Interface: Define interface for class
+   - Extract Superclass: Create superclass for similar classes
+
+#### Implementation Rules
+
+Cursor MUST:
+1. Check for code smells before applying any changes
+2. Prevent commits that introduce new code smells
+3. Suggest appropriate refactoring techniques when code smells are detected
+4. Include the specific refactoring technique name in commit messages
+5. Link to the corresponding refactoring pattern in the catalog
+6. Ensure refactorings maintain or improve code quality metrics
+7. Apply refactorings incrementally to maintain code stability
+8. Update tests to reflect refactored code structure
+
+#### Commit Message Format for Refactorings
+
+refactor(<scope>): apply <refactoring-name> to fix <code-smell>
+Applied standard refactoring technique to improve code quality.
+Original issue: [Description of the code smell]
+Refactoring applied: [Name from refactoring.com catalog]
+Changes made:
+[Specific change following the refactoring pattern]
+[Additional changes if multiple steps were involved]
+Reference: https://refactoring.com/catalog/<refactoring-name>
+
+#### Example Commit Messages
+
+refactor(user-service): apply Extract Method to fix Long Method
+    - Applied standard refactoring technique to improve code quality.
+    - Original issue: processUserData method was 45 lines long with multiple responsibilities
+    - Refactoring applied: Extract Method
+    - Changes made:
+            - Extracted validateUserInput into separate method
+            - Extracted processUserPreferences into separate method
+            - Updated method references and documentation
+            - Reference: https://refactoring.com/catalog/extractMethod.html
+
 ## Dart General Guidelines
 
 ### Basic Principles
