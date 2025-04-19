@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 import '../widgets/spell_list_item.dart';
 import '../widgets/cost_range_slider.dart';
+import '../widgets/spell_type_filter.dart';
 import 'spell_detail_screen.dart';
 
 class SpellSelectionScreen extends StatefulWidget {
@@ -32,6 +33,8 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   late List<Spell> _currentSpells;
   late RangeValues _costRange;
   double _maxSpellCost = 0;
+  Set<String> _selectedTypes = {};
+  late List<String> _availableTypes;
 
   @override
   void initState() {
@@ -43,12 +46,20 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
       });
     });
     
+    final allSpells = Provider.of<SpellListViewModel>(context, listen: false).allSpells;
+    
     // Initialize cost range based on available spells
-    _maxSpellCost = Provider.of<SpellListViewModel>(context, listen: false)
-        .allSpells
+    _maxSpellCost = allSpells
         .map((s) => s.cost.toDouble())
         .reduce((a, b) => a > b ? a : b);
     _costRange = RangeValues(0, _maxSpellCost);
+
+    // Get unique spell types from available spells
+    _availableTypes = allSpells
+        .map((s) => s.type)
+        .toSet()
+        .toList()
+      ..sort();
   }
 
   @override
@@ -58,7 +69,7 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   }
 
   List<Spell> _filterAndSortSpells(List<Spell> spells) {
-    // First, filter spells based on search query and cost range
+    // First, filter spells based on search query, cost range, and selected types
     var filteredSpells = spells.where((spell) {
       final matchesSearch = _searchQuery.isEmpty ||
           spell.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -67,7 +78,10 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
       final matchesCost = spell.cost >= _costRange.start && 
                          spell.cost <= _costRange.end;
       
-      return matchesSearch && matchesCost;
+      final matchesType = _selectedTypes.isEmpty || 
+                         _selectedTypes.contains(spell.type);
+      
+      return matchesSearch && matchesCost && matchesType;
     }).toList();
 
     // Then sort the filtered spells
@@ -133,6 +147,18 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SpellTypeFilter(
+                availableTypes: _availableTypes,
+                selectedTypes: _selectedTypes,
+                onTypesChanged: (types) {
+                  setState(() {
+                    _selectedTypes = types;
+                  });
+                },
               ),
             ),
             CostRangeSlider(

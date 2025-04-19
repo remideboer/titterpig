@@ -689,3 +689,31 @@ Dependencies:
 - BR-12 (Spell Selection Sort Order)
 - BR-17 (Manage Spells Option Availability)
 - BR-18 (Character Power Calculation)
+
+Rule ID: BR-20
+Description: Spell Type Filtering
+The spell selection and management screens must provide dynamic type-based filtering:
+- Available filter types are derived from the loaded spell list
+- Multiple filter types can be selected simultaneously
+- Filter selection is visualized using interactive chips
+- Selected filters are prominently displayed
+- Filters can be toggled on/off
+- Empty filter selection shows all spells
+
+Validation:
+- Verify filter chips are generated from actual spell types
+- Verify multiple filters can be active simultaneously
+- Verify toggling a filter updates the spell list immediately
+- Verify removing all filters shows all spells
+- Verify filter state persists during screen session
+
+Examples:
+- Single filter: Selecting "Fire" shows only fire spells
+- Multiple filters: Selecting "Fire" and "Ice" shows both types
+- Dynamic types: New spell type "Lightning" appears in filters when spells of that type are loaded
+- Removing filters: Deselecting "Fire" while "Ice" is selected shows only ice spells
+- Clear filters: Deselecting all filters shows complete spell list
+
+Dependencies:
+- BR-12 (Character Spell Limit)
+- BR-16 (Spell Selection Sort Order)
