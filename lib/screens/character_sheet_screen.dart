@@ -109,24 +109,101 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     });
   }
 
-  void _useSpell(Spell spell) {
-    if (_character.availablePower >= spell.cost) {
-      setState(() {
-        _character.availablePower -= spell.cost;
-        _updateLastUsed();
-      });
-    } else {
+  Future<void> _handleSpellUse(Spell spell, {bool shouldRollDice = false}) async {
+    if (_character.availablePower < spell.cost) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Not enough power!')),
+        SnackBar(
+          content: Text(
+            'Insufficient power to cast ${spell.name} (requires ${spell.cost} power)',
+            style: TextStyle(color: AppTheme.accentColor),
+          ),
+          backgroundColor: AppTheme.highlightColor,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // Cast the spell first
+    setState(() {
+      _character.availablePower -= spell.cost;
+      _updateLastUsed();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Used ${spell.name} (${spell.cost} power)'),
+          backgroundColor: AppTheme.greenColor,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    });
+
+    // Then roll dice if needed
+    if (shouldRollDice && spell.effectValue != null) {
+      // Play roll sound
+      SoundManager().playRollSound();
+
+      await showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: Colors.transparent,
+            contentPadding: EdgeInsets.zero,
+            content: Stack(
+              children: [
+                AnimatedDice(
+                  count: spell.effectValue!.count,
+                  onRollComplete: (result) {
+                    // Don't close automatically, let user close manually
+                  },
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       );
     }
   }
 
-  void _resetPower() {
-    setState(() {
-      _character.availablePower = _character.powerStat.max;
-      _updateLastUsed();
-    });
+  void _castSpell(Spell spell) {
+    _handleSpellUse(spell);
+  }
+
+  void _throwDice(Spell spell) {
+    _handleSpellUse(spell, shouldRollDice: true);
+  }
+
+  void _showSpellSelection() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: SpellSelectionScreen(
+            selectedSpells: _character.spells,
+            maxSpells: SpellLimitCalculator.calculateSpellLimit(_character.wil),
+            onSpellsChanged: (updatedSpells) {
+              setState(() {
+                _character.spells = updatedSpells;
+                _character.updateDerivedStats();
+                _updateLastUsed();
+              });
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   void _takeDamage() {
@@ -181,67 +258,6 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  void _showSpellSelection() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
-          ),
-          child: SpellSelectionScreen(
-            selectedSpells: _character.spells,
-            maxSpells: SpellLimitCalculator.calculateSpellLimit(_character.wil),
-            onSpellsChanged: (updatedSpells) {
-              setState(() {
-                _character.spells = updatedSpells;
-                _character.updateDerivedStats();
-                _updateLastUsed();
-              });
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _throwDice(Spell spell) {
-    if (spell.effectValue == null) return;
-
-    // Play roll sound
-    SoundManager().playRollSound();
-
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.transparent,
-          contentPadding: EdgeInsets.zero,
-          content: Stack(
-            children: [
-              AnimatedDice(
-                count: spell.effectValue!.count,
-                onRollComplete: (result) {
-                  // Don't close automatically, let user close manually
-                },
-              ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -896,33 +912,6 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         ],
       ),
     );
-  }
-
-  void _castSpell(Spell spell) {
-    if (_character.availablePower >= spell.cost) {
-      setState(() {
-        _character.availablePower -= spell.cost;
-        _updateLastUsed();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Used ${spell.name} (${spell.cost} power)'),
-            backgroundColor: AppTheme.greenColor,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Insufficient power to cast ${spell.name} (requires ${spell.cost} power)',
-            style: TextStyle(color: AppTheme.accentColor),
-          ),
-          backgroundColor: AppTheme.highlightColor,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
   }
 
   Widget _buildBackgroundView() {
