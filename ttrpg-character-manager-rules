@@ -1,0 +1,42 @@
+{
+  "name": "ttrpg-character-manager",
+  "description": "Project rules for TTRPG Character Manager",
+  "rules": {
+    "documentation": {
+      "readme": {
+        "format": {
+          "business_rules": {
+            "description": "Business rules should be documented in a clear, concise format",
+            "template": [
+              "Rule ID: [Unique identifier]",
+              "Description: [Clear description of the rule]",
+              "Validation: [How to validate the rule is being followed]",
+              "Examples: [Practical examples showing rule application]"
+            ]
+          },
+          "user_stories": {
+            "description": "User stories should follow a consistent format",
+            "template": [
+              "As a [type of user]",
+              "I want to [perform some action]",
+              "So that [achieve some goal]",
+              "Acceptance Criteria:",
+              "1. [Criterion 1]",
+              "2. [Criterion 2]",
+              "..."
+            ]
+          },
+          "test_scenarios": {
+            "description": "Test scenarios should be documented clearly",
+            "template": [
+              "Scenario: [Descriptive name]",
+              "Given [initial context]",
+              "When [action occurs]",
+              "Then [expected outcome]"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

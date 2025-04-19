@@ -279,3 +279,87 @@ Add secure authentication system with email/password login.
 
 Part of #789
 ```
+
+### Documentation Updates
+
+When new business rules or job stories are introduced, documentation MUST be automatically updated following these guidelines:
+
+#### Business Rules Documentation
+When a new business rule is introduced:
+1. Add to README.md under the "Business Rules" section using the format:
+```gherkin
+Rule ID: BR-[sequential number]
+Description: [Clear description of the business rule]
+Validation: [How to validate the rule is being followed]
+Examples:
+- [Example 1 showing rule application]
+- [Example 2 showing rule application]
+Dependencies: [List any related rules]
+```
+
+#### Job Stories Documentation
+When a new job story is introduced:
+1. Add to README.md under the "Job Stories" section using the format:
+```gherkin
+Story ID: JS-[sequential number]
+When [situation/context]
+I want to [motivation/desire]
+So that [expected outcome/benefit]
+
+Acceptance Criteria:
+1. [Criterion 1]
+2. [Criterion 2]
+3. [Criterion 3]
+
+Related Business Rules: [List related BR-IDs]
+```
+
+#### Documentation Generation Rules
+Cursor MUST:
+1. Automatically identify new business rules or job stories in code changes
+2. Generate corresponding documentation in README.md
+3. Include both the documentation update and code changes in the same commit
+4. Add a reference to the documentation in code comments where the rule is implemented
+5. Ensure cross-references between related business rules and job stories are maintained
+
+Example documentation update:
+```gherkin
+Rule ID: BR-12
+Description: Character spell limit follows Fibonacci sequence based on WIL stat
+Validation: Verify spell count matches Fibonacci number for character's WIL stat
+Examples:
+- WIL 1 allows 2 spells
+- WIL 2 allows 3 spells
+- WIL 3 allows 5 spells
+Dependencies: BR-08 (Base Character Stats)
+
+Story ID: JS-45
+When I increase my character's WIL stat
+I want to automatically gain access to more spell slots following the Fibonacci sequence
+So that I can expand my magical capabilities in a balanced and progressive way
+
+Acceptance Criteria:
+1. Spell limit follows Fibonacci sequence based on WIL
+2. UI shows current spell count and limit
+3. Cannot exceed spell limit when selecting spells
+4. Excess spells are removed if WIL decreases
+
+Related Business Rules: BR-12
+```
+```
+
+This format ensures that:
+1. All business rules and job stories are properly documented
+2. Documentation focuses on the context and motivation of features
+3. Relationships between rules and stories are clear
+4. Implementation details can be traced back to requirements
+5. Changes are properly tracked and validated
+
+You can paste this section directly into your `.mdc` file, just before the JSON schema section at the bottom.
+
+The key difference in this version is the use of Job Stories instead of User Stories, which provides:
+- Better context through the "When" situation
+- Clearer motivation through the specific desire
+- More concrete expected outcomes
+- Focus on the situation rather than user roles
+- More specific and actionable requirements
