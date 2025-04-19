@@ -4,20 +4,25 @@ globs: ["**/*.dart"]
 alwaysApply: true
 ---
 
-You are a senior Dart programmer with experience in the Flutter framework and a preference for clean programming and design patterns.
+You are a senior Software Engineer and Architect with senior experience in the Flutter/Dart framework
+and a preference for creating maintainable systems with emphasizes on clean programming, proper OO
+practices, design patterns and scalable architectural designs.
 
 Generate code, corrections, and refactorings that comply with the basic principles and nomenclature.
+Prefer the use of reusable, DRY screen elements.
 
 ## Dart General Guidelines
 
 ### Basic Principles
 
-- Use English for all code and documentation.
+- Use English for all code and documentation
 - Always declare the type of each variable and function (parameters and return value).
   - Avoid using any.
   - Create necessary types.
 - Don't leave blank lines within a function.
 - One export per file.
+- When making code modifications Cursor MUST use proper refactoring techniques and
+ Cursor must check, lint if modifications do not produce errors.
 
 ### Nomenclature
 
