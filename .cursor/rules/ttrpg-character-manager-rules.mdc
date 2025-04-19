@@ -17,6 +17,112 @@ Cursor MUST continuously monitor for code smells and apply appropriate refactori
 When code smells are detected, Cursor MUST either prevent the change
 or suggest/apply proper refactoring patterns.
 
+### Business Rule Compliance and Synchronization
+
+Cursor MUST continuously monitor and enforce business rule compliance:
+
+1. Before Any Code Changes
+   - Check all affected business rules (BRs)
+   - Identify potential conflicts with existing BRs
+   - Verify changes align with BR validation criteria
+   - Check BR dependencies for cascading effects
+
+2. During Code Changes
+   - Prevent changes that violate BR constraints
+   - Flag modifications that affect multiple BRs
+   - Ensure new code includes proper BR validation
+   - Maintain BR dependency relationships
+
+3. After Code Changes
+   - Verify all affected BRs remain valid
+   - Check if new BRs need to be created
+   - Ensure BR examples are up to date
+   - Validate BR dependencies are still correct
+
+4. When BR Conflicts Are Detected
+   Cursor MUST:
+   - Immediately halt the current operation
+   - Present a detailed analysis of the conflict:
+     * Which BR(s) are affected
+     * What aspects are in conflict
+     * Potential resolution approaches
+   - Ask for explicit direction on how to proceed:
+     * Update the BR to match new requirements
+     * Modify the code to comply with existing BR
+     * Create a new BR to handle the special case
+   - Document the decision and rationale
+
+5. BR Update Process
+   When updating BRs, Cursor MUST:
+   - Keep README.md BR section in sync
+   - Update all related test scenarios
+   - Update affected documentation
+   - Update BR dependency graph
+   - Include BR changes in commit messages
+
+#### Implementation Requirements
+
+1. BR Validation Checks
+   - Parse all BR definitions from README.md
+   - Extract validation criteria
+   - Compare against proposed changes
+   - Flag potential violations
+
+2. Dependency Tracking
+   - Maintain BR dependency relationships
+   - Check for cascading effects
+   - Ensure dependent BRs remain valid
+   - Update dependency references
+
+3. Documentation Updates
+   - Auto-generate BR validation tests
+   - Update BR examples as needed
+   - Keep BR cross-references current
+   - Maintain BR version history
+
+4. Commit Message Format for BR Changes
+```git
+<type>(<scope>): <description>
+
+- BR Impact Analysis:
+  * Modified Rules: [List of modified BRs]
+  * New Rules: [List of new BRs]
+  * Deprecated Rules: [List of deprecated BRs]
+  * Dependency Changes: [List of affected BR dependencies]
+
+- Validation:
+  * [How changes maintain/improve BR compliance]
+  * [Any special cases or considerations]
+
+- Documentation:
+  * Updated README.md BR section
+  * Updated related test scenarios
+  * Updated BR examples
+```
+
+Example:
+```git
+feat(spells): implement spell sorting
+
+- BR Impact Analysis:
+  * Modified Rules: None
+  * New Rules: BR-16 (Spell Selection Sort Order)
+  * Deprecated Rules: None
+  * Dependency Changes: Added dependency on BR-12
+
+- Validation:
+  * New sort order maintains spell limit compliance
+  * Selected spells remain within WIL-based limits
+  * Sort order preserves spell accessibility
+
+- Documentation:
+  * Added BR-16 to README.md
+  * Added spell sorting test scenarios
+  * Updated spell selection examples
+```
+
+This rule is MANDATORY and must be followed for all code changes that affect business rules or their implementation.
+
 #### Code Smell Categories to Monitor
 
 1. Bloaters
@@ -334,8 +440,6 @@ Follow the Conventional Commits specification with these guidelines:
 
   - <bullet points for specific changes>
   - <another specific change>
-
-  <reference to issues/tickets>
   ```
 
 - Examples:
@@ -349,8 +453,6 @@ Follow the Conventional Commits specification with these guidelines:
   - Added minimum value constraints for Life
   - Added minimum value constraints for Power
   - Added upper bounds for all stats
-
-  Fixes #123
   ```
 
   ```
@@ -362,8 +464,6 @@ Follow the Conventional Commits specification with these guidelines:
   - Implemented spell search functionality
   - Added spell category filters
   - Added spell level sorting
-
-  Part of #456
   ```
 
 When writing commit messages:
