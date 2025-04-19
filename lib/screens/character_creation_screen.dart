@@ -48,6 +48,8 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
   final _repository = LocalCharacterRepository();
   final _speciesRepository = SpeciesRepository();
   final _nameGeneratorService = NameGeneratorService(NameDataRepository());
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
   
   int _vit = 0;
   int _ath = 0;
@@ -273,11 +275,41 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
   @override
   void dispose() {
     _nameController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildPageIndicator(int page, String label) {
+    final isSelected = _currentPage == page;
+    return GestureDetector(
+      onTap: () {
+        _pageController.animateToPage(
+          page,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.highlightColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppTheme.highlightColor : AppTheme.primaryColor,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppTheme.primaryColor,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsView() {
     final hp = CharacterService.calculateHp(_vit);
     final life = CharacterService.calculateLife(_vit);
     final power = CharacterService.calculatePower(_wil);
@@ -291,6 +323,317 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
       ),
     );
 
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Name Section
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.casino),
+                onPressed: _generateRandomName,
+                tooltip: 'Generate Random Name',
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Species Selection
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<SpeciesOption>(
+                  value: currentOption,
+                  decoration: const InputDecoration(
+                    labelText: 'Species',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: _dropdownOptions.map((option) {
+                    return DropdownMenuItem<SpeciesOption>(
+                      value: option,
+                      child: Text(option.species.name),
+                    );
+                  }).toList(),
+                  onChanged: (SpeciesOption? value) {
+                    if (value != null) {
+                      if (value.isCustomOption) {
+                        // Show custom species dialog
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            final controller = TextEditingController();
+                            return AlertDialog(
+                              title: const Text('Custom Species'),
+                              content: TextField(
+                                controller: controller,
+                                autofocus: true,
+                                inputFormatters: [
+                                  TextInputFormatter.withFunction((oldValue, newValue) {
+                                    if (newValue.text.isEmpty) return newValue;
+                                    return TextEditingValue(
+                                      text: newValue.text[0].toUpperCase() + 
+                                            (newValue.text.length > 1 ? newValue.text.substring(1) : ''),
+                                      selection: newValue.selection,
+                                    );
+                                  }),
+                                ],
+                                decoration: const InputDecoration(
+                                  labelText: 'Species Name',
+                                  border: OutlineInputBorder(),
+                                ),
+                                onSubmitted: (name) {
+                                  if (name.isNotEmpty) {
+                                    setState(() {
+                                      _selectedSpecies = Species(
+                                        name: name[0].toUpperCase() + (name.length > 1 ? name.substring(1) : ''),
+                                        icon: 'human-face.svg',
+                                        isCustom: true,
+                                      );
+                                    });
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    if (controller.text.isNotEmpty) {
+                                      setState(() {
+                                        _selectedSpecies = Species(
+                                          name: controller.text[0].toUpperCase() + 
+                                                (controller.text.length > 1 ? controller.text.substring(1) : ''),
+                                          icon: 'human-face.svg',
+                                          isCustom: true,
+                                        );
+                                      });
+                                      Navigator.of(context).pop();
+                                    }
+                                  },
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      } else {
+                        setState(() {
+                          _selectedSpecies = value.species;
+                        });
+                      }
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Points Remaining
+          Center(
+            child: Text(
+              'Remaining Points: $_remainingPoints',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Stats Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: _buildStatBox('VIT', _vit, () => _updateStat('vit', -1), () => _updateStat('vit', 1)),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: _buildStatBox('ATH', _ath, () => _updateStat('ath', -1), () => _updateStat('ath', 1)),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: _buildStatBox('WIL', _wil, () => _updateStat('wil', -1), () => _updateStat('wil', 1)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Derived Stats Section
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildDiamondStat('HP', hp, null),
+              const SizedBox(width: 20),
+              _buildDiamondStat('LIFE', life, null),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Power Section
+          Center(
+            child: Column(
+              children: [
+                const Text('POWER'),
+                Text(power.toString(), style: Theme.of(context).textTheme.headlineSmall),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Defense Section
+          Center(
+            child: Column(
+              children: [
+                _buildShieldIcon(CharacterService.calculateDefense(_ath, _selectedDefense)),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildDefenseCircle('L', DefCategory.light),
+                    const SizedBox(width: 8),
+                    _buildDefenseCircle('M', DefCategory.medium),
+                    const SizedBox(width: 8),
+                    _buildDefenseCircle('H', DefCategory.heavy),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Spells Section
+          Container(
+            decoration: AppTheme.defaultBorder,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'ABILITIES',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '(${_spells.length}/${SpellLimitCalculator.calculateSpellLimit(_wil)})',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: AppTheme.highlightColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: _showSpellSelection,
+                    ),
+                  ],
+                ),
+                if (_spells.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 200,
+                    child: ListView.builder(
+                      itemCount: _spells.length,
+                      itemBuilder: (context, index) {
+                        final spell = _spells[index];
+                        return ListTile(
+                          contentPadding: const EdgeInsets.only(left: 0),
+                          leading: _buildHexagon(spell.cost.toString(), ''),
+                          title: Text(spell.name),
+                          subtitle: spell.effect.isNotEmpty ? Text(spell.effect) : null,
+                          trailing: IconButton(
+                            icon: const Icon(Icons.remove),
+                            onPressed: () {
+                              setState(() {
+                                _spells.removeAt(index);
+                              });
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Save Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _canSave ? _saveCharacter : null,
+              child: Text(widget.character != null ? 'Update Character' : 'Create Character'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackgroundView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Background',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          BackgroundEditor(
+            onSave: (background) {
+              setState(() {
+                _background = background;
+              });
+            },
+          ),
+          const SizedBox(height: 24),
+          // Save Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _canSave ? _saveCharacter : null,
+              child: Text(widget.character != null ? 'Update Character' : 'Create Character'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.character != null ? 'Edit Character' : 'Create Character'),
@@ -298,294 +641,36 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
       ),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Name Section
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Name',
-                          border: OutlineInputBorder(),
-                        ),
-                        onChanged: (_) => setState(() {}),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.casino),
-                      onPressed: _generateRandomName,
-                      tooltip: 'Generate Random Name',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Species Selection
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<SpeciesOption>(
-                        value: currentOption,
-                        decoration: const InputDecoration(
-                          labelText: 'Species',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: _dropdownOptions.map((option) {
-                          return DropdownMenuItem<SpeciesOption>(
-                            value: option,
-                            child: Text(option.species.name),
-                          );
-                        }).toList(),
-                        onChanged: (SpeciesOption? value) {
-                          if (value != null) {
-                            if (value.isCustomOption) {
-                              // Show custom species dialog
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  final controller = TextEditingController();
-                                  return AlertDialog(
-                                    title: const Text('Custom Species'),
-                                    content: TextField(
-                                      controller: controller,
-                                      autofocus: true,
-                                      inputFormatters: [
-                                        TextInputFormatter.withFunction((oldValue, newValue) {
-                                          if (newValue.text.isEmpty) return newValue;
-                                          return TextEditingValue(
-                                            text: newValue.text[0].toUpperCase() + 
-                                                  (newValue.text.length > 1 ? newValue.text.substring(1) : ''),
-                                            selection: newValue.selection,
-                                          );
-                                        }),
-                                      ],
-                                      decoration: const InputDecoration(
-                                        labelText: 'Species Name',
-                                        border: OutlineInputBorder(),
-                                      ),
-                                      onSubmitted: (name) {
-                                        if (name.isNotEmpty) {
-                                          setState(() {
-                                            _selectedSpecies = Species(
-                                              name: name[0].toUpperCase() + (name.length > 1 ? name.substring(1) : ''),
-                                              icon: 'human-face.svg',
-                                              isCustom: true,
-                                            );
-                                          });
-                                          Navigator.of(context).pop();
-                                        }
-                                      },
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.of(context).pop(),
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          if (controller.text.isNotEmpty) {
-                                            setState(() {
-                                              _selectedSpecies = Species(
-                                                name: controller.text[0].toUpperCase() + 
-                                                      (controller.text.length > 1 ? controller.text.substring(1) : ''),
-                                                icon: 'human-face.svg',
-                                                isCustom: true,
-                                              );
-                                            });
-                                            Navigator.of(context).pop();
-                                          }
-                                        },
-                                        child: const Text('OK'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            } else {
-                              setState(() {
-                                _selectedSpecies = value.species;
-                              });
-                            }
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Points Remaining
-                Center(
-                  child: Text(
-                    'Remaining Points: $_remainingPoints',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Stats Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: _buildStatBox('VIT', _vit, () => _updateStat('vit', -1), () => _updateStat('vit', 1)),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: _buildStatBox('ATH', _ath, () => _updateStat('ath', -1), () => _updateStat('ath', 1)),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: _buildStatBox('WIL', _wil, () => _updateStat('wil', -1), () => _updateStat('wil', 1)),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Derived Stats Section
-                Row(
+          Column(
+            children: [
+              // Page Indicator
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildDiamondStat('HP', hp, null),
-                    const SizedBox(width: 20),
-                    _buildDiamondStat('LIFE', life, null),
+                    _buildPageIndicator(0, 'Stats'),
+                    const SizedBox(width: 16),
+                    _buildPageIndicator(1, 'Background'),
                   ],
                 ),
-                const SizedBox(height: 24),
-
-                // Power Section
-                Center(
-                  child: Column(
-                    children: [
-                      const Text('POWER'),
-                      Text(power.toString(), style: Theme.of(context).textTheme.headlineSmall),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Defense Section
-                Center(
-                  child: Column(
-                    children: [
-                      _buildShieldIcon(CharacterService.calculateDefense(_ath, _selectedDefense)),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildDefenseCircle('L', DefCategory.light),
-                          const SizedBox(width: 8),
-                          _buildDefenseCircle('M', DefCategory.medium),
-                          const SizedBox(width: 8),
-                          _buildDefenseCircle('H', DefCategory.heavy),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Background Section
-                const Text(
-                  'Background',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                BackgroundEditor(
-                  onSave: (background) {
+              ),
+              // Swipeable Content
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (index) {
                     setState(() {
-                      _background = background;
+                      _currentPage = index;
                     });
                   },
+                  children: [
+                    _buildStatsView(),
+                    _buildBackgroundView(),
+                  ],
                 ),
-
-                // Spells Section
-                Container(
-                  decoration: AppTheme.defaultBorder,
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                'ABILITIES',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '(${_spells.length}/${SpellLimitCalculator.calculateSpellLimit(_wil)})',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppTheme.highlightColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.add),
-                            onPressed: _showSpellSelection,
-                          ),
-                        ],
-                      ),
-                      if (_spells.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 200,
-                          child: ListView.builder(
-                            itemCount: _spells.length,
-                            itemBuilder: (context, index) {
-                              final spell = _spells[index];
-                              return ListTile(
-                                contentPadding: const EdgeInsets.only(left: 0),
-                                leading: _buildHexagon(spell.cost.toString(), ''),
-                                title: Text(spell.name),
-                                subtitle: spell.effect.isNotEmpty ? Text(spell.effect) : null,
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.remove),
-                                  onPressed: () {
-                                    setState(() {
-                                      _spells.removeAt(index);
-                                    });
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Save Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _canSave ? _saveCharacter : null,
-                    child: Text(widget.character != null ? 'Update Character' : 'Create Character'),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
           // Spell selection overlay
           if (_showSpellOverlay)
@@ -593,8 +678,8 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
               color: Colors.black54,
               child: Center(
                 child: Container(
-                  width: screenSize.width * 0.8,
-                  height: screenSize.height * 0.6,
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  height: MediaQuery.of(context).size.height * 0.6,
                   decoration: BoxDecoration(
                     color: Theme.of(context).scaffoldBackgroundColor,
                     borderRadius: BorderRadius.circular(8),
@@ -617,7 +702,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Max Power: $power',
+                        'Max Power: ${CharacterService.calculatePower(_wil)}',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 16),
@@ -626,7 +711,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                           itemCount: Spell.availableSpells.length,
                           itemBuilder: (context, index) {
                             final spell = Spell.availableSpells[index];
-                            final canAdd = spell.cost <= power && 
+                            final canAdd = spell.cost <= CharacterService.calculatePower(_wil) && 
                                         !_spells.any((s) => s.name == spell.name);
                             return ListTile(
                               title: Text(
@@ -649,7 +734,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                                     onPressed: () => _addSpell(spell),
                                   )
                                 : Tooltip(
-                                    message: spell.cost > power 
+                                    message: spell.cost > CharacterService.calculatePower(_wil)
                                       ? 'Requires more power' 
                                       : 'Already learned',
                                     child: const Icon(Icons.lock, color: Colors.grey),
