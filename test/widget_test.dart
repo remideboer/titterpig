@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ttrpg_character_manager/main.dart';
 import 'package:ttrpg_character_manager/models/character.dart';
 import 'package:ttrpg_character_manager/models/species.dart';
@@ -8,14 +9,23 @@ import 'package:ttrpg_character_manager/services/character_service.dart';
 
 void main() {
   testWidgets('App starts and shows character list', (WidgetTester tester) async {
+    // Initialize SharedPreferences
+    SharedPreferences.setMockInitialValues({
+      'sound_muted': false,
+      'isDarkMode': false,
+    });
+
     await tester.pumpWidget(
       const ProviderScope(
         child: MyApp(isDarkMode: false),
       ),
     );
 
-    // Verify the app starts and shows the character list screen
-    expect(find.byType(Scaffold), findsOneWidget);
+    // Wait for all async operations to complete
+    await tester.pumpAndSettle();
+
+    // Verify we're on the character list screen
+    expect(find.text('Select a character from the list'), findsOneWidget);
   });
 
   group('Character Model Tests', () {

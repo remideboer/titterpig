@@ -20,7 +20,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late bool _isDarkMode;
   static const String _themeKey = 'isDarkMode';
-  late bool _isSoundEnabled;
+  bool _isSoundEnabled = false; // Initialize with a default value
   final SoundManager _soundManager = SoundManager();
 
   @override
@@ -51,16 +51,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadSoundSetting() async {
     await _soundManager.init();
-    setState(() {
-      _isSoundEnabled = !_soundManager.isMuted;
-    });
+    if (mounted) {
+      setState(() {
+        _isSoundEnabled = !_soundManager.isMuted;
+      });
+    }
   }
 
   Future<void> _toggleSound() async {
     await _soundManager.toggleMute();
-    setState(() {
-      _isSoundEnabled = !_soundManager.isMuted;
-    });
+    if (mounted) {
+      setState(() {
+        _isSoundEnabled = !_soundManager.isMuted;
+      });
+    }
   }
 
   @override
