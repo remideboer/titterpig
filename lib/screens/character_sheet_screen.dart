@@ -476,15 +476,43 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                             ),
                           ],
                         ),
-                        Tooltip(
-                          message: _character.power < 1 
-                              ? 'Insufficient maximum power to learn spells (requires WIL 1 or higher)'
-                              : 'Manage your character\'s spells',
-                          child: TextButton.icon(
-                            onPressed: _character.power >= 1 ? _showSpellSelection : null,
-                            icon: const Icon(Icons.auto_awesome),
-                            label: const Text('Manage Spells'),
-                          ),
+                        Row(
+                          children: [
+                            if (_character.power > 0) ...[
+                              Tooltip(
+                                message: _character.availablePower < _character.power
+                                    ? 'Restore power to maximum'
+                                    : 'Power is already at maximum',
+                                child: IconButton(
+                                  onPressed: _character.availablePower < _character.power
+                                      ? () {
+                                          setState(() {
+                                            _character.availablePower = _character.power;
+                                            _updateLastUsed();
+                                          });
+                                          SnackBarService.showSpellCastMessage(
+                                            context,
+                                            'Power restored',
+                                            _character.power,
+                                          );
+                                        }
+                                      : null,
+                                  icon: const Icon(Icons.refresh),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            Tooltip(
+                              message: _character.power < 1 
+                                  ? 'Insufficient maximum power to learn spells (requires WIL 1 or higher)'
+                                  : 'Manage your character\'s spells',
+                              child: TextButton.icon(
+                                onPressed: _character.power >= 1 ? _showSpellSelection : null,
+                                icon: const Icon(Icons.auto_awesome),
+                                label: const Text('Manage Spells'),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

@@ -10,7 +10,7 @@ class SnackBarService {
           spellName != null 
             ? 'Insufficient power to cast $spellName (requires $requiredPower power)'
             : 'Insufficient power to cast this spell',
-          style: TextStyle(color: AppTheme.primaryColor),
+          style: TextStyle(color: AppTheme.accentColor),
         ),
         backgroundColor: Colors.orange[700],
         behavior: SnackBarBehavior.floating,
@@ -23,7 +23,11 @@ class SnackBarService {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Used $spellName ($cost power)'),
+        content: Text(
+          spellName == 'Power restored'
+            ? 'Power restored to maximum ($cost power)'
+            : 'Used $spellName ($cost power)',
+        ),
         backgroundColor: AppTheme.greenColor,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(milliseconds: 2000),
