@@ -6,6 +6,7 @@ import 'package:ttrpg_character_manager/main.dart';
 import 'package:ttrpg_character_manager/models/character.dart';
 import 'package:ttrpg_character_manager/services/character_service.dart';
 import 'package:ttrpg_character_manager/services/spell_service.dart';
+import 'package:ttrpg_character_manager/services/character_generator_service.dart';
 import 'package:ttrpg_character_manager/providers/providers.dart';
 import 'package:riverpod/riverpod.dart';
 
@@ -13,6 +14,12 @@ class MockCharacterService extends Mock implements CharacterService {
   @override
   Future<List<Character>> loadCharacters() async {
     return [];
+  }
+
+  @override
+  bool isValidVitForHp(int vit) {
+    final hp = 6 + (2 * vit);
+    return hp >= 2;
   }
 }
 
@@ -28,6 +35,22 @@ class MockSpellService extends Mock implements SpellService {
   }) async {}
 }
 
+class MockCharacterGeneratorService extends Mock implements CharacterGeneratorService {
+  @override
+  Character generateRandomCharacter() {
+    return Character(
+      id: '1',
+      name: 'Random Character',
+      species: const Species(name: 'Human', icon: 'human-face.svg'),
+      vit: 0,
+      ath: 1,
+      wil: 2,
+      createdAt: DateTime.now(),
+      lastUsed: DateTime.now(),
+    );
+  }
+}
+
 void main() {
   testWidgets('App loads and displays character list screen', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
@@ -36,12 +59,14 @@ void main() {
 
     final mockCharacterService = MockCharacterService();
     final mockSpellService = MockSpellService();
+    final mockGeneratorService = MockCharacterGeneratorService();
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           characterServiceProvider.overrideWithValue(mockCharacterService),
           spellServiceProvider.overrideWithValue(mockSpellService),
+          characterGeneratorProvider.overrideWithValue(mockGeneratorService),
         ],
         child: const MyApp(),
       ),
@@ -51,6 +76,46 @@ void main() {
 
     expect(find.text('Characters'), findsOneWidget);
     expect(find.byType(FloatingActionButton), findsOneWidget);
+  });
+
+  testWidgets('Random character generation button works', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'soundEnabled': false,
+    });
+
+    final mockCharacterService = MockCharacterService();
+    final mockSpellService = MockSpellService();
+    final mockGeneratorService = MockCharacterGeneratorService();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          characterServiceProvider.overrideWithValue(mockCharacterService),
+          spellServiceProvider.overrideWithValue(mockSpellService),
+          characterGeneratorProvider.overrideWithValue(mockGeneratorService),
+        ],
+        child: MaterialApp(
+          home: CharacterCreationScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Find and tap the random generation button
+    final generateButton = find.text('Generate Random Character');
+    expect(generateButton, findsOneWidget);
+    await tester.tap(generateButton);
+    await tester.pumpAndSettle();
+
+    // Verify the random character's values are displayed
+    expect(find.text('Random Character'), findsOneWidget);
+    expect(find.text('Human'), findsOneWidget);
+    
+    // Verify stats are set correctly
+    expect(find.text('0'), findsWidgets); // VIT
+    expect(find.text('1'), findsWidgets); // ATH
+    expect(find.text('2'), findsWidgets); // WIL
   });
 
   group('Character Model Tests', () {

@@ -142,6 +142,37 @@ Examples:
 - Components will be fetched from a dedicated API (future implementation)
 Dependencies: BR-12 (Character Spell Limit)
 
+Rule ID: BR-15
+Description: Random character generation for initial character creation
+Validation: 
+- Verify random generation follows the sequence: species -> name -> stats
+- Verify stats follow existing rules (total points: 3, min: -3, max: 3)
+- Verify HP calculation rules are respected in random generation
+- Verify generated names are appropriate for the selected species
+Examples:
+- Random species selection from available species list
+- Name generation based on selected species
+- Random but valid stat distribution (VIT, ATH, WIL)
+Dependencies: BR-08 (Base Character Stats), BR-13 (HP Minimum Rule)
+
+Story ID: JS-48
+When I am creating a new character
+I want to quickly generate a random but valid character base
+So that I can start playing faster and potentially discover interesting character combinations
+
+Acceptance Criteria:
+1. Random generation button is available on character creation screen
+2. Species is randomly selected first
+3. Name is randomly generated based on selected species
+4. Stats are randomly assigned following existing rules:
+   - Total of 3 points to distribute
+   - Each stat between -3 and 3
+   - VIT must result in HP >= 2
+5. User can modify any generated values afterwards
+6. Generated character follows all existing character creation rules
+
+Related Business Rules: BR-08, BR-13, BR-15
+
 ## Features
 
 ### Character Background System

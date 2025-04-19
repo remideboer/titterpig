@@ -27,6 +27,8 @@ import 'spell_selection_screen.dart';
 import '../widgets/background_editor.dart';
 import '../models/background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../services/character_generator_service.dart';
+import '../providers/providers.dart';
 
 class CharacterCreationScreen extends ConsumerStatefulWidget {
   final Character? character;
@@ -275,6 +277,20 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
     }
   }
 
+  void _generateRandomCharacter() {
+    final generator = ref.read(characterGeneratorProvider);
+    final randomCharacter = generator.generateRandomCharacter();
+
+    setState(() {
+      _nameController.text = randomCharacter.name;
+      _selectedSpecies = randomCharacter.species;
+      _vit = randomCharacter.vit;
+      _ath = randomCharacter.ath;
+      _wil = randomCharacter.wil;
+      _remainingPoints = 0;
+    });
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -331,6 +347,19 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Add random generation button at the top
+          if (widget.character == null) // Only show for new characters
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: ElevatedButton.icon(
+                onPressed: _generateRandomCharacter,
+                icon: const Icon(Icons.casino),
+                label: const Text('Generate Random Character'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.all(16.0),
+                ),
+              ),
+            ),
           // Name Section
           Row(
             children: [
