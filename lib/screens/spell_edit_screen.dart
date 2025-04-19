@@ -60,10 +60,12 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
       effectValue: dieCount > 0 ? Die(dieCount) : null,
       type: _selectedType,
       range: _selectedRange,
+      versionId: widget.spell?.versionId,
+      lastUpdated: DateTime.now(),
     );
 
     if (widget.spell != null) {
-      viewModel.updateSpell(widget.spell!, newSpell);
+      viewModel.updateSpell(newSpell);
     } else {
       viewModel.addSpell(newSpell);
     }

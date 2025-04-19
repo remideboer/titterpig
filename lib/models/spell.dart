@@ -128,6 +128,16 @@ class Spell {
   // Default list of available spells
   static final List<Spell> availableSpells = [
     Spell(
+      name: 'Arcane Arrow',
+      description: '',
+      cost: 1,
+      versionId: '1745073219149',
+      effectValue: Die(3),
+      effect: '',
+      type: 'Offensive',
+      range: '',
+    ),
+    Spell(
       name: 'Minor Heal',
       description: 'Restore a small amount of HP',
       cost: 1,
