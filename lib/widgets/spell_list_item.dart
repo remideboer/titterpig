@@ -14,6 +14,16 @@ class SpellListItemActions extends StatelessWidget {
     required this.actions,
   }) : super(key: key);
 
+  void _showInsufficientPowerMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Insufficient power to cast this spell'),
+        backgroundColor: Colors.orange[700],
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -22,7 +32,9 @@ class SpellListItemActions extends StatelessWidget {
         if (action is IconButton) {
           return IconButton(
             icon: action.icon,
-            onPressed: action.onPressed,
+            onPressed: action.onPressed == null 
+              ? () => _showInsufficientPowerMessage(context)
+              : action.onPressed,
             color: action.onPressed == null ? Colors.grey : AppTheme.highlightColor,
           );
         }
