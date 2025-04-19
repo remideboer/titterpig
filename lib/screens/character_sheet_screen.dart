@@ -20,6 +20,7 @@ import 'character_creation_screen.dart';
 import 'package:ttrpg_character_manager/widgets/animated_dice.dart';
 import '../utils/sound_manager.dart';
 import '../utils/spell_limit_calculator.dart';
+import '../widgets/character_background_view.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -41,6 +42,8 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   final LocalCharacterRepository _repository = LocalCharacterRepository();
   SettingsRepository? _settingsRepository;
   late Character _character;
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
 
   @override
   void initState() {
@@ -62,6 +65,12 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         _character.updateDerivedStats();
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeSettings() async {
@@ -235,246 +244,346 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     );
   }
 
+  Widget _buildBackgroundView() {
+    if (_character.background == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.history_edu,
+              size: 64,
+              color: Theme.of(context).disabledColor,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No background information available',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).disabledColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: () => _editCharacter(),
+              icon: const Icon(Icons.edit),
+              label: const Text('Add Background'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return CharacterBackgroundView(
+      background: _character.background,
+      onEdit: () => _editCharacter(),
+    );
+  }
+
+  Future<void> _editCharacter() async {
+    final updatedCharacter = await Navigator.push<Character>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CharacterCreationScreen(
+          character: _character,
+        ),
+      ),
+    );
+
+    if (updatedCharacter != null) {
+      setState(() {
+        _character = updatedCharacter;
+        selectedDefense = updatedCharacter.defCategory;
+      });
+      if (widget.onCharacterUpdated != null) {
+        widget.onCharacterUpdated!(updatedCharacter);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(NameFormatter.formatName(_character.name)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: _editCharacter,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Page Indicator
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildPageIndicator(0, 'Stats'),
+                const SizedBox(width: 16),
+                _buildPageIndicator(1, 'Background'),
+              ],
+            ),
+          ),
+          // Swipeable Content
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
+              children: [
+                _buildMainStatsView(),
+                _buildBackgroundView(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPageIndicator(int page, String label) {
+    final isSelected = _currentPage == page;
+    return GestureDetector(
+      onTap: () {
+        _pageController.animateToPage(
+          page,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.highlightColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppTheme.highlightColor : AppTheme.primaryColor,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppTheme.primaryColor,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainStatsView() {
     final screenSize = MediaQuery.of(context).size;
     final mainStatSize = screenSize.width * 0.25;
     final svgStatSize = mainStatSize;
     final isDead = _character.lifeStat.current == 0;
 
     var defOptionScreenProportion = 0.5;
-    return PopScope(
-      canPop: true,
-      onPopInvoked: (didPop) async {
-        if (didPop) {
-          _character.updateDerivedStats();
-          await widget.onCharacterUpdated?.call(_character);
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            '${NameFormatter.formatName(_character.name)} (${_character.species.name})',
-            style: AppTheme.titleStyle.copyWith(
-              color: isDead ? Colors.grey : null,
-            ),
-          ),
-          elevation: 0,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _resetPower,
-              tooltip: 'Reset Power',
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () => _showEditDialog(context),
-            ),
-          ],
-        ),
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Main stats row (VIT, ATH, WIL)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // Main stats row (VIT, ATH, WIL)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  _buildStatBox('VIT', _character.vit),
+                  _buildStatBox('ATH', _character.ath),
+                  _buildStatBox('WIL', _character.wil),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Health and power row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
                     children: [
-                      _buildStatBox('VIT', _character.vit),
-                      _buildStatBox('ATH', _character.ath),
-                      _buildStatBox('WIL', _character.wil),
+                      _buildHpAndLifeDiamonds(svgStatSize),
+                      const SizedBox(height: 8)
                     ],
                   ),
-                  const SizedBox(height: 24),
-
-                  // Health and power row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Column(
-                        children: [
-                          _buildHpAndLifeDiamonds(svgStatSize),
-                          const SizedBox(height: 8)
-                        ],
-                      ),
-                      Opacity(
-                        opacity: isDead ? 0.5 : 1.0,
-                        child: PowerIcon(
-                          value: _character.powerStat,
-                          size: svgStatSize,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Defense section
-                  Center(
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildActionButton(
-                              icon: Icons.remove,
-                              onPressed: _takeDamage,
-                              color: Colors.red,
-                              enabled: !isDead,
-                            ),
-                            const SizedBox(width: 8),
-                            _buildShieldIcon(_character.def, svgStatSize),
-                            const SizedBox(width: 8),
-                            _buildActionButton(
-                              icon: Icons.add,
-                              onPressed: _heal,
-                              color: Colors.green,
-                              enabled: !isDead,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Armor type selection row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildDefenseCircle('L', DefCategory.light, selectedDefense == DefCategory.light, svgStatSize * defOptionScreenProportion),
-                            const SizedBox(width: 8),
-                            _buildDefenseCircle('M', DefCategory.medium, selectedDefense == DefCategory.medium, svgStatSize * defOptionScreenProportion),
-                            const SizedBox(width: 8),
-                            _buildDefenseCircle('H', DefCategory.heavy, selectedDefense == DefCategory.heavy, svgStatSize * defOptionScreenProportion),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Abilities section container - lists learned spells and allows adding new ones
-                  Container(
-                    decoration: AppTheme.defaultBorder,
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Abilities header row with title and add button
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'ABILITIES',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            TextButton.icon(
-                              onPressed: _showSpellSelection,
-                              icon: const Icon(Icons.auto_awesome),
-                              label: const Text('Manage Spells'),
-                            ),
-                          ],
-                        ),
-                        if (_character.spells.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          // List of learned spells with cost hexagons
-                          SizedBox(
-                            height: 200, // Fixed height for the scrollable list
-                            child: Builder(
-                              builder: (context) {
-                                // Sort spells by availability and then by cost
-                                final sortedSpells = List<Spell>.from(_character.spells)
-                                  ..sort((a, b) {
-                                    final aAvailable = a.cost <= _character.availablePower;
-                                    final bAvailable = b.cost <= _character.availablePower;
-                                    if (aAvailable != bAvailable) {
-                                      return aAvailable ? -1 : 1; // Available spells first
-                                    }
-                                    return a.cost.compareTo(b.cost); // Then sort by cost
-                                  });
-
-                                return ListView.builder(
-                                  itemCount: sortedSpells.length,
-                                  itemBuilder: (context, index) {
-                                    final spell = sortedSpells[index];
-                                    final canUse = spell.cost <= _character.availablePower;
-                                    return Card(
-                                      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                      child: ListTile(
-                                        leading: _buildHexagon(spell.cost.toString(), ''),
-                                        title: Text(
-                                          spell.name,
-                                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                            color: AppTheme.primaryColor,
-                                          ),
-                                        ),
-                                        subtitle: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            if (spell.effectValue != null)
-                                              Text(
-                                                '${spell.effectValue}',
-                                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                  color: AppTheme.highlightColor,
-                                                ),
-                                              ),
-                                            Text(
-                                              '${spell.type} • Range: ${spell.range}',
-                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                color: AppTheme.highlightColor,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        trailing: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            // Dice icon (only shown for spells with effectValue)
-                                            if (spell.effectValue != null)
-                                              IconButton(
-                                                icon: const Icon(Icons.casino),
-                                                color: canUse ? AppTheme.highlightColor : Colors.grey,
-                                                onPressed: canUse ? () => _throwDice(spell) : null,
-                                                tooltip: canUse ? 'Roll dice' : 'Not enough power',
-                                              )
-                                            else
-                                              const SizedBox(width: 48), // Empty space to maintain alignment
-                                            IconButton(
-                                              icon: Icon(canUse ? Icons.flash_on : Icons.flash_off),
-                                              color: canUse ? AppTheme.highlightColor : Colors.grey,
-                                              onPressed: canUse ? () => _castSpell(spell) : null,
-                                              tooltip: canUse ? 'Cast spell' : 'Not enough power',
-                                            ),
-                                          ],
-                                        ),
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => SpellDetailScreen(
-                                                spell: spell,
-                                                onSpellSelected: (_) {},
-                                                allowEditing: false,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ],
+                  Opacity(
+                    opacity: isDead ? 0.5 : 1.0,
+                    child: PowerIcon(
+                      value: _character.powerStat,
+                      size: svgStatSize,
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+
+              // Defense section
+              Center(
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildActionButton(
+                          icon: Icons.remove,
+                          onPressed: _takeDamage,
+                          color: Colors.red,
+                          enabled: !isDead,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildShieldIcon(_character.def, svgStatSize),
+                        const SizedBox(width: 8),
+                        _buildActionButton(
+                          icon: Icons.add,
+                          onPressed: _heal,
+                          color: Colors.green,
+                          enabled: !isDead,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // Armor type selection row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildDefenseCircle('L', DefCategory.light, selectedDefense == DefCategory.light, svgStatSize * defOptionScreenProportion),
+                        const SizedBox(width: 8),
+                        _buildDefenseCircle('M', DefCategory.medium, selectedDefense == DefCategory.medium, svgStatSize * defOptionScreenProportion),
+                        const SizedBox(width: 8),
+                        _buildDefenseCircle('H', DefCategory.heavy, selectedDefense == DefCategory.heavy, svgStatSize * defOptionScreenProportion),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Abilities section container - lists learned spells and allows adding new ones
+              Container(
+                decoration: AppTheme.defaultBorder,
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Abilities header row with title and add button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'ABILITIES',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        TextButton.icon(
+                          onPressed: _showSpellSelection,
+                          icon: const Icon(Icons.auto_awesome),
+                          label: const Text('Manage Spells'),
+                        ),
+                      ],
+                    ),
+                    if (_character.spells.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      // List of learned spells with cost hexagons
+                      SizedBox(
+                        height: 200, // Fixed height for the scrollable list
+                        child: Builder(
+                          builder: (context) {
+                            // Sort spells by availability and then by cost
+                            final sortedSpells = List<Spell>.from(_character.spells)
+                              ..sort((a, b) {
+                                final aAvailable = a.cost <= _character.availablePower;
+                                final bAvailable = b.cost <= _character.availablePower;
+                                if (aAvailable != bAvailable) {
+                                  return aAvailable ? -1 : 1; // Available spells first
+                                }
+                                return a.cost.compareTo(b.cost); // Then sort by cost
+                              });
+
+                            return ListView.builder(
+                              itemCount: sortedSpells.length,
+                              itemBuilder: (context, index) {
+                                final spell = sortedSpells[index];
+                                final canUse = spell.cost <= _character.availablePower;
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                  child: ListTile(
+                                    leading: _buildHexagon(spell.cost.toString(), ''),
+                                    title: Text(
+                                      spell.name,
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        color: AppTheme.primaryColor,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        if (spell.effectValue != null)
+                                          Text(
+                                            '${spell.effectValue}',
+                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              color: AppTheme.highlightColor,
+                                            ),
+                                          ),
+                                        Text(
+                                          '${spell.type} • Range: ${spell.range}',
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            color: AppTheme.highlightColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // Dice icon (only shown for spells with effectValue)
+                                        if (spell.effectValue != null)
+                                          IconButton(
+                                            icon: const Icon(Icons.casino),
+                                            color: canUse ? AppTheme.highlightColor : Colors.grey,
+                                            onPressed: canUse ? () => _throwDice(spell) : null,
+                                            tooltip: canUse ? 'Roll dice' : 'Not enough power',
+                                          )
+                                        else
+                                          const SizedBox(width: 48), // Empty space to maintain alignment
+                                        IconButton(
+                                          icon: Icon(canUse ? Icons.flash_on : Icons.flash_off),
+                                          color: canUse ? AppTheme.highlightColor : Colors.grey,
+                                          onPressed: canUse ? () => _castSpell(spell) : null,
+                                          tooltip: canUse ? 'Cast spell' : 'Not enough power',
+                                        ),
+                                      ],
+                                    ),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => SpellDetailScreen(
+                                            spell: spell,
+                                            onSpellSelected: (_) {},
+                                            allowEditing: false,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -811,28 +920,6 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         ],
       ),
     );
-  }
-
-  void _showEditDialog(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CharacterCreationScreen(
-          character: _character,
-          onCharacterSaved: (updatedCharacter) {
-            if (widget.onCharacterUpdated != null) {
-              widget.onCharacterUpdated!(updatedCharacter);
-            }
-          },
-        ),
-      ),
-    );
-  }
-
-  void _updateCharacter(BuildContext context, Character updatedCharacter) {
-    if (widget.onCharacterUpdated != null) {
-      widget.onCharacterUpdated!(updatedCharacter);
-    }
   }
 
   void _castSpell(Spell spell) {

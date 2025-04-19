@@ -225,12 +225,9 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
       widget.onCharacterSaved!(savedCharacter);
     }
 
-    // Use a post-frame callback to ensure navigation happens after the current frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        Navigator.of(context).pop(savedCharacter);
-      }
-    });
+    if (mounted) {
+      Navigator.of(context).pop(savedCharacter);
+    }
   }
 
   void _showSpellSelection() async {
