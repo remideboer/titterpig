@@ -1,24 +1,34 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../theme/app_theme.dart';
 
 class HexagonCost extends StatelessWidget {
   final int cost;
   final double size;
-  final Color? color;
+  final Color? backgroundColor;
+  final Color? borderColor;
+  final Color? textColor;
 
   const HexagonCost({
     Key? key,
     required this.cost,
     this.size = 40,
-    this.color,
+    this.backgroundColor,
+    this.borderColor,
+    this.textColor,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final bgColor = backgroundColor ?? AppTheme.primaryColor;
+    final txtColor = textColor ?? AppTheme.valueDisplayColor;
+    final brdColor = borderColor ?? AppTheme.highlightColor;
+
     return CustomPaint(
       size: Size(size, size),
       painter: _HexagonPainter(
-        color: color ?? Theme.of(context).colorScheme.primary,
+        backgroundColor: bgColor,
+        borderColor: brdColor,
       ),
       child: SizedBox(
         width: size,
@@ -27,7 +37,7 @@ class HexagonCost extends StatelessWidget {
           child: Text(
             cost.toString(),
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
+              color: txtColor,
               fontWeight: FontWeight.bold,
               fontSize: size * 0.4,
             ),
@@ -39,16 +49,33 @@ class HexagonCost extends StatelessWidget {
 }
 
 class _HexagonPainter extends CustomPainter {
-  final Color color;
+  final Color backgroundColor;
+  final Color borderColor;
 
-  _HexagonPainter({required this.color});
+  _HexagonPainter({
+    required this.backgroundColor,
+    required this.borderColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
+    final path = _createHexagonPath(size);
 
+    // Draw background
+    final bgPaint = Paint()
+      ..color = backgroundColor
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(path, bgPaint);
+
+    // Draw border
+    final borderPaint = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    canvas.drawPath(path, borderPaint);
+  }
+
+  Path _createHexagonPath(Size size) {
     final path = Path();
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
@@ -66,10 +93,11 @@ class _HexagonPainter extends CustomPainter {
       }
     }
     path.close();
-
-    canvas.drawPath(path, paint);
+    return path;
   }
 
   @override
-  bool shouldRepaint(_HexagonPainter oldDelegate) => color != oldDelegate.color;
+  bool shouldRepaint(_HexagonPainter oldDelegate) => 
+    backgroundColor != oldDelegate.backgroundColor ||
+    borderColor != oldDelegate.borderColor;
 } 

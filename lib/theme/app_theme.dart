@@ -7,6 +7,7 @@ class AppTheme {
   static const Color highlightColor = Color(0xFFE74C3C);
   static const Color greenColor = Color(0xFF4CAF50);
   static const Color redColor = Color(0xFFE57373);
+  static const Color valueDisplayColor = Color(0xFFFFFFFF);
 
   // Text Styles
   static const TextStyle titleStyle = TextStyle(
