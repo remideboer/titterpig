@@ -11,7 +11,8 @@ class CharacterService {
   }
 
   static bool isValidVitForHp(int vit) {
-    return vit >= Character.minVitForPositiveHp;
+    final hp = calculateHp(vit);
+    return hp >= 2;
   }
 
   static int calculateHp(int vit) {

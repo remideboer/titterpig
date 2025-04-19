@@ -12,7 +12,6 @@ class Character {
   static const int baseHp = 6;
   static const int hpPerVit = 2;
   static const int baseLife = 3;
-  static const int minVitForPositiveHp = -2; // HP = 6 + 2*VIT > 0 => VIT > -3
   static const int currentSaveVersion = 2; // Increment this when making breaking changes to the save format
 
   final String id;
@@ -60,7 +59,6 @@ class Character {
         sessionLog = sessionLog ?? [],
         createdAt = createdAt ?? DateTime.now(),
         lastUsed = lastUsed ?? DateTime.now() {
-    // Initialize stat values before calling updateDerivedStats
     final newHp = baseHp + hpPerVit * vit;
     final newLife = baseLife + vit;
     final newPower = wil * 3;
