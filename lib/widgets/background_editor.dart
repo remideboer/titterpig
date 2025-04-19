@@ -6,13 +6,44 @@ import '../models/background.dart';
 /// Widget for editing character backgrounds
 class BackgroundEditor extends ConsumerWidget {
   final void Function(Background)? onSave;
+  final Background? background;
 
-  const BackgroundEditor({super.key, this.onSave});
+  const BackgroundEditor({
+    super.key,
+    this.onSave,
+    this.background,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(backgroundEditorProvider);
     final controller = ref.read(backgroundEditorProvider.notifier);
+
+    // Initialize with the provided background if available
+    if (background != null && state.currentBackground == null) {
+      if (background!.templateId != null) {
+        controller.selectTemplate(background!.templateId!);
+      } else {
+        controller.createCustomBackground(
+          name: background!.name,
+          description: background!.description,
+          placeOfBirth: background!.placeOfBirth,
+          parents: background!.parents,
+          siblings: background!.siblings,
+        );
+      }
+      // Ensure the initial background is saved
+      if (onSave != null) {
+        onSave!(controller.saveBackground()!);
+      }
+    }
+
+    // Reset controller when widget is disposed
+    ref.listen(backgroundEditorProvider, (previous, next) {
+      if (next.currentBackground != null && onSave != null) {
+        onSave!(next.currentBackground!);
+      }
+    });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

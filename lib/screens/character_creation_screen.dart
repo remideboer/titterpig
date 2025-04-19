@@ -22,7 +22,6 @@ import '../widgets/power_icon.dart';
 import '../widgets/stat_value_icon.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/name_formatter.dart';
-import 'package:provider/provider.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 import 'spell_selection_screen.dart';
 import '../widgets/background_editor.dart';
@@ -616,20 +615,48 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
           ),
           const SizedBox(height: 8),
           BackgroundEditor(
+            background: _background,
             onSave: (background) {
               setState(() {
                 _background = background;
+                // Propagate changes immediately if we can
+                if (_canSave && widget.onCharacterSaved != null) {
+                  final updatedCharacter = widget.character != null
+                    ? Character(
+                        id: widget.character!.id,
+                        name: _nameController.text,
+                        species: _selectedSpecies,
+                        vit: _vit,
+                        ath: _ath,
+                        wil: _wil,
+                        tempHp: widget.character!.tempHp,
+                        defCategory: _selectedDefense,
+                        hasShield: widget.character!.hasShield,
+                        spells: _spells,
+                        sessionLog: widget.character!.sessionLog,
+                        notes: widget.character!.notes,
+                        xp: widget.character!.xp,
+                        createdAt: widget.character!.createdAt,
+                        lastUsed: DateTime.now(),
+                        background: background,
+                      )
+                    : Character(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        name: _nameController.text,
+                        species: _selectedSpecies,
+                        vit: _vit,
+                        ath: _ath,
+                        wil: _wil,
+                        defCategory: _selectedDefense,
+                        spells: _spells,
+                        createdAt: DateTime.now(),
+                        lastUsed: DateTime.now(),
+                        background: background,
+                      );
+                  widget.onCharacterSaved!(updatedCharacter);
+                }
               });
             },
-          ),
-          const SizedBox(height: 24),
-          // Save Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _canSave ? _saveCharacter : null,
-              child: Text(widget.character != null ? 'Update Character' : 'Create Character'),
-            ),
           ),
         ],
       ),
@@ -642,6 +669,17 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
       appBar: AppBar(
         title: Text(widget.character != null ? 'Edit Character' : 'Create Character'),
         elevation: 0,
+        actions: [
+          TextButton(
+            onPressed: _canSave ? _saveCharacter : null,
+            child: Text(
+              widget.character != null ? 'Update' : 'Create',
+              style: TextStyle(
+                color: _canSave ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).disabledColor,
+              ),
+            ),
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -664,6 +702,42 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                 child: PageView(
                   controller: _pageController,
                   onPageChanged: (index) {
+                    // If we're navigating away from background view, save the current state
+                    if (_currentPage == 1 && _canSave && widget.onCharacterSaved != null) {
+                      final updatedCharacter = widget.character != null
+                        ? Character(
+                            id: widget.character!.id,
+                            name: _nameController.text,
+                            species: _selectedSpecies,
+                            vit: _vit,
+                            ath: _ath,
+                            wil: _wil,
+                            tempHp: widget.character!.tempHp,
+                            defCategory: _selectedDefense,
+                            hasShield: widget.character!.hasShield,
+                            spells: _spells,
+                            sessionLog: widget.character!.sessionLog,
+                            notes: widget.character!.notes,
+                            xp: widget.character!.xp,
+                            createdAt: widget.character!.createdAt,
+                            lastUsed: DateTime.now(),
+                            background: _background,
+                          )
+                        : Character(
+                            id: DateTime.now().millisecondsSinceEpoch.toString(),
+                            name: _nameController.text,
+                            species: _selectedSpecies,
+                            vit: _vit,
+                            ath: _ath,
+                            wil: _wil,
+                            defCategory: _selectedDefense,
+                            spells: _spells,
+                            createdAt: DateTime.now(),
+                            lastUsed: DateTime.now(),
+                            background: _background,
+                          );
+                      widget.onCharacterSaved!(updatedCharacter);
+                    }
                     setState(() {
                       _currentPage = index;
                     });

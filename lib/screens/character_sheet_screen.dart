@@ -21,6 +21,7 @@ import 'package:ttrpg_character_manager/widgets/animated_dice.dart';
 import '../utils/sound_manager.dart';
 import '../utils/spell_limit_calculator.dart';
 import '../widgets/character_background_view.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -244,41 +245,6 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     );
   }
 
-  Widget _buildBackgroundView() {
-    if (_character.background == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.history_edu,
-              size: 64,
-              color: Theme.of(context).disabledColor,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No background information available',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).disabledColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton.icon(
-              onPressed: () => _editCharacter(),
-              icon: const Icon(Icons.edit),
-              label: const Text('Add Background'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return CharacterBackgroundView(
-      background: _character.background,
-      onEdit: () => _editCharacter(),
-    );
-  }
-
   Future<void> _editCharacter() async {
     final updatedCharacter = await Navigator.push<Character>(
       context,
@@ -286,14 +252,27 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         builder: (context) => CharacterCreationScreen(
           character: _character,
           initialPage: _currentPage,
+          onCharacterSaved: (character) {
+            // Update character immediately when changes are made
+            setState(() {
+              _character = character;
+              selectedDefense = character.defCategory;
+              _updateLastUsed(); // Ensure we update the last used timestamp
+            });
+            if (widget.onCharacterUpdated != null) {
+              widget.onCharacterUpdated!(character);
+            }
+          },
         ),
       ),
     );
 
+    // Final update when editing is complete
     if (updatedCharacter != null) {
       setState(() {
         _character = updatedCharacter;
         selectedDefense = updatedCharacter.defCategory;
+        _updateLastUsed();
       });
       if (widget.onCharacterUpdated != null) {
         widget.onCharacterUpdated!(updatedCharacter);
@@ -948,6 +927,41 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         ),
       );
     }
+  }
+
+  Widget _buildBackgroundView() {
+    if (_character.background == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.history_edu,
+              size: 64,
+              color: Theme.of(context).disabledColor,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No background information available',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).disabledColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: () => _editCharacter(),
+              icon: const Icon(Icons.edit),
+              label: const Text('Add Background'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return CharacterBackgroundView(
+      background: _character.background,
+      onEdit: () => _editCharacter(),
+    );
   }
 }
 

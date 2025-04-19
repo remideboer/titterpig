@@ -36,6 +36,20 @@ Acceptance Criteria:
 
 Related Business Rules: BR-12
 
+Story ID: JS-47
+When I am editing my character's background
+I want my changes to be saved automatically and immediately visible in the main view
+So that I don't lose any changes and can see my progress in real-time
+
+Acceptance Criteria:
+1. Background changes are saved automatically as they are made
+2. Changes are immediately visible when navigating back to the main view
+3. No explicit save button is needed for background changes
+4. Background state is preserved when switching between views
+5. Template selection immediately updates the background
+
+Related Business Rules: BR-13, BR-14
+
 ## Business Rules
 
 ### Character Creation
@@ -84,6 +98,18 @@ Examples:
 - Opening editor from background view shows background section
 - Opening editor from stats view shows stats section
 Dependencies: None
+
+Rule ID: BR-14
+Description: Background changes are automatically saved and propagated in real-time
+Validation: 
+- Verify changes are saved without explicit save action
+- Verify changes are immediately visible in main view
+- Verify state is preserved when navigating between views
+Examples:
+- Editing background text immediately updates the view
+- Selecting a template immediately shows the template content
+- Changes persist when switching between stats and background views
+Dependencies: BR-13 (Screen Context Maintenance)
 
 ## Features
 
@@ -145,6 +171,54 @@ The character background system allows players to:
    - Raised in a family of traders
    - Experience with negotiation and commerce
    - Broad perspective from merchant caravan travels
+
+#### State Management
+
+The background editing system follows these principles:
+1. Immediate Updates
+   - All changes are saved automatically
+   - No explicit save button needed for background changes
+   - Real-time propagation to all views
+
+2. Template Handling
+   - Templates can be selected from dropdown
+   - Template content is immediately loaded
+   - Customizations are preserved
+
+3. Navigation
+   - Background state is preserved when switching views
+   - Changes are visible immediately in main view
+   - Context is maintained between editing sessions
+
+4. Data Flow
+   - Background editor manages local state
+   - Changes propagate up through callbacks
+   - Main view reflects changes in real-time
+   - Repository updates happen automatically
+
+#### Implementation Details
+
+The background system uses a combination of:
+- Riverpod for state management
+- Automatic save callbacks
+- Real-time state propagation
+- Context-aware navigation
+
+Key components:
+1. BackgroundEditor
+   - Handles immediate state updates
+   - Manages template selection
+   - Provides real-time save callbacks
+
+2. CharacterCreationScreen
+   - Maintains background state
+   - Handles navigation context
+   - Propagates changes to parent
+
+3. CharacterSheetScreen
+   - Displays current background state
+   - Updates view in real-time
+   - Preserves editing context
 
 ## Gherkin Scenarios
 
@@ -310,6 +384,25 @@ Feature: Defense Management
    - Verify spell selection UI works
    - Verify spell cost constraints are visible
    - Verify spell version information is displayed
+
+### Background System Tests
+1. Auto-save Functionality
+   - Verify changes are saved automatically
+   - Verify no data loss when switching views
+   - Verify real-time updates in main view
+   - Verify template selection saves immediately
+
+2. State Management
+   - Verify background state preservation
+   - Verify proper state propagation
+   - Verify context maintenance
+   - Verify template state handling
+
+3. Navigation
+   - Verify state preservation during navigation
+   - Verify immediate updates in main view
+   - Verify context restoration
+   - Verify proper view transitions
 
 This README reflects the current state of the application, including recent changes to spell management and character editing functionality. All business rules are documented and test scenarios are updated to cover the implemented features.
 

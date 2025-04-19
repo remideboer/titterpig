@@ -41,6 +41,13 @@ class BackgroundEditorController extends StateNotifier<BackgroundEditorState> {
           availableTemplates: _templateRepository.getAllTemplates(),
         ));
 
+  /// Reset the editor state
+  void reset() {
+    state = BackgroundEditorState(
+      availableTemplates: _templateRepository.getAllTemplates(),
+    );
+  }
+
   /// Select a template background
   void selectTemplate(String templateId) {
     final template = _templateRepository.getTemplateById(templateId);
@@ -60,7 +67,17 @@ class BackgroundEditorController extends StateNotifier<BackgroundEditorState> {
     String? parents,
     String? siblings,
   }) {
-    if (state.currentBackground == null) return;
+    if (state.currentBackground == null) {
+      // If no background exists, create a new custom one
+      createCustomBackground(
+        name: name ?? '',
+        description: description ?? '',
+        placeOfBirth: placeOfBirth ?? '',
+        parents: parents ?? '',
+        siblings: siblings ?? '',
+      );
+      return;
+    }
 
     state = state.copyWith(
       currentBackground: state.currentBackground!.copyWith(
