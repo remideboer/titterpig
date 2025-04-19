@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
-import 'package:ttrpg_character_manager/utils/sound_manager.dart';
+import '../utils/sound_manager.dart';
+import 'settings/sync_settings_screen.dart';
+import '../services/sync_service.dart';
+import 'package:provider/provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   final bool isDarkMode;
@@ -20,7 +23,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late bool _isDarkMode;
   static const String _themeKey = 'isDarkMode';
-  bool _isSoundEnabled = false; // Initialize with a default value
+  bool _isSoundEnabled = false;
   final SoundManager _soundManager = SoundManager();
 
   @override
@@ -67,8 +70,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _openSyncSettings() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const SyncSettingsScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final syncService = context.watch<SyncService>();
+    
     return Scaffold(
       body: ListView(
         children: [
@@ -96,6 +109,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _isSoundEnabled,
               onChanged: (value) => _toggleSound(),
             ),
+          ),
+          const Divider(),
+          ListTile(
+            title: const Text('Google Drive Sync'),
+            subtitle: Text(syncService.isEnabled 
+              ? 'Syncing enabled - ${syncService.currentAccount ?? ''}'
+              : 'Tap to set up cloud sync'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: _openSyncSettings,
           ),
         ],
       ),

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as provider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'screens/main_screen.dart';
 import 'viewmodels/character_list_viewmodel.dart';
 import 'viewmodels/spell_list_viewmodel.dart';
 import 'repositories/spell_repository.dart';
+import 'repositories/local_character_repository.dart';
+import 'services/sync_service.dart';
 import 'theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,9 +16,33 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final isDarkMode = prefs.getBool('isDarkMode') ?? false;
   
+  // Initialize services
+  final characterRepo = LocalCharacterRepository();
+  final googleSignIn = GoogleSignIn(
+    scopes: [
+      'email',
+      'https://www.googleapis.com/auth/drive.file',
+    ],
+  );
+  
+  final syncService = SyncService(
+    googleSignIn: googleSignIn,
+    prefs: prefs,
+    characterRepo: characterRepo,
+  );
+  
   runApp(
     ProviderScope(
-      child: MyApp(isDarkMode: isDarkMode),
+      child: provider.MultiProvider(
+        providers: [
+          provider.ChangeNotifierProvider<SyncService>.value(value: syncService),
+          provider.ChangeNotifierProvider(create: (_) => CharacterListViewModel()),
+          provider.ChangeNotifierProvider(
+            create: (_) => SpellListViewModel(SpellRepository()),
+          ),
+        ],
+        child: MyApp(isDarkMode: isDarkMode),
+      ),
     ),
   );
 }

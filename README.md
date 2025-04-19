@@ -717,3 +717,39 @@ Examples:
 Dependencies:
 - BR-12 (Character Spell Limit)
 - BR-16 (Spell Selection Sort Order)
+
+Rule ID: BR-21
+Description: Optional Character Data Cloud Synchronization
+Characters and related data must be primarily stored locally, with optional Google Drive synchronization:
+- Local storage remains the primary data source
+- Google Drive sync must be opt-in through settings
+- Users must be able to:
+  * Enable/disable sync at any time
+  * Switch back to local-only mode
+  * See sync status and last sync time
+  * Force manual sync
+  * Remove cloud data while keeping local data
+- When sync is disabled, all operations must work in local-only mode
+- When re-enabling sync, system must handle:
+  * Initial data merge
+  * Conflict resolution using timestamps
+  * Clear indication of sync progress
+
+Validation:
+- Verify app works completely offline without sync enabled
+- Verify enabling sync properly merges local and cloud data
+- Verify disabling sync continues with local data only
+- Verify sync status is clearly indicated in UI
+- Verify manual sync works as expected
+- Verify data integrity when switching between modes
+
+Examples:
+- User enables sync, local data is uploaded to Drive
+- User disables sync, continues working locally
+- User re-enables sync, changes are merged
+- User removes cloud data, local data remains intact
+- Manual sync forces immediate update
+
+Dependencies:
+- BR-08 (Base Character Stats)
+- BR-12 (Character Spell Limit)

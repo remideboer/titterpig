@@ -1,0 +1,4 @@
+{
+  "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
+  "redirect_uri": "http://localhost:55317/oauth2callback"
+} 
