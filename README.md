@@ -62,6 +62,67 @@ A Flutter application for managing tabletop RPG characters, with support for cha
 - Shield bonus: +2 defense (stacks with category)
 - Base defense: Equal to ATH stat
 
+## Features
+
+### Character Background System
+
+Rule ID: BR-13
+Description: Character backgrounds can be custom or based on prewritten templates with customization
+Validation: 
+- Verify background can be entered as free text
+- Verify prewritten backgrounds can be selected from dropdown
+- Verify selected prewritten background text appears in editable field
+- Verify edited prewritten background saves as custom version
+- Verify all required attributes are present
+Examples:
+- User enters completely custom background text
+- User selects "Noble" background, then customizes the description
+- User selects "Merchant" background but keeps original text
+Dependencies: BR-01 (Character Creation)
+
+Story ID: JS-46
+When I am creating or editing my character's background
+I want to either write my own background or customize a prewritten one
+So that I can quickly create a rich character history while maintaining creative freedom
+
+Acceptance Criteria:
+1. Can enter completely custom background text
+2. Can select from prewritten backgrounds via dropdown
+3. Selected prewritten background auto-fills the text field
+4. Can edit prewritten background text
+5. Edited prewritten background saves as custom version
+6. All background attributes are properly saved:
+   - ID
+   - Background name
+   - Description
+   - Place of birth
+   - Parents
+   - Siblings
+
+#### Feature Details
+
+The character background system allows players to:
+- Choose from prewritten background templates (e.g., Noble, Merchant)
+- Create completely custom backgrounds
+- Customize prewritten backgrounds
+- Save edited backgrounds as new custom versions
+- Track detailed background information including:
+  - Character's place of birth
+  - Family information (parents and siblings)
+  - Rich background description
+
+#### Available Background Templates
+
+1. Noble
+   - Born into wealth and privilege
+   - Raised in a noble house
+   - Understanding of leadership and responsibility
+
+2. Merchant
+   - Raised in a family of traders
+   - Experience with negotiation and commerce
+   - Broad perspective from merchant caravan travels
+
 ## Gherkin Scenarios
 
 ### Character Creation

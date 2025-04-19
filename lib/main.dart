@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'screens/main_screen.dart';
 import 'viewmodels/character_list_viewmodel.dart';
 import 'viewmodels/spell_list_viewmodel.dart';
@@ -11,7 +12,11 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final isDarkMode = prefs.getBool('isDarkMode') ?? false;
   
-  runApp(MyApp(isDarkMode: isDarkMode));
+  runApp(
+    ProviderScope(
+      child: MyApp(isDarkMode: isDarkMode),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -42,10 +47,10 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
+    return provider.MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => CharacterListViewModel()),
-        ChangeNotifierProvider(create: (_) => SpellListViewModel()),
+        provider.ChangeNotifierProvider(create: (_) => CharacterListViewModel()),
+        provider.ChangeNotifierProvider(create: (_) => SpellListViewModel()),
       ],
       child: MaterialApp(
         title: 'TTRPG Character Manager',

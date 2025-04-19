@@ -1,6 +1,7 @@
 import 'spell.dart';
 import 'stat_value.dart';
 import 'species.dart';
+import 'background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../repositories/spell_repository.dart';
 import 'def_category.dart';
@@ -33,6 +34,7 @@ class Character {
   int _xp;
   final DateTime createdAt;
   DateTime lastUsed;
+  Background? background;
 
   Character({
     required this.id,
@@ -50,6 +52,7 @@ class Character {
     int? xp,
     DateTime? createdAt,
     DateTime? lastUsed,
+    this.background,
   })  : _tempHp = tempHp ?? 0,
         _xp = xp ?? 0,
         defCategory = defCategory ?? DefCategory.none,
@@ -151,6 +154,7 @@ class Character {
       'xp': _xp,
       'createdAt': createdAt.toIso8601String(),
       'lastUsed': lastUsed.toIso8601String(),
+      'background': background?.toJson(),
     };
   }
 
@@ -217,6 +221,9 @@ class Character {
       xp: safeToInt(json['xp']),
       createdAt: safeToDateTime(json['createdAt']),
       lastUsed: safeToDateTime(json['lastUsed']),
+      background: json['background'] != null 
+          ? Background.fromJson(json['background'] as Map<String, dynamic>)
+          : null,
     );
     
     // Initialize stat values from JSON
@@ -249,6 +256,7 @@ class Character {
     int? xp,
     DateTime? createdAt,
     DateTime? lastUsed,
+    Background? background,
   }) {
     return Character(
       id: id ?? this.id,
@@ -266,6 +274,7 @@ class Character {
       xp: xp ?? this._xp,
       createdAt: createdAt ?? this.createdAt,
       lastUsed: lastUsed ?? this.lastUsed,
+      background: background ?? this.background,
     );
   }
 

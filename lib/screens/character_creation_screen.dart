@@ -25,8 +25,11 @@ import '../utils/name_formatter.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 import 'spell_selection_screen.dart';
+import '../widgets/background_editor.dart';
+import '../models/background.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CharacterCreationScreen extends StatefulWidget {
+class CharacterCreationScreen extends ConsumerStatefulWidget {
   final Character? character;
   final Function(Character)? onCharacterSaved;
 
@@ -37,10 +40,10 @@ class CharacterCreationScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<CharacterCreationScreen> createState() => _CharacterCreationScreenState();
+  ConsumerState<CharacterCreationScreen> createState() => _CharacterCreationScreenState();
 }
 
-class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
+class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScreen> {
   final _nameController = TextEditingController();
   final _repository = LocalCharacterRepository();
   final _speciesRepository = SpeciesRepository();
@@ -56,6 +59,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
   late DefCategory _selectedDefense;
   bool _showSpellOverlay = false;
   List<Spell> _spells = [];
+  Background? _background;
 
   @override
   void initState() {
@@ -70,9 +74,11 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
       _remainingPoints = 0;
       _selectedDefense = widget.character!.defCategory;
       _spells = List.from(widget.character!.spells);
+      _background = widget.character!.background;
     } else {
       _selectedDefense = DefCategory.none;
       _spells = [];
+      _background = null;
     }
   }
 
@@ -194,6 +200,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         xp: widget.character!.xp,
         createdAt: widget.character!.createdAt,
         lastUsed: DateTime.now(),
+        background: _background,
       );
       await _repository.updateCharacter(savedCharacter);
     } else {
@@ -209,6 +216,7 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
         spells: _spells,
         createdAt: DateTime.now(),
         lastUsed: DateTime.now(),
+        background: _background,
       );
       await _repository.addCharacter(savedCharacter);
     }
@@ -491,6 +499,23 @@ class _CharacterCreationScreenState extends State<CharacterCreationScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
+
+                // Background Section
+                const Text(
+                  'Background',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                BackgroundEditor(
+                  onSave: (background) {
+                    setState(() {
+                      _background = background;
+                    });
+                  },
+                ),
 
                 // Spells Section
                 Container(
