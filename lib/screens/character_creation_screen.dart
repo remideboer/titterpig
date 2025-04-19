@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 import '../models/character.dart';
 import '../services/character_service.dart';
 import '../repositories/local_character_repository.dart';
@@ -14,20 +13,10 @@ import '../theme/app_theme.dart';
 import '../models/spell.dart';
 import '../utils/spell_limit_calculator.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../repositories/settings_repository.dart';
-import '../widgets/shield_icon.dart';
-import '../widgets/heart_icon.dart';
-import '../widgets/power_icon.dart';
-import '../widgets/stat_value_icon.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import '../utils/name_formatter.dart';
-import '../viewmodels/spell_list_viewmodel.dart';
 import 'spell_selection_screen.dart';
 import '../widgets/background_editor.dart';
 import '../models/background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/character_generator_service.dart';
 import '../providers/providers.dart';
 import '../widgets/spell_list_item.dart';
 
