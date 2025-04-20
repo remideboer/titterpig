@@ -34,11 +34,24 @@ class CharacterListItem extends StatelessWidget {
           ),
           child: ClipOval(
             child: character.avatarPath != null
-                ? Image.file(
-                    File(character.avatarPath!),
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
+                ? ColorFiltered(
+                    colorFilter: isDead
+                        ? const ColorFilter.matrix([
+                            0.2126, 0.7152, 0.0722, 0, 0,
+                            0.2126, 0.7152, 0.0722, 0, 0,
+                            0.2126, 0.7152, 0.0722, 0, 0,
+                            0, 0, 0, 1, 0,
+                          ])
+                        : const ColorFilter.mode(
+                            Colors.transparent,
+                            BlendMode.srcOver,
+                          ),
+                    child: Image.file(
+                      File(character.avatarPath!),
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    ),
                   )
                 : Icon(
                     Icons.person,
