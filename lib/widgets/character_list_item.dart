@@ -3,6 +3,7 @@ import 'package:ttrpg_character_manager/models/character.dart';
 import 'package:ttrpg_character_manager/theme/app_theme.dart';
 import 'package:ttrpg_character_manager/utils/name_formatter.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'dart:io';
 
 class CharacterListItem extends StatelessWidget {
   final Character character;
@@ -17,6 +18,90 @@ class CharacterListItem extends StatelessWidget {
     required this.onDelete,
     required this.onTap,
   });
+
+  Widget _buildAvatar(BuildContext context, bool isDead) {
+    return Stack(
+      children: [
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isDead ? Colors.grey.withOpacity(0.5) : Theme.of(context).primaryColor,
+              width: 2,
+            ),
+          ),
+          child: ClipOval(
+            child: character.avatarPath != null
+                ? Image.file(
+                    File(character.avatarPath!),
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                  )
+                : Icon(
+                    Icons.person,
+                    size: 30,
+                    color: isDead ? Colors.grey : null,
+                  ),
+          ),
+        ),
+        if (isDead)
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.grey.withOpacity(0.5),
+                  width: 1,
+                ),
+              ),
+              child: SvgPicture.asset(
+                'assets/svg/death-skull.svg',
+                width: 16,
+                height: 16,
+                colorFilter: ColorFilter.mode(
+                  Colors.grey,
+                  BlendMode.srcIn,
+                ),
+              ),
+            ),
+          ),
+        if (!isDead && character.species.icon.isNotEmpty)
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).primaryColor,
+                  width: 1,
+                ),
+              ),
+              child: SvgPicture.asset(
+                'assets/svg/${character.species.icon}',
+                width: 16,
+                height: 16,
+                colorFilter: ColorFilter.mode(
+                  Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,38 +118,7 @@ class CharacterListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ) : null,
       child: ListTile(
-        leading: SizedBox(
-          width: 24,
-          height: 24,
-          child: isDead
-              ? SvgPicture.asset(
-                  'assets/svg/death-skull.svg',
-                  width: 24,
-                  height: 24,
-                  colorFilter: ColorFilter.mode(
-                    Colors.grey,
-                    BlendMode.srcIn,
-                  ),
-                )
-              : character.species.icon.isNotEmpty
-                  ? SvgPicture.asset(
-                      'assets/svg/${character.species.icon}',
-                      width: 24,
-                      height: 24,
-                      colorFilter: const ColorFilter.mode(
-                        Colors.black,
-                        BlendMode.srcIn,
-                      ),
-                      placeholderBuilder: (context) => const SizedBox(
-                        width: 24,
-                        height: 24,
-                      ),
-                    )
-                  : const SizedBox(
-                      width: 24,
-                      height: 24,
-                    ),
-        ),
+        leading: _buildAvatar(context, isDead),
         title: Text(
           '${NameFormatter.formatName(character.name)} (${character.species.name})',
           style: AppTheme.titleStyle.copyWith(

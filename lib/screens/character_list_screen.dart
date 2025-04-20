@@ -8,6 +8,7 @@ import '../viewmodels/character_list_viewmodel.dart';
 import 'character_creation_screen.dart';
 import 'character_sheet_screen.dart';
 import '../utils/name_formatter.dart';
+import '../widgets/character_list_item.dart';
 
 enum SortOption {
   lifeStatus,
@@ -198,110 +199,61 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
                   return const Center(child: Text('No characters found'));
                 }
 
-                // Sort characters based on current criteria
-                final sortedCharacters = List<Character>.from(characters)
-                  ..sort((a, b) {
-                    for (final criteria in _sortCriteria) {
-                      final comparison = _compareByCriteria(a, b, criteria);
-                      if (comparison != 0) {
-                        return criteria.ascending ? comparison : -comparison;
-                      }
-                    }
-                    return 0;
+                // Sort characters based on criteria
+                final sortedCharacters = List<Character>.from(characters);
+                for (final criteria in _sortCriteria.reversed) {
+                  sortedCharacters.sort((a, b) {
+                    var comparison = _compareByCriteria(a, b, criteria);
+                    return criteria.ascending ? comparison : -comparison;
                   });
+                }
 
                 return ListView.builder(
                   itemCount: sortedCharacters.length,
                   itemBuilder: (context, index) {
                     final character = sortedCharacters[index];
-                    final isDead = character.lifeStat.current == 0;
-                    
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      color: isDead ? Colors.grey[100] : null,
-                      child: ListTile(
-                        title: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                NameFormatter.formatName(character.name),
-                                style: AppTheme.titleStyle.copyWith(
-                                  color: isDead ? Colors.grey[600] : null,
-                                ),
-                              ),
-                            ),
-                            if (isDead)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 8.0),
-                                child: SvgPicture.asset(
-                                  'assets/svg/death-skull.svg',
-                                  width: 24,
-                                  height: 24,
-                                  colorFilter: ColorFilter.mode(
-                                    Colors.grey[600]!,
-                                    BlendMode.srcIn,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        subtitle: Text(
-                          character.species.name,
-                          style: AppTheme.bodyStyle.copyWith(
-                            color: isDead ? Colors.grey[500] : null,
-                          ),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            PopupMenuButton<String>(
-                              icon: Icon(
-                                Icons.more_vert,
-                                color: isDead ? Colors.grey[600] : null,
-                              ),
-                              onSelected: (value) {
-                                switch (value) {
-                                  case 'edit':
-                                    _editCharacter(character);
-                                    break;
-                                  case 'delete':
-                                    _deleteCharacter(character);
-                                    break;
-                                }
+                    return CharacterListItem(
+                      character: character,
+                      onEdit: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CharacterCreationScreen(
+                              character: character,
+                              onCharacterSaved: (updatedCharacter) {
+                                viewModel.loadCharacters();
                               },
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                  value: 'edit',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.edit),
-                                      SizedBox(width: 8),
-                                      Text('Edit'),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'delete',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.delete),
-                                      SizedBox(width: 8),
-                                      Text('Delete'),
-                                    ],
-                                  ),
-                                ),
-                              ],
                             ),
-                          ],
-                        ),
-                        onTap: () async {
-                          character.lastUsed = DateTime.now();
-                          await _repository.updateCharacter(character);
-                          if (mounted) {
-                            widget.onCharacterSelected(character);
-                          }
-                        },
-                      ),
+                          ),
+                        );
+                      },
+                      onDelete: () async {
+                        final shouldDelete = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Delete Character'),
+                            content: Text('Are you sure you want to delete ${character.name}?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: const Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (shouldDelete == true) {
+                          await _repository.deleteCharacter(character.id);
+                          viewModel.loadCharacters();
+                        }
+                      },
+                      onTap: () {
+                        widget.onCharacterSelected(character);
+                      },
                     );
                   },
                 );
@@ -311,55 +263,11 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        heroTag: 'character-list-fab',
-        onPressed: () {
-          _navigateToCreateCharacter();
-        },
+        onPressed: _navigateToCreateCharacter,
         child: const Icon(Icons.add),
+        tooltip: 'Add Character',
       ),
     );
-  }
-
-  Future<void> _deleteCharacter(Character character) async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Character'),
-        content: Text('Are you sure you want to delete ${character.name}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldDelete == true) {
-      await context.read<CharacterListViewModel>().deleteCharacter(character);
-    }
-  }
-
-  Future<void> _editCharacter(Character character) async {
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CharacterCreationScreen(
-          character: character,
-          onCharacterSaved: (updatedCharacter) {
-            context.read<CharacterListViewModel>().loadCharacters();
-          },
-        ),
-      ),
-    );
-
-    if (result == true) {
-      await context.read<CharacterListViewModel>().loadCharacters();
-    }
   }
 
   Future<void> _navigateToCreateCharacter() async {
