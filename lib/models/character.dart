@@ -21,6 +21,7 @@ class Character {
   final int vit;
   final int ath;
   final int wil;
+  final String? avatarPath; // Path to the avatar image file
   int _tempHp;
   late StatValue _hp;
   late StatValue _life;
@@ -43,6 +44,7 @@ class Character {
     required this.vit,
     required this.ath,
     required this.wil,
+    this.avatarPath,
     int? tempHp,
     DefCategory? defCategory,
     this.hasShield = false,
@@ -138,6 +140,7 @@ class Character {
       'vit': vit,
       'ath': ath,
       'wil': wil,
+      'avatarPath': avatarPath,
       'tempHp': _tempHp,
       'hp': _hp.max,
       'currentLife': _life.current,
@@ -211,6 +214,7 @@ class Character {
       vit: safeToInt(json['vit']),
       ath: safeToInt(json['ath']),
       wil: safeToInt(json['wil']),
+      avatarPath: json['avatarPath'] as String?,
       tempHp: safeToInt(json['tempHp']),
       defCategory: DefCategory.values[safeToInt(json['defCategory'])],
       hasShield: json['hasShield'] as bool? ?? false,
@@ -246,6 +250,7 @@ class Character {
     int? vit,
     int? ath,
     int? wil,
+    String? avatarPath,
     int? tempHp,
     DefCategory? defCategory,
     bool? hasShield,
@@ -264,6 +269,7 @@ class Character {
       vit: vit ?? this.vit,
       ath: ath ?? this.ath,
       wil: wil ?? this.wil,
+      avatarPath: avatarPath ?? this.avatarPath,
       tempHp: tempHp ?? this._tempHp,
       defCategory: defCategory ?? this.defCategory,
       hasShield: hasShield ?? this.hasShield,

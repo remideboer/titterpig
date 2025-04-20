@@ -19,6 +19,7 @@ import '../models/background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/providers.dart';
 import '../widgets/spell_list_item.dart';
+import '../widgets/avatar_selector.dart';
 
 class CharacterCreationScreen extends ConsumerStatefulWidget {
   final Character? character;
@@ -55,6 +56,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
   bool _showSpellOverlay = false;
   List<Spell> _spells = [];
   Background? _background;
+  String? _avatarPath;
 
   @override
   void initState() {
@@ -72,6 +74,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
       _selectedDefense = widget.character!.defCategory;
       _spells = List.from(widget.character!.spells);
       _background = widget.character!.background;
+      _avatarPath = widget.character!.avatarPath;
     } else {
       _selectedDefense = DefCategory.none;
       _spells = [];
@@ -171,12 +174,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
   }
 
   Future<void> _saveCharacter() async {
-    if (_nameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a name')),
-      );
-      return;
-    }
+    if (!_canSave) return;
 
     Character savedCharacter;
     if (widget.character != null) {
@@ -188,6 +186,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
         vit: _vit,
         ath: _ath,
         wil: _wil,
+        avatarPath: _avatarPath,
         tempHp: widget.character!.tempHp,
         defCategory: _selectedDefense,
         hasShield: widget.character!.hasShield,
@@ -209,6 +208,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
         vit: _vit,
         ath: _ath,
         wil: _wil,
+        avatarPath: _avatarPath,
         defCategory: _selectedDefense,
         spells: _spells,
         createdAt: DateTime.now(),
@@ -272,6 +272,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
       _ath = randomCharacter.ath;
       _wil = randomCharacter.wil;
       _remainingPoints = 0;
+      _avatarPath = randomCharacter.avatarPath;
     });
   }
 
@@ -344,6 +345,21 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                 ),
               ),
             ),
+
+          // Avatar Selector
+          Center(
+            child: AvatarSelector(
+              initialAvatarPath: widget.character?.avatarPath,
+              onAvatarSelected: (path) {
+                setState(() {
+                  _avatarPath = path;
+                });
+              },
+              size: 120,
+            ),
+          ),
+          const SizedBox(height: 24),
+
           // Name Section
           Row(
             children: [
@@ -644,6 +660,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                         vit: _vit,
                         ath: _ath,
                         wil: _wil,
+                        avatarPath: _avatarPath,
                         tempHp: widget.character!.tempHp,
                         defCategory: _selectedDefense,
                         hasShield: widget.character!.hasShield,
@@ -662,6 +679,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                         vit: _vit,
                         ath: _ath,
                         wil: _wil,
+                        avatarPath: _avatarPath,
                         defCategory: _selectedDefense,
                         spells: _spells,
                         createdAt: DateTime.now(),
@@ -727,6 +745,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                             vit: _vit,
                             ath: _ath,
                             wil: _wil,
+                            avatarPath: _avatarPath,
                             tempHp: widget.character!.tempHp,
                             defCategory: _selectedDefense,
                             hasShield: widget.character!.hasShield,
@@ -745,6 +764,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                             vit: _vit,
                             ath: _ath,
                             wil: _wil,
+                            avatarPath: _avatarPath,
                             defCategory: _selectedDefense,
                             spells: _spells,
                             createdAt: DateTime.now(),

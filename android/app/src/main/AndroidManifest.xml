@@ -44,4 +44,8 @@
         <!-- Add Google Sign-in package query -->
         <package android:name="com.google.android.gms"/>
     </queries>
+    <!-- Required for picking images -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- For Android 12 or lower -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 </manifest>
