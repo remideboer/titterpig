@@ -19,12 +19,12 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
   late TextEditingController _costController;
   late TextEditingController _effectController;
   late TextEditingController _dieCountController;
-  String _selectedType = 'Spell';
-  String _selectedRange = 'Self';
+  late String _selectedType;
+  late String _selectedRange;
 
   // Predefined options
-  final List<String> _types = ['Spell', 'Support', 'Offensive', 'Defensive', 'Utility'];
-  final List<String> _ranges = ['Self', 'Touch', '15ft', '30ft', '60ft'];
+  static const List<String> _types = ['Spell', 'Support', 'Offensive', 'Defensive', 'Utility'];
+  static const List<String> _ranges = ['Self', 'Touch', '15ft', '30ft', '60ft'];
 
   @override
   void initState() {
@@ -34,8 +34,10 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
     _costController = TextEditingController(text: widget.spell?.cost.toString() ?? '0');
     _effectController = TextEditingController(text: widget.spell?.effect ?? '');
     _dieCountController = TextEditingController(text: widget.spell?.effectValue?.count.toString() ?? '0');
-    _selectedType = widget.spell?.type ?? 'Spell';
-    _selectedRange = widget.spell?.range ?? 'Self';
+    
+    // Ensure selected values are in the predefined lists
+    _selectedType = _types.contains(widget.spell?.type) ? widget.spell!.type : _types.first;
+    _selectedRange = _ranges.contains(widget.spell?.range) ? widget.spell!.range : _ranges.first;
   }
 
   @override
