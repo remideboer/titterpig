@@ -24,6 +24,8 @@ import '../widgets/character_background_view.dart';
 import '../widgets/spell_list_item.dart';
 import '../utils/snackbar_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/avatar_selector.dart';
+import 'dart:io';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -377,6 +379,34 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Avatar display
+              Center(
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).colorScheme.surface,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: _character.avatarPath != null
+                        ? Image.file(
+                            File(_character.avatarPath!),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildDefaultAvatar();
+                            },
+                          )
+                        : _buildDefaultAvatar(),
+                  ),
+                ),
+              ),
+
               // Main stats row (VIT, ATH, WIL)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -571,6 +601,14 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDefaultAvatar() {
+    return Icon(
+      Icons.person,
+      size: 60,
+      color: Theme.of(context).colorScheme.primary,
     );
   }
 
