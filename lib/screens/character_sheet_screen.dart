@@ -88,16 +88,6 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     await _repository.updateCharacter(_character);
   }
 
-  void _selectDefense(DefCategory category) {
-    setState(() {
-      selectedDefense =
-          selectedDefense == category ? DefCategory.none : category;
-      _character.defCategory = selectedDefense;
-      _character.updateDerivedStats();
-      _updateLastUsed();
-    });
-  }
-
   Future<void> _handleSpellUse(Spell spell,
       {bool shouldRollDice = false}) async {
     if (_character.availablePower < spell.cost) {
@@ -370,18 +360,31 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                     shape: BoxShape.circle,
                     color: Theme.of(context).colorScheme.surface,
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: isDead ? Colors.grey.withOpacity(0.5) : Theme.of(context).colorScheme.primary,
                       width: 2,
                     ),
                   ),
                   child: ClipOval(
                     child: _character.avatarPath != null
-                        ? Image.file(
-                            File(_character.avatarPath!),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildDefaultAvatar();
-                            },
+                        ? ColorFiltered(
+                            colorFilter: isDead
+                                ? const ColorFilter.matrix([
+                                    0.2126, 0.7152, 0.0722, 0, 0,
+                                    0.2126, 0.7152, 0.0722, 0, 0,
+                                    0.2126, 0.7152, 0.0722, 0, 0,
+                                    0, 0, 0, 1, 0,
+                                  ])
+                                : const ColorFilter.mode(
+                                    Colors.transparent,
+                                    BlendMode.srcOver,
+                                  ),
+                            child: Image.file(
+                              File(_character.avatarPath!),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildDefaultAvatar();
+                              },
+                            ),
                           )
                         : _buildDefaultAvatar(),
                   ),
@@ -409,13 +412,14 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                       const SizedBox(height: 8)
                     ],
                   ),
-                  Opacity(
-                    opacity: isDead ? 0.5 : 1.0,
-                    child: PowerIcon(
-                      value: _character.powerStat,
-                      size: svgStatSize,
+                  if (!isDead)
+                    Opacity(
+                      opacity: isDead ? 0.5 : 1.0,
+                      child: PowerIcon(
+                        value: _character.powerStat,
+                        size: svgStatSize,
+                      ),
                     ),
-                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -434,7 +438,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                           enabled: !isDead,
                         ),
                         const SizedBox(width: 8),
-                        _buildShieldIcon(_character.def, svgStatSize),
+                        _buildShieldIcon(isDead ? null : _character.def, svgStatSize),
                         const SizedBox(width: 8),
                         _buildActionButton(
                           icon: Icons.add,
@@ -624,10 +628,11 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   }
 
   Widget _buildDefaultAvatar() {
+    final isDead = _character.isDead;
     return Icon(
       Icons.person,
       size: 60,
-      color: Theme.of(context).colorScheme.primary,
+      color: isDead ? Colors.grey : Theme.of(context).colorScheme.primary,
     );
   }
 
@@ -640,13 +645,15 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            StatValueIcon(
-              svgAsset: 'assets/svg/hp.svg',
-              value: _character.hpStat,
-              size: size,
-              color: isDead ? Colors.grey : AppTheme.highlightColor,
-            ),
-            const SizedBox(width: 8),
+            if (!isDead)
+              StatValueIcon(
+                svgAsset: 'assets/svg/hp.svg',
+                value: _character.hpStat,
+                size: size,
+                color: isDead ? Colors.grey : AppTheme.highlightColor,
+              ),
+            if (!isDead)
+              const SizedBox(width: 8),
             isDead
                 ? SvgPicture.asset(
                     'assets/svg/death-skull.svg',
@@ -666,41 +673,43 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
             child: _buildTempHpDiamond(size * 0.5),
           ),
         // Labels
-        Positioned(
-          left: -size * 0.5,
-          top: size * 0.3,
-          child: Transform.rotate(
-            angle: -45 * 3.14159 / 180,
-            child: Text(
-              'HP',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontSize: size * 0.25,
-                    color: isDead ? Colors.grey : AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+        if (!isDead)
+          Positioned(
+            left: -size * 0.5,
+            top: size * 0.3,
+            child: Transform.rotate(
+              angle: -45 * 3.14159 / 180,
+              child: Text(
+                'HP',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontSize: size * 0.25,
+                      color: isDead ? Colors.grey : AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
             ),
           ),
-        ),
-        Positioned(
-          right: -size * 0.5,
-          top: size * 0.3,
-          child: Transform.rotate(
-            angle: 45 * 3.14159 / 180,
-            child: Text(
-              'LIFE',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontSize: size * 0.25,
-                    color: isDead ? Colors.grey : AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+        if (!isDead)
+          Positioned(
+            right: -size * 0.5,
+            top: size * 0.3,
+            child: Transform.rotate(
+              angle: 45 * 3.14159 / 180,
+              child: Text(
+                'LIFE',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontSize: size * 0.25,
+                      color: isDead ? Colors.grey : AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
             ),
           ),
-        ),
       ],
     );
   }
 
-  Widget _buildShieldIcon(int value, double size) {
+  Widget _buildShieldIcon(int? value, double size) {
     return SizedBox(
       height: size * 1.5,
       child: Column(
@@ -709,7 +718,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         children: [
           ShieldIcon(
             size: size,
-            value: value,
+            value: value ?? 0,
           ),
           const SizedBox(height: 4),
           Text(
