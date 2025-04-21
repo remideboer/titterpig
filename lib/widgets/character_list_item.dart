@@ -118,7 +118,7 @@ class CharacterListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDead = character.lifeStat.current == 0;
+    final isDead = character.isDead;
 
     return Card(
       elevation: 2,

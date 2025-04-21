@@ -319,8 +319,8 @@ class _CharacterListScreenState extends State<CharacterListScreen> {
   int _compareByCriteria(Character a, Character b, SortCriteria criteria) {
     switch (criteria.option) {
       case SortOption.lifeStatus:
-        final aIsDead = a.lifeStat.current == 0;
-        final bIsDead = b.lifeStat.current == 0;
+        final aIsDead = a.isDead;
+        final bIsDead = b.isDead;
         if (aIsDead != bIsDead) return aIsDead ? 1 : -1;
         return 0;
       case SortOption.name:

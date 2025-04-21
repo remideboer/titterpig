@@ -109,6 +109,11 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
       return;
     }
 
+    if (_character.isDead) {
+      SnackBarService.showDeadCharacterMessage(context);
+      return;
+    }
+
     // Cast the spell first
     setState(() {
       _character.availablePower -= spell.cost;
@@ -345,7 +350,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     final screenSize = MediaQuery.of(context).size;
     final mainStatSize = screenSize.width * 0.25;
     final svgStatSize = mainStatSize;
-    final isDead = _character.lifeStat.current == 0;
+    final isDead = _character.isDead;
 
     var defOptionScreenProportion = 0.5;
     return Stack(
@@ -627,7 +632,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   }
 
   Widget _buildHpAndLifeDiamonds(double size) {
-    final isDead = _character.lifeStat.current == 0;
+    final isDead = _character.isDead;
 
     return Stack(
       children: [

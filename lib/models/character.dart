@@ -131,6 +131,9 @@ class Character {
     }
   }
 
+  /// Returns true if the character is dead (LIFE stat is 0)
+  bool get isDead => lifeStat.current == 0;
+
   Map<String, dynamic> toJson() {
     return {
       'version': currentSaveVersion,

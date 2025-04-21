@@ -34,4 +34,19 @@ class SnackBarService {
       ),
     );
   }
+
+  static void showDeadCharacterMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Dead characters cannot cast spells',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.red[700],
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(milliseconds: 2000),
+      ),
+    );
+  }
 } 
