@@ -494,36 +494,53 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _buildActionButton(
-                          icon: SvgPicture.asset(
-                            'assets/svg/health-decrease.svg',
-                            width: 24,
-                            height: 24,
-                            colorFilter: ColorFilter.mode(
-                              Colors.red,
-                              BlendMode.srcIn,
-                            ),
+                        // Left column - Health buttons
+                        SizedBox(
+                          width: screenSize.width * 0.25, // Same width as stat boxes
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildActionButton(
+                                icon: SvgPicture.asset(
+                                  'assets/svg/health-increase.svg',
+                                  width: 48,
+                                  height: 48,
+                                  colorFilter: const ColorFilter.mode(
+                                    Colors.green,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                onPressed: _heal,
+                                color: Colors.green,
+                                enabled: !isDead,
+                              ),
+                              _buildActionButton(
+                                icon: SvgPicture.asset(
+                                  'assets/svg/health-decrease.svg',
+                                  width: 48,
+                                  height: 48,
+                                  colorFilter: const ColorFilter.mode(
+                                    Colors.red,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                onPressed: _takeDamage,
+                                color: Colors.red,
+                                enabled: !isDead,
+                              ),
+                            ],
                           ),
-                          onPressed: _takeDamage,
-                          color: Colors.red,
-                          enabled: !isDead,
                         ),
-                        const SizedBox(width: 8),
-                        _buildShieldIcon(isDead ? null : _character.def, svgStatSize),
-                        const SizedBox(width: 8),
-                        _buildActionButton(
-                          icon: SvgPicture.asset(
-                            'assets/svg/health-increase.svg',
-                            width: 24,
-                            height: 24,
-                            colorFilter: ColorFilter.mode(
-                              Colors.green,
-                              BlendMode.srcIn,
-                            ),
+                        // Center column - Shield icon
+                        SizedBox(
+                          width: screenSize.width * 0.25,
+                          child: Center(
+                            child: _buildShieldIcon(isDead ? null : _character.def, svgStatSize),
                           ),
-                          onPressed: _heal,
-                          color: Colors.green,
-                          enabled: !isDead,
+                        ),
+                        // Right column - Empty space to balance layout
+                        SizedBox(
+                          width: screenSize.width * 0.25,
                         ),
                       ],
                     ),
@@ -1017,14 +1034,19 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     required Color color,
     bool enabled = true,
   }) {
-    return IconButton(
-      icon: Opacity(
-        opacity: enabled ? 1.0 : 0.5,
-        child: icon,
-      ),
-      onPressed: enabled ? onPressed : () {},
-      style: IconButton.styleFrom(
-        disabledForegroundColor: Colors.grey,
+    return Container(
+      height: 80,  // Match the shield icon height
+      child: Center(  // Center the button vertically
+        child: IconButton(
+          icon: Opacity(
+            opacity: enabled ? 1.0 : 0.5,
+            child: icon,
+          ),
+          onPressed: enabled ? onPressed : () {},
+          style: IconButton.styleFrom(
+            disabledForegroundColor: Colors.grey,
+          ),
+        ),
       ),
     );
   }
