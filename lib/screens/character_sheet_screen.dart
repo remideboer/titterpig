@@ -920,15 +920,16 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final boxWidth = screenWidth * 0.25; // 25% of screen width
     final boxHeight = boxWidth * 0.75; // 3:4 ratio
+    final isDead = _character.isDead;
 
     return Container(
       width: boxWidth,
       height: boxHeight,
       decoration: BoxDecoration(
-        color: AppTheme.primaryColor,
+        color: isDead ? Colors.grey : AppTheme.primaryColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppTheme.highlightColor,
+          color: isDead ? Colors.grey : AppTheme.highlightColor,
           width: 2,
         ),
       ),
@@ -942,13 +943,20 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                   fontWeight: FontWeight.bold,
                 ),
           ),
-          Text(
-            value.toString(),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
+          if (isDead)
+            const Icon(
+              Icons.block,
+              color: Colors.white,
+              size: 24,
+            )
+          else
+            Text(
+              value.toString(),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
         ],
       ),
     );
