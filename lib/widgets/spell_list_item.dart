@@ -37,92 +37,34 @@ class SpellListItemActions extends StatelessWidget {
 
 class SpellListItem extends StatelessWidget {
   final Spell spell;
-  final SpellListItemActions actions;
-  final bool showDieCount;
+  final SpellListItemActions? actions;
+  final bool disabled;
 
   const SpellListItem({
-    Key? key,
+    super.key,
     required this.spell,
-    required this.actions,
-    this.showDieCount = true,
-  }) : super(key: key);
+    this.actions,
+    this.disabled = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-      child: Row(
-        children: [
-          // Left side - Cost in hexagon
-          HexagonCost(
-            cost: spell.cost,
-            backgroundColor: AppTheme.primaryColor,
-            borderColor: AppTheme.highlightColor,
-            textColor: Colors.white,
+    return Opacity(
+      opacity: disabled ? 0.5 : 1.0,
+      child: ListTile(
+        title: Text(
+          spell.name,
+          style: TextStyle(
+            color: disabled ? Colors.grey : null,
           ),
-          const SizedBox(width: 12),
-          
-          // Middle - Spell details
-          Expanded(
-            child: InkWell(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SpellDetailScreen(spell: spell),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    spell.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppTheme.highlightColor,
-                    ),
-                  ),
-                  if (spell.description.isNotEmpty)
-                    Text(
-                      spell.description,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.highlightColor,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  Row(
-                    children: [
-                      Text(
-                        spell.type,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.highlightColor,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        spell.range,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.highlightColor,
-                        ),
-                      ),
-                      if (showDieCount && spell.effectValue != null) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          '${spell.effectValue!.count}d6',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.highlightColor,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
+        ),
+        subtitle: Text(
+          'Cost: ${spell.cost}',
+          style: TextStyle(
+            color: disabled ? Colors.grey : null,
           ),
-          
-          // Right side - Actions
-          actions,
-        ],
+        ),
+        trailing: actions,
       ),
     );
   }

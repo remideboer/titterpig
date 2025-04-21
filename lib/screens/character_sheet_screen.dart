@@ -479,7 +479,13 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
 
               // Abilities section container - lists learned spells and allows adding new ones
               Container(
-                decoration: AppTheme.defaultBorder,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: isDead ? Colors.grey : AppTheme.primaryColor,
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -492,7 +498,9 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                           children: [
                             Text(
                               'ABILITIES',
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: isDead ? Colors.grey : null,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -501,14 +509,14 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                   .textTheme
                                   .titleMedium
                                   ?.copyWith(
-                                    color: AppTheme.highlightColor,
+                                    color: isDead ? Colors.grey : AppTheme.highlightColor,
                                   ),
                             ),
                           ],
                         ),
                         Row(
                           children: [
-                            if (_character.power > 0) ...[
+                            if (_character.power > 0 && !isDead) ...[
                               Tooltip(
                                 message:
                                     _character.availablePower < _character.power
@@ -536,15 +544,25 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                               const SizedBox(width: 8),
                             ],
                             Tooltip(
-                              message: _character.power < 1
-                                  ? 'Insufficient maximum power to learn spells (requires WIL 1 or higher)'
-                                  : 'Manage your character\'s spells',
+                              message: isDead 
+                                  ? 'Cannot manage spells while dead'
+                                  : (_character.power < 1
+                                      ? 'Insufficient maximum power to learn spells (requires WIL 1 or higher)'
+                                      : 'Manage your character\'s spells'),
                               child: TextButton.icon(
-                                onPressed: _character.power >= 1
+                                onPressed: isDead ? null : (_character.power >= 1
                                     ? _showSpellSelection
-                                    : null,
-                                icon: const Icon(Icons.auto_awesome),
-                                label: const Text('Manage Spells'),
+                                    : null),
+                                icon: Icon(
+                                  Icons.auto_awesome,
+                                  color: isDead ? Colors.grey : null,
+                                ),
+                                label: Text(
+                                  'Manage Spells',
+                                  style: TextStyle(
+                                    color: isDead ? Colors.grey : null,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -580,9 +598,10 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                               itemBuilder: (context, index) {
                                 final spell = sortedSpells[index];
                                 final canUse =
-                                    spell.cost <= _character.availablePower;
+                                    !isDead && spell.cost <= _character.availablePower;
                                 return SpellListItem(
                                   spell: spell,
+                                  disabled: isDead,
                                   actions: SpellListItemActions(
                                     spell: spell,
                                     actions: [
@@ -710,22 +729,27 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   }
 
   Widget _buildShieldIcon(int? value, double size) {
+    final isDead = _character.isDead;
     return SizedBox(
       height: size * 1.5,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ShieldIcon(
-            size: size,
-            value: value ?? 0,
+          Opacity(
+            opacity: isDead ? 0.5 : 1.0,
+            child: ShieldIcon(
+              size: size,
+              value: value ?? 0,
+              color: isDead ? Colors.grey : null,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             'DEF',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontSize: size * 0.18,
-                  color: Colors.white,
+                  color: isDead ? Colors.grey : Colors.white,
                 ),
           ),
         ],
@@ -735,16 +759,19 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
 
   Widget _buildDefenseCircle(
       String label, DefCategory category, bool isSelected, double size) {
+    final isDead = _character.isDead;
     return IconButton(
       icon: Text(
         label,
         style: TextStyle(
           fontSize: size * 0.5,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Colors.white : AppTheme.primaryColor,
+          color: isDead 
+              ? Colors.grey 
+              : (isSelected ? Colors.white : AppTheme.primaryColor),
         ),
       ),
-      onPressed: () {
+      onPressed: isDead ? null : () {
         setState(() {
           selectedDefense =
               selectedDefense == category ? DefCategory.none : category;
@@ -754,11 +781,14 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         });
       },
       style: IconButton.styleFrom(
-        backgroundColor:
-            isSelected ? AppTheme.highlightColor : Colors.transparent,
+        backgroundColor: isDead 
+            ? Colors.grey.withOpacity(0.3)
+            : (isSelected ? AppTheme.highlightColor : Colors.transparent),
         shape: const CircleBorder(),
         side: BorderSide(
-          color: isSelected ? AppTheme.accentColor : AppTheme.primaryColor,
+          color: isDead 
+              ? Colors.grey 
+              : (isSelected ? AppTheme.accentColor : AppTheme.primaryColor),
           width: 2,
         ),
         minimumSize: Size(size, size),
