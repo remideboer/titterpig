@@ -367,12 +367,11 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 24),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     // Left placeholder for balance
                     SizedBox(
-                      width: 48,
-                      height: 48,
+                      width: screenSize.width * 0.25,
                       child: isDead ? Container() : null,
                     ),
                     // Center avatar
@@ -414,29 +413,40 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                     ),
                     // Right side - resurrect button or placeholder
                     SizedBox(
-                      width: 48,
-                      height: 48,
+                      width: screenSize.width * 0.25,
                       child: isDead
-                        ? IconButton(
-                            onPressed: _resurrectCharacter,
-                            icon: SvgPicture.asset(
-                              'assets/svg/resurrect.svg',
-                              width: 32,
-                              height: 32,
-                              colorFilter: const ColorFilter.mode(
-                                AppTheme.highlightColor,
-                                BlendMode.srcIn,
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Resurrect',
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  color: AppTheme.highlightColor,
+                                ),
                               ),
-                            ),
-                            tooltip: 'Resurrect Character',
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              side: BorderSide(
-                                color: AppTheme.highlightColor,
-                                width: 2,
+                              const SizedBox(height: 4),
+                              IconButton(
+                                onPressed: _resurrectCharacter,
+                                icon: SvgPicture.asset(
+                                  'assets/svg/resurrect.svg',
+                                  width: 32,
+                                  height: 32,
+                                  colorFilter: const ColorFilter.mode(
+                                    AppTheme.highlightColor,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                tooltip: 'Resurrect Character',
+                                style: IconButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  side: BorderSide(
+                                    color: AppTheme.highlightColor,
+                                    width: 2,
+                                  ),
+                                  padding: const EdgeInsets.all(8),
+                                ),
                               ),
-                              padding: const EdgeInsets.all(8),
-                            ),
+                            ],
                           )
                         : null,
                     ),
