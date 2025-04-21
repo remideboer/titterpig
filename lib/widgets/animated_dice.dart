@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../theme/app_theme.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AnimatedDice extends StatefulWidget {
   final int count;
@@ -147,8 +148,9 @@ class _AnimatedDiceState extends State<AnimatedDice> with SingleTickerProviderSt
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.highlightColor,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.valueDisplayColor, width: 1.0),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -171,25 +173,37 @@ class _AnimatedDiceState extends State<AnimatedDice> with SingleTickerProviderSt
       case 3:
       case 4:
       case 5:
-        return Icon(
-          Icons.star,
-          color: AppTheme.primaryColor,
-          size: 20,
+        return SvgPicture.asset(
+          'assets/svg/die-hit.svg',
+          width: 20,
+          height: 20,
+          colorFilter: const ColorFilter.mode(
+            AppTheme.valueDisplayColor,
+            BlendMode.srcIn,
+          ),
         );
       case 6:
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.star,
-              color: AppTheme.primaryColor,
-              size: 20,
+            SvgPicture.asset(
+              'assets/svg/die-hit.svg',
+              width: 20,
+              height: 20,
+              colorFilter: const ColorFilter.mode(
+                AppTheme.valueDisplayColor,
+                BlendMode.srcIn,
+              ),
             ),
             const SizedBox(width: 4),
-            Icon(
-              Icons.star,
-              color: AppTheme.primaryColor,
-              size: 20,
+            SvgPicture.asset(
+              'assets/svg/die-hit.svg',
+              width: 20,
+              height: 20,
+              colorFilter: const ColorFilter.mode(
+                AppTheme.valueDisplayColor,
+                BlendMode.srcIn,
+              ),
             ),
           ],
         );

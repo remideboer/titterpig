@@ -528,6 +528,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                 color: Colors.red,
                                 enabled: !isDead,
                               ),
+
                             ],
                           ),
                         ),
