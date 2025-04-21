@@ -1,31 +1,29 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ttrpg_character_manager/widgets/animated_dice.dart';
+
 import '../models/character.dart';
-import '../models/stat_value.dart';
-import '../widgets/hexagon_shape.dart';
-import '../theme/app_theme.dart';
+import '../models/def_category.dart';
 import '../models/spell.dart';
+import '../models/stat_value.dart';
 import '../repositories/local_character_repository.dart';
 import '../repositories/settings_repository.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/shield_icon.dart';
-import '../widgets/heart_icon.dart';
-import '../widgets/power_icon.dart';
-import '../widgets/stat_value_icon.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import '../theme/app_theme.dart';
 import '../utils/name_formatter.dart';
-import '../models/def_category.dart';
-import 'spell_selection_screen.dart';
-import 'spell_detail_screen.dart';
-import 'character_creation_screen.dart';
-import 'package:ttrpg_character_manager/widgets/animated_dice.dart';
+import '../utils/snackbar_service.dart';
 import '../utils/sound_manager.dart';
 import '../utils/spell_limit_calculator.dart';
 import '../widgets/character_background_view.dart';
+import '../widgets/heart_icon.dart';
+import '../widgets/power_icon.dart';
+import '../widgets/shield_icon.dart';
 import '../widgets/spell_list_item.dart';
-import '../utils/snackbar_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/avatar_selector.dart';
-import 'dart:io';
+import '../widgets/stat_value_icon.dart';
+import 'character_creation_screen.dart';
+import 'spell_selection_screen.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -92,28 +90,16 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
 
   void _selectDefense(DefCategory category) {
     setState(() {
-      selectedDefense = selectedDefense == category ? DefCategory.none : category;
+      selectedDefense =
+          selectedDefense == category ? DefCategory.none : category;
       _character.defCategory = selectedDefense;
       _character.updateDerivedStats();
       _updateLastUsed();
     });
   }
 
-  void _toggleSpellOverlay() {
-    setState(() {
-      _showSpellOverlay = !_showSpellOverlay;
-    });
-  }
-
-  void _addSpell(Spell spell) {
-    setState(() {
-      _character.spells.add(spell);
-      _character.updateDerivedStats();
-      _updateLastUsed();
-    });
-  }
-
-  Future<void> _handleSpellUse(Spell spell, {bool shouldRollDice = false}) async {
+  Future<void> _handleSpellUse(Spell spell,
+      {bool shouldRollDice = false}) async {
     if (_character.availablePower < spell.cost) {
       SnackBarService.showInsufficientPowerMessage(
         context,
@@ -166,14 +152,6 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     }
   }
 
-  void _castSpell(Spell spell) {
-    _handleSpellUse(spell);
-  }
-
-  void _throwDice(Spell spell) {
-    _handleSpellUse(spell, shouldRollDice: true);
-  }
-
   void _showSpellSelection() {
     showDialog(
       context: context,
@@ -207,9 +185,8 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
           _character.tempHp--;
         } else {
           // If no temp HP, reduce actual HP
-          _character.hpStat = _character.hpStat.copyWithCurrent(
-            _character.hpStat.current - 1
-          );
+          _character.hpStat =
+              _character.hpStat.copyWithCurrent(_character.hpStat.current - 1);
         }
       } else if (_character.lifeStat.current > 0) {
         _character.decreaseLife();
@@ -226,9 +203,8 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     setState(() {
       // First try to heal HP if not at max
       if (_character.hpStat.current < _character.hpStat.max) {
-        _character.hpStat = _character.hpStat.copyWithCurrent(
-          _character.hpStat.current + 1
-        );
+        _character.hpStat =
+            _character.hpStat.copyWithCurrent(_character.hpStat.current + 1);
       } else if (_character.lifeStat.current < _character.lifeStat.max) {
         // If HP is at max, try to heal life
         _character.increaseLife();
@@ -468,11 +444,23 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _buildDefenseCircle('L', DefCategory.light, selectedDefense == DefCategory.light, svgStatSize * defOptionScreenProportion),
+                        _buildDefenseCircle(
+                            'L',
+                            DefCategory.light,
+                            selectedDefense == DefCategory.light,
+                            svgStatSize * defOptionScreenProportion),
                         const SizedBox(width: 8),
-                        _buildDefenseCircle('M', DefCategory.medium, selectedDefense == DefCategory.medium, svgStatSize * defOptionScreenProportion),
+                        _buildDefenseCircle(
+                            'M',
+                            DefCategory.medium,
+                            selectedDefense == DefCategory.medium,
+                            svgStatSize * defOptionScreenProportion),
                         const SizedBox(width: 8),
-                        _buildDefenseCircle('H', DefCategory.heavy, selectedDefense == DefCategory.heavy, svgStatSize * defOptionScreenProportion),
+                        _buildDefenseCircle(
+                            'H',
+                            DefCategory.heavy,
+                            selectedDefense == DefCategory.heavy,
+                            svgStatSize * defOptionScreenProportion),
                       ],
                     ),
                   ],
@@ -500,9 +488,12 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                             const SizedBox(width: 8),
                             Text(
                               '(${_character.spells.length}/${SpellLimitCalculator.calculateSpellLimit(_character.wil)})',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: AppTheme.highlightColor,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    color: AppTheme.highlightColor,
+                                  ),
                             ),
                           ],
                         ),
@@ -510,14 +501,17 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                           children: [
                             if (_character.power > 0) ...[
                               Tooltip(
-                                message: _character.availablePower < _character.power
-                                    ? 'Restore power to maximum'
-                                    : 'Power is already at maximum',
+                                message:
+                                    _character.availablePower < _character.power
+                                        ? 'Restore power to maximum'
+                                        : 'Power is already at maximum',
                                 child: IconButton(
-                                  onPressed: _character.availablePower < _character.power
+                                  onPressed: _character.availablePower <
+                                          _character.power
                                       ? () {
                                           setState(() {
-                                            _character.availablePower = _character.power;
+                                            _character.availablePower =
+                                                _character.power;
                                             _updateLastUsed();
                                           });
                                           SnackBarService.showSpellCastMessage(
@@ -533,11 +527,13 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                               const SizedBox(width: 8),
                             ],
                             Tooltip(
-                              message: _character.power < 1 
+                              message: _character.power < 1
                                   ? 'Insufficient maximum power to learn spells (requires WIL 1 or higher)'
                                   : 'Manage your character\'s spells',
                               child: TextButton.icon(
-                                onPressed: _character.power >= 1 ? _showSpellSelection : null,
+                                onPressed: _character.power >= 1
+                                    ? _showSpellSelection
+                                    : null,
                                 icon: const Icon(Icons.auto_awesome),
                                 label: const Text('Manage Spells'),
                               ),
@@ -554,21 +550,28 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                         child: Builder(
                           builder: (context) {
                             // Sort spells by availability and then by cost
-                            final sortedSpells = List<Spell>.from(_character.spells)
-                              ..sort((a, b) {
-                                final aAvailable = a.cost <= _character.availablePower;
-                                final bAvailable = b.cost <= _character.availablePower;
-                                if (aAvailable != bAvailable) {
-                                  return aAvailable ? -1 : 1; // Available spells first
-                                }
-                                return a.cost.compareTo(b.cost); // Then sort by cost
-                              });
+                            final sortedSpells =
+                                List<Spell>.from(_character.spells)
+                                  ..sort((a, b) {
+                                    final aAvailable =
+                                        a.cost <= _character.availablePower;
+                                    final bAvailable =
+                                        b.cost <= _character.availablePower;
+                                    if (aAvailable != bAvailable) {
+                                      return aAvailable
+                                          ? -1
+                                          : 1; // Available spells first
+                                    }
+                                    return a.cost
+                                        .compareTo(b.cost); // Then sort by cost
+                                  });
 
                             return ListView.builder(
                               itemCount: sortedSpells.length,
                               itemBuilder: (context, index) {
                                 final spell = sortedSpells[index];
-                                final canUse = spell.cost <= _character.availablePower;
+                                final canUse =
+                                    spell.cost <= _character.availablePower;
                                 return SpellListItem(
                                   spell: spell,
                                   actions: SpellListItemActions(
@@ -577,13 +580,24 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                       if (spell.effectValue != null)
                                         IconButton(
                                           icon: const Icon(Icons.casino),
-                                          onPressed: canUse ? () => _handleSpellUse(spell, shouldRollDice: true) : null,
-                                          color: canUse ? AppTheme.highlightColor : Colors.grey,
+                                          onPressed: canUse
+                                              ? () => _handleSpellUse(spell,
+                                                  shouldRollDice: true)
+                                              : null,
+                                          color: canUse
+                                              ? AppTheme.highlightColor
+                                              : Colors.grey,
                                         ),
                                       IconButton(
-                                        icon: Icon(canUse ? Icons.flash_on : Icons.flash_off),
-                                        onPressed: canUse ? () => _handleSpellUse(spell) : null,
-                                        color: canUse ? AppTheme.highlightColor : Colors.grey,
+                                        icon: Icon(canUse
+                                            ? Icons.flash_on
+                                            : Icons.flash_off),
+                                        onPressed: canUse
+                                            ? () => _handleSpellUse(spell)
+                                            : null,
+                                        color: canUse
+                                            ? AppTheme.highlightColor
+                                            : Colors.grey,
                                       ),
                                     ],
                                   ),
@@ -614,7 +628,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
 
   Widget _buildHpAndLifeDiamonds(double size) {
     final isDead = _character.lifeStat.current == 0;
-    
+
     return Stack(
       children: [
         // Main HP and LIFE diamonds
@@ -633,7 +647,8 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                     'assets/svg/death-skull.svg',
                     width: size,
                     height: size,
-                    colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                    colorFilter:
+                        const ColorFilter.mode(Colors.black, BlendMode.srcIn),
                   )
                 : _buildDiamondStat('LIFE', _character.lifeStat, null, size),
           ],
@@ -654,10 +669,10 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
             child: Text(
               'HP',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontSize: size * 0.25,
-                color: isDead ? Colors.grey : AppTheme.primaryColor,
-                fontWeight: FontWeight.bold,
-              ),
+                    fontSize: size * 0.25,
+                    color: isDead ? Colors.grey : AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
           ),
         ),
@@ -669,10 +684,10 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
             child: Text(
               'LIFE',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontSize: size * 0.25,
-                color: isDead ? Colors.grey : AppTheme.primaryColor,
-                fontWeight: FontWeight.bold,
-              ),
+                    fontSize: size * 0.25,
+                    color: isDead ? Colors.grey : AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
           ),
         ),
@@ -695,16 +710,17 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
           Text(
             'DEF',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontSize: size * 0.18,
-              color: Colors.white,
-            ),
+                  fontSize: size * 0.18,
+                  color: Colors.white,
+                ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDefenseCircle(String label, DefCategory category, bool isSelected, double size) {
+  Widget _buildDefenseCircle(
+      String label, DefCategory category, bool isSelected, double size) {
     return IconButton(
       icon: Text(
         label,
@@ -716,14 +732,16 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
       ),
       onPressed: () {
         setState(() {
-          selectedDefense = selectedDefense == category ? DefCategory.none : category;
+          selectedDefense =
+              selectedDefense == category ? DefCategory.none : category;
           _character.defCategory = selectedDefense;
           _character.updateDerivedStats();
           _updateLastUsed();
         });
       },
       style: IconButton.styleFrom(
-        backgroundColor: isSelected ? AppTheme.highlightColor : Colors.transparent,
+        backgroundColor:
+            isSelected ? AppTheme.highlightColor : Colors.transparent,
         shape: const CircleBorder(),
         side: BorderSide(
           color: isSelected ? AppTheme.accentColor : AppTheme.primaryColor,
@@ -735,48 +753,11 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     );
   }
 
-  Widget _buildHexagon(String value, String label) {
-    return SizedBox(
-      width: 40,
-      height: 40,
-      child: Stack(
-        children: [
-          HexagonContainer(
-            size: 40,
-            fillColor: AppTheme.primaryColor,
-            borderColor: AppTheme.highlightColor,
-            borderWidth: 2,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (label.isNotEmpty)
-                    Text(
-                      label,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDiamondStat(String label, StatValue value, int? tempValue, double size) {
+  Widget _buildDiamondStat(
+      String label, StatValue value, int? tempValue, double size) {
     // Calculate the size needed to fit the rotated diamond
-    final containerSize = size * 1.4142; // sqrt(2) to account for 45-degree rotation
+    final containerSize =
+        size * 1.4142; // sqrt(2) to account for 45-degree rotation
     return SizedBox(
       width: containerSize,
       height: containerSize,
@@ -800,10 +781,11 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                       child: Center(
                         child: Text(
                           tempValue.toString(),
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontSize: size * 0.3,
-                            color: Colors.white,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontSize: size * 0.3,
+                                    color: Colors.white,
+                                  ),
                         ),
                       ),
                     ),
@@ -839,18 +821,20 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                       children: [
                         Text(
                           value.toString(),
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontSize: size * 0.3,
-                            color: Colors.white,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontSize: size * 0.3,
+                                    color: Colors.white,
+                                  ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           '/${value.maxString}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: size * 0.18,
-                            color: Colors.white,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontSize: size * 0.18,
+                                    color: Colors.white,
+                                  ),
                         ),
                       ],
                     ),
@@ -868,9 +852,9 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                 child: Text(
                   label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontSize: size * 0.18,
-                    color: Colors.white,
-                  ),
+                        fontSize: size * 0.18,
+                        color: Colors.white,
+                      ),
                 ),
               ),
             ),
@@ -894,8 +878,8 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
               child: Text(
                 _character.tempHp.toString(),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontSize: size * 0.4,
-                ),
+                      fontSize: size * 0.4,
+                    ),
               ),
             ),
           ),
@@ -904,7 +888,11 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     );
   }
 
-  Widget _buildActionButton({required IconData icon, required VoidCallback onPressed, required Color color, bool enabled = true}) {
+  Widget _buildActionButton(
+      {required IconData icon,
+      required VoidCallback onPressed,
+      required Color color,
+      bool enabled = true}) {
     return IconButton(
       icon: Icon(icon, color: enabled ? color : Colors.grey),
       onPressed: enabled ? onPressed : () {},
@@ -934,18 +922,18 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            label, 
+            label,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           Text(
             value.toString(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ],
       ),
@@ -967,8 +955,8 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
             Text(
               'No background information available',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).disabledColor,
-              ),
+                    color: Theme.of(context).disabledColor,
+                  ),
             ),
             const SizedBox(height: 8),
             ElevatedButton.icon(
@@ -996,8 +984,8 @@ class DottedBorderPainter extends CustomPainter {
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 
-    final dashWidth = 5.0;
-    final dashSpace = 5.0;
+    const dashWidth = 5.0;
+    const dashSpace = 5.0;
     final width = size.width;
     final height = size.height;
     final centerX = width / 2;
@@ -1064,4 +1052,4 @@ class DottedBorderPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-} 
+}
