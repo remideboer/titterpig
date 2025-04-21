@@ -495,7 +495,15 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         _buildActionButton(
-                          icon: Icons.remove,
+                          icon: SvgPicture.asset(
+                            'assets/svg/health-decrease.svg',
+                            width: 24,
+                            height: 24,
+                            colorFilter: ColorFilter.mode(
+                              Colors.red,
+                              BlendMode.srcIn,
+                            ),
+                          ),
                           onPressed: _takeDamage,
                           color: Colors.red,
                           enabled: !isDead,
@@ -504,7 +512,15 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                         _buildShieldIcon(isDead ? null : _character.def, svgStatSize),
                         const SizedBox(width: 8),
                         _buildActionButton(
-                          icon: Icons.add,
+                          icon: SvgPicture.asset(
+                            'assets/svg/health-increase.svg',
+                            width: 24,
+                            height: 24,
+                            colorFilter: ColorFilter.mode(
+                              Colors.green,
+                              BlendMode.srcIn,
+                            ),
+                          ),
                           onPressed: _heal,
                           color: Colors.green,
                           enabled: !isDead,
@@ -995,13 +1011,17 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     );
   }
 
-  Widget _buildActionButton(
-      {required IconData icon,
-      required VoidCallback onPressed,
-      required Color color,
-      bool enabled = true}) {
+  Widget _buildActionButton({
+    required Widget icon,
+    required VoidCallback onPressed,
+    required Color color,
+    bool enabled = true,
+  }) {
     return IconButton(
-      icon: Icon(icon, color: enabled ? color : Colors.grey),
+      icon: Opacity(
+        opacity: enabled ? 1.0 : 0.5,
+        child: icon,
+      ),
       onPressed: enabled ? onPressed : () {},
       style: IconButton.styleFrom(
         disabledForegroundColor: Colors.grey,
