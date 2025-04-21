@@ -134,6 +134,16 @@ class Character {
   /// Returns true if the character is dead (LIFE stat is 0)
   bool get isDead => lifeStat.current == 0;
 
+  /// Resurrects a dead character, restoring them to life with minimal stats
+  void resurrect() {
+    if (!isDead) return; // Only resurrect if actually dead
+    
+    _life = StatValue(current: 1, max: _life.max);
+    _hp = StatValue(current: 1, max: _hp.max);
+    _power = StatValue(current: 0, max: _power.max);
+    updateDerivedStats();
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'version': currentSaveVersion,

@@ -260,6 +260,19 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     }
   }
 
+  // Add this method to handle resurrection
+  void _resurrectCharacter() {
+    setState(() {
+      _character.resurrect();
+      _updateLastUsed();
+      
+      // Notify parent if needed
+      if (widget.onCharacterUpdated != null) {
+        widget.onCharacterUpdated!(_character);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -351,43 +364,83 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Avatar display
-              Center(
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  margin: const EdgeInsets.only(bottom: 24),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).colorScheme.surface,
-                    border: Border.all(
-                      color: isDead ? Colors.grey.withOpacity(0.5) : Theme.of(context).colorScheme.primary,
-                      width: 2,
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Left placeholder for balance
+                    SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: isDead ? Container() : null,
                     ),
-                  ),
-                  child: ClipOval(
-                    child: _character.avatarPath != null
-                        ? ColorFiltered(
-                            colorFilter: isDead
-                                ? const ColorFilter.matrix([
-                                    0.2126, 0.7152, 0.0722, 0, 0,
-                                    0.2126, 0.7152, 0.0722, 0, 0,
-                                    0.2126, 0.7152, 0.0722, 0, 0,
-                                    0, 0, 0, 1, 0,
-                                  ])
-                                : const ColorFilter.mode(
-                                    Colors.transparent,
-                                    BlendMode.srcOver,
-                                  ),
-                            child: Image.file(
-                              File(_character.avatarPath!),
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return _buildDefaultAvatar();
-                              },
+                    // Center avatar
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Theme.of(context).colorScheme.surface,
+                        border: Border.all(
+                          color: isDead ? Colors.grey.withOpacity(0.5) : Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: _character.avatarPath != null
+                            ? ColorFiltered(
+                                colorFilter: isDead
+                                    ? const ColorFilter.matrix([
+                                        0.2126, 0.7152, 0.0722, 0, 0,
+                                        0.2126, 0.7152, 0.0722, 0, 0,
+                                        0.2126, 0.7152, 0.0722, 0, 0,
+                                        0, 0, 0, 1, 0,
+                                      ])
+                                    : const ColorFilter.mode(
+                                        Colors.transparent,
+                                        BlendMode.srcOver,
+                                      ),
+                                child: Image.file(
+                                  File(_character.avatarPath!),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return _buildDefaultAvatar();
+                                  },
+                                ),
+                              )
+                            : _buildDefaultAvatar(),
+                      ),
+                    ),
+                    // Right side - resurrect button or placeholder
+                    SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: isDead
+                        ? IconButton(
+                            onPressed: _resurrectCharacter,
+                            icon: SvgPicture.asset(
+                              'assets/svg/resurrect.svg',
+                              width: 32,
+                              height: 32,
+                              colorFilter: const ColorFilter.mode(
+                                AppTheme.highlightColor,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            tooltip: 'Resurrect Character',
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              side: BorderSide(
+                                color: AppTheme.highlightColor,
+                                width: 2,
+                              ),
+                              padding: const EdgeInsets.all(8),
                             ),
                           )
-                        : _buildDefaultAvatar(),
-                  ),
+                        : null,
+                    ),
+                  ],
                 ),
               ),
 
