@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'single_value_icon.dart';
+import '../theme/app_theme.dart';
 
 class ShieldIcon extends StatelessWidget {
   final double size;
@@ -20,7 +21,7 @@ class ShieldIcon extends StatelessWidget {
       svgAsset: 'assets/svg/shield.svg',
       value: value,
       size: size,
-      color: color ?? Theme.of(context).primaryColor,
+      color: color ?? AppTheme.highlightColor,
     );
   }
 } 
