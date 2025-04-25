@@ -25,6 +25,7 @@ import '../widgets/spell_list_item.dart';
 import '../widgets/stat_value_icon.dart';
 import 'character_creation_screen.dart';
 import 'spell_selection_screen.dart';
+import '../widgets/secondary_stats_row.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -463,24 +464,9 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
               const SizedBox(height: 24),
 
               // Health and power row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Column(
-                    children: [
-                      _buildHpAndLifeDiamonds(svgStatSize),
-                      const SizedBox(height: 8)
-                    ],
-                  ),
-                  if (!isDead)
-                    Opacity(
-                      opacity: isDead ? 0.5 : 1.0,
-                      child: PowerIcon(
-                        value: _character.powerStat,
-                        size: svgStatSize,
-                      ),
-                    ),
-                ],
+              SecondaryStatsRow(
+                character: _character,
+                size: 0.25,
               ),
               const SizedBox(height: 24),
 
@@ -750,79 +736,6 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     );
   }
 
-  Widget _buildHpAndLifeDiamonds(double size) {
-    final isDead = _character.isDead;
-
-    return Stack(
-      children: [
-        // Main HP and LIFE diamonds
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (!isDead)
-              StatValueIcon(
-                svgAsset: 'assets/svg/hp.svg',
-                value: _character.hpStat,
-                size: size,
-                color: isDead ? Colors.grey : AppTheme.highlightColor,
-              ),
-            if (!isDead)
-              const SizedBox(width: 8),
-            isDead
-                ? SvgPicture.asset(
-                    'assets/svg/death-skull.svg',
-                    width: size,
-                    height: size,
-                    colorFilter:
-                        const ColorFilter.mode(Colors.black, BlendMode.srcIn),
-                  )
-                : _buildDiamondStat('LIFE', _character.lifeStat, null, size),
-          ],
-        ),
-        // TEMP HP diamond
-        if (_character.tempHp > 0 && !isDead)
-          Positioned(
-            left: size * 0.6,
-            top: 0,
-            child: _buildTempHpDiamond(size * 0.5),
-          ),
-        // Labels
-        if (!isDead)
-          Positioned(
-            left: -size * 0.5,
-            top: size * 0.3,
-            child: Transform.rotate(
-              angle: -45 * 3.14159 / 180,
-              child: Text(
-                'HP',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontSize: size * 0.25,
-                      color: isDead ? Colors.grey : AppTheme.primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-          ),
-        if (!isDead)
-          Positioned(
-            right: -size * 0.5,
-            top: size * 0.3,
-            child: Transform.rotate(
-              angle: 45 * 3.14159 / 180,
-              child: Text(
-                'LIFE',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontSize: size * 0.25,
-                      color: isDead ? Colors.grey : AppTheme.primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
   Widget _buildShieldIcon(int? value, double size) {
     final isDead = _character.isDead;
     return SizedBox(
@@ -892,141 +805,6 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     );
   }
 
-  Widget _buildDiamondStat(
-      String label, StatValue value, int? tempValue, double size) {
-    // Calculate the size needed to fit the rotated diamond
-    final containerSize =
-        size * 1.4142; // sqrt(2) to account for 45-degree rotation
-    return SizedBox(
-      width: containerSize,
-      height: containerSize,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // TEMP HP diamond (only for HP stat)
-          if (label == 'HP' && tempValue != null && tempValue > 0)
-            Positioned(
-              bottom: 0,
-              child: Transform.rotate(
-                angle: 45 * 3.14159 / 180,
-                child: CustomPaint(
-                  size: Size(size, size),
-                  painter: DottedBorderPainter(),
-                  child: Container(
-                    width: size,
-                    height: size,
-                    child: Transform.rotate(
-                      angle: -45 * 3.14159 / 180,
-                      child: Center(
-                        child: Text(
-                          tempValue.toString(),
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontSize: size * 0.3,
-                                    color: Colors.white,
-                                  ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          // Main diamond or icon
-          if (label == 'LIFE')
-            HeartIcon(
-              size: size,
-              value: value,
-            )
-          else
-            Transform.rotate(
-              angle: 45 * 3.14159 / 180,
-              child: Container(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: AppTheme.primaryColor,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Transform.rotate(
-                  angle: -45 * 3.14159 / 180,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          value.toString(),
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontSize: size * 0.3,
-                                    color: Colors.white,
-                                  ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '/${value.maxString}',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontSize: size * 0.18,
-                                    color: Colors.white,
-                                  ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          // Angled label for HP (parallel to left side)
-          if (label == 'HP')
-            Positioned(
-              left: -size * 0.4,
-              top: containerSize * 0.5,
-              child: Transform.rotate(
-                angle: -45 * 3.14159 / 180,
-                child: Text(
-                  label,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontSize: size * 0.18,
-                        color: Colors.white,
-                      ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTempHpDiamond(double size) {
-    return Transform.rotate(
-      angle: 45 * 3.14159 / 180,
-      child: CustomPaint(
-        size: Size(size, size),
-        painter: DottedBorderPainter(),
-        child: Container(
-          width: size,
-          height: size,
-          child: Transform.rotate(
-            angle: -45 * 3.14159 / 180,
-            child: Center(
-              child: Text(
-                _character.tempHp.toString(),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontSize: size * 0.4,
-                    ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildActionButton({
     required Widget icon,
     required VoidCallback onPressed,
@@ -1084,82 +862,4 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
       onEdit: () => _editCharacter(),
     );
   }
-}
-
-class DottedBorderPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppTheme.primaryColor
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
-    const dashWidth = 5.0;
-    const dashSpace = 5.0;
-    final width = size.width;
-    final height = size.height;
-    final centerX = width / 2;
-    final centerY = height / 2;
-
-    // Calculate diamond points
-    final top = Offset(centerX, 0);
-    final right = Offset(width, centerY);
-    final bottom = Offset(centerX, height);
-    final left = Offset(0, centerY);
-
-    // Draw top to right
-    for (double i = 0; i < 1; i += (dashWidth + dashSpace) / width) {
-      final start = Offset(
-        top.dx + (right.dx - top.dx) * i,
-        top.dy + (right.dy - top.dy) * i,
-      );
-      final end = Offset(
-        top.dx + (right.dx - top.dx) * (i + dashWidth / width),
-        top.dy + (right.dy - top.dy) * (i + dashWidth / width),
-      );
-      canvas.drawLine(start, end, paint);
-    }
-
-    // Draw right to bottom
-    for (double i = 0; i < 1; i += (dashWidth + dashSpace) / height) {
-      final start = Offset(
-        right.dx + (bottom.dx - right.dx) * i,
-        right.dy + (bottom.dy - right.dy) * i,
-      );
-      final end = Offset(
-        right.dx + (bottom.dx - right.dx) * (i + dashWidth / height),
-        right.dy + (bottom.dy - right.dy) * (i + dashWidth / height),
-      );
-      canvas.drawLine(start, end, paint);
-    }
-
-    // Draw bottom to left
-    for (double i = 0; i < 1; i += (dashWidth + dashSpace) / width) {
-      final start = Offset(
-        bottom.dx + (left.dx - bottom.dx) * i,
-        bottom.dy + (left.dy - bottom.dy) * i,
-      );
-      final end = Offset(
-        bottom.dx + (left.dx - bottom.dx) * (i + dashWidth / width),
-        bottom.dy + (left.dy - bottom.dy) * (i + dashWidth / width),
-      );
-      canvas.drawLine(start, end, paint);
-    }
-
-    // Draw left to top
-    for (double i = 0; i < 1; i += (dashWidth + dashSpace) / height) {
-      final start = Offset(
-        left.dx + (top.dx - left.dx) * i,
-        left.dy + (top.dy - left.dy) * i,
-      );
-      final end = Offset(
-        left.dx + (top.dx - left.dx) * (i + dashWidth / height),
-        left.dy + (top.dy - left.dy) * (i + dashWidth / height),
-      );
-      canvas.drawLine(start, end, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
