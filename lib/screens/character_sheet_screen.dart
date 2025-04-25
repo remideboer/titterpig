@@ -18,6 +18,7 @@ import '../utils/sound_manager.dart';
 import '../utils/spell_limit_calculator.dart';
 import '../widgets/character_background_view.dart';
 import '../widgets/heart_icon.dart';
+import '../widgets/main_stats_row.dart';
 import '../widgets/power_icon.dart';
 import '../widgets/shield_icon.dart';
 import '../widgets/spell_list_item.dart';
@@ -455,13 +456,9 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
               ),
 
               // Main stats row (VIT, ATH, WIL)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatBox('VIT', _character.vit),
-                  _buildStatBox('ATH', _character.ath),
-                  _buildStatBox('WIL', _character.wil),
-                ],
+              MainStatsRow(
+                character: _character,
+                size: 0.25,
               ),
               const SizedBox(height: 24),
 
@@ -1049,52 +1046,6 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
             disabledForegroundColor: Colors.grey,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatBox(String label, int value) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final boxWidth = screenWidth * 0.25; // 25% of screen width
-    final boxHeight = boxWidth * 0.75; // 3:4 ratio
-    final isDead = _character.isDead;
-
-    return Container(
-      width: boxWidth,
-      height: boxHeight,
-      decoration: BoxDecoration(
-        color: isDead ? Colors.grey : AppTheme.primaryColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDead ? Colors.grey : AppTheme.highlightColor,
-          width: 2,
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          if (isDead)
-            const Icon(
-              Icons.block,
-              color: Colors.white,
-              size: 24,
-            )
-          else
-            Text(
-              value.toString(),
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-        ],
       ),
     );
   }
