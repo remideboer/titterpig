@@ -48,6 +48,16 @@ class _StatModifierRowState extends State<StatModifierRow> {
   }
 
   @override
+  void didUpdateWidget(StatModifierRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedDefense != oldWidget.selectedDefense) {
+      setState(() {
+        selectedDefense = widget.selectedDefense;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isDead = character.isDead;
@@ -146,27 +156,31 @@ class _StatModifierRowState extends State<StatModifierRow> {
     double size,
   ) {
     final isDead = character.isDead;
+    final backgroundColor = isDead 
+        ? Colors.grey.withOpacity(0.3)
+        : (isSelected ? AppTheme.highlightColor : Colors.transparent);
+    final textColor = isDead 
+        ? Colors.grey 
+        : (isSelected ? Colors.white : AppTheme.primaryColor);
+    final borderColor = isDead 
+        ? Colors.grey 
+        : (isSelected ? AppTheme.accentColor : AppTheme.primaryColor);
+
     return IconButton(
       icon: Text(
         label,
         style: TextStyle(
           fontSize: size * 0.5,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isDead 
-              ? Colors.grey 
-              : (isSelected ? Colors.white : AppTheme.primaryColor),
+          color: textColor,
         ),
       ),
       onPressed: isDead ? null : () => onDefenseChanged(category),
       style: IconButton.styleFrom(
-        backgroundColor: isDead 
-            ? Colors.grey.withOpacity(0.3)
-            : (isSelected ? AppTheme.highlightColor : Colors.transparent),
+        backgroundColor: backgroundColor,
         shape: const CircleBorder(),
         side: BorderSide(
-          color: isDead 
-              ? Colors.grey 
-              : (isSelected ? AppTheme.accentColor : AppTheme.primaryColor),
+          color: borderColor,
           width: 2,
         ),
         minimumSize: Size(size, size),
