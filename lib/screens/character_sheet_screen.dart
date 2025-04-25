@@ -26,6 +26,7 @@ import '../widgets/stat_value_icon.dart';
 import 'character_creation_screen.dart';
 import 'spell_selection_screen.dart';
 import '../widgets/secondary_stats_row.dart';
+import '../widgets/stat_modifier_row.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -472,83 +473,20 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
 
               // Defense section
               Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Left column - Health buttons
-                    SizedBox(
-                      width: screenSize.width * 0.25,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildActionButton(
-                            icon: SvgPicture.asset(
-                              'assets/svg/health-increase.svg',
-                              width: 48,
-                              height: 48,
-                              colorFilter: const ColorFilter.mode(
-                                Colors.green,
-                                BlendMode.srcIn,
-                              ),
-                            ),
-                            onPressed: _heal,
-                            color: Colors.green,
-                            enabled: !isDead,
-                          ),
-                          _buildActionButton(
-                            icon: SvgPicture.asset(
-                              'assets/svg/health-decrease.svg',
-                              width: 48,
-                              height: 48,
-                              colorFilter: const ColorFilter.mode(
-                                Colors.red,
-                                BlendMode.srcIn,
-                              ),
-                            ),
-                            onPressed: _takeDamage,
-                            color: Colors.red,
-                            enabled: !isDead,
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Center column - Shield icon
-                    SizedBox(
-                      width: screenSize.width * 0.25,
-                      child: Center(
-                        child: _buildShieldIcon(isDead ? null : _character.def, svgStatSize),
-                      ),
-                    ),
-                    // Right column - Defense circles
-                    SizedBox(
-                      width: screenSize.width * 0.25,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildDefenseCircle(
-                            'H',
-                            DefCategory.heavy,
-                            selectedDefense == DefCategory.heavy,
-                            svgStatSize * defOptionScreenProportion,
-                          ),
-                          const SizedBox(height: 8),
-                          _buildDefenseCircle(
-                            'M',
-                            DefCategory.medium,
-                            selectedDefense == DefCategory.medium,
-                            svgStatSize * defOptionScreenProportion,
-                          ),
-                          const SizedBox(height: 8),
-                          _buildDefenseCircle(
-                            'L',
-                            DefCategory.light,
-                            selectedDefense == DefCategory.light,
-                            svgStatSize * defOptionScreenProportion,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                child: StatModifierRow(
+                  character: _character,
+                  size: svgStatSize,
+                  selectedDefense: selectedDefense,
+                  onDefenseChanged: (category) {
+                    setState(() {
+                      selectedDefense = selectedDefense == category ? DefCategory.none : category;
+                      _character.defCategory = selectedDefense;
+                      _character.updateDerivedStats();
+                      _updateLastUsed();
+                    });
+                  },
+                  onHeal: _heal,
+                  onTakeDamage: _takeDamage,
                 ),
               ),
               const SizedBox(height: 24),
@@ -729,98 +667,6 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
       Icons.person,
       size: 60,
       color: isDead ? Colors.grey : Theme.of(context).colorScheme.primary,
-    );
-  }
-
-  Widget _buildShieldIcon(int? value, double size) {
-    final isDead = _character.isDead;
-    return SizedBox(
-      height: size * 1.5,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Opacity(
-            opacity: isDead ? 0.5 : 1.0,
-            child: ShieldIcon(
-              size: size,
-              value: value ?? 0,
-              color: isDead ? Colors.grey : null,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'DEF',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: size * 0.18,
-                  color: isDead ? Colors.grey : Colors.white,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDefenseCircle(
-      String label, DefCategory category, bool isSelected, double size) {
-    final isDead = _character.isDead;
-    return IconButton(
-      icon: Text(
-        label,
-        style: TextStyle(
-          fontSize: size * 0.5,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isDead 
-              ? Colors.grey 
-              : (isSelected ? Colors.white : AppTheme.primaryColor),
-        ),
-      ),
-      onPressed: isDead ? null : () {
-        setState(() {
-          selectedDefense =
-              selectedDefense == category ? DefCategory.none : category;
-          _character.defCategory = selectedDefense;
-          _character.updateDerivedStats();
-          _updateLastUsed();
-        });
-      },
-      style: IconButton.styleFrom(
-        backgroundColor: isDead 
-            ? Colors.grey.withOpacity(0.3)
-            : (isSelected ? AppTheme.highlightColor : Colors.transparent),
-        shape: const CircleBorder(),
-        side: BorderSide(
-          color: isDead 
-              ? Colors.grey 
-              : (isSelected ? AppTheme.accentColor : AppTheme.primaryColor),
-          width: 2,
-        ),
-        minimumSize: Size(size, size),
-        padding: EdgeInsets.zero,
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required Widget icon,
-    required VoidCallback onPressed,
-    required Color color,
-    bool enabled = true,
-  }) {
-    return Container(
-      height: 80,  // Match the shield icon height
-      child: Center(  // Center the button vertically
-        child: IconButton(
-          icon: Opacity(
-            opacity: enabled ? 1.0 : 0.5,
-            child: icon,
-          ),
-          onPressed: enabled ? onPressed : () {},
-          style: IconButton.styleFrom(
-            disabledForegroundColor: Colors.grey,
-          ),
-        ),
-      ),
     );
   }
 
