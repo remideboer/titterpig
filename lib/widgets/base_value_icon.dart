@@ -35,7 +35,11 @@ abstract class BaseValueIcon extends StatelessWidget {
             height: size * backgroundCircleMultiplier,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color:  AppTheme.primaryColor.withAlpha(255), // 0.2 * 255 ≈ 51
+              color: AppTheme.primaryColor.withAlpha(255), // 0.2 * 255 ≈ 51
+              border: Border.all(
+                color: color,
+                width: 2,
+              ),
             ),
           ),
           Positioned(
