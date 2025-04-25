@@ -174,17 +174,11 @@ class Character {
         if (_tempHpToLife >= hpStat.max) {
           _tempHpToLife = 0;
           _life = _life.copyWithCurrent(_life.current + 1);
+          break; // you only get 1 life and no extra overflow
         }
       }
     }
     updateDerivedStats();
-  }
-  /// repeatedly subtracting until reach 0, return remainder
-  int subtractReturnRemainder(int start, int subtract) {
-    if (start <= 0) return 0;
-    if (subtract <= 0) return start;  // Can't subtract a non-positive number
-
-    return start % subtract;  // The remainder after dividing
   }
 
   void takeDamage([int amount = 1]) {
