@@ -182,6 +182,11 @@ class Character {
   }
 
   void takeDamage([int amount = 1]) {
+    // first check if can get damaged, if so subtract def from damage
+    if (amount < def){ // too tough to hit
+      return;
+    }
+    amount -= def;
     // this basically keeps subtracting 1 from each value pool till end amount
     // though it should only subtract life once, so break looks strange
     // but alternative is a bunch of nested if statements with double conditions
