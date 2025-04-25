@@ -23,6 +23,7 @@ class Character {
   final int wil;
   final String? avatarPath; // Path to the avatar image file
   int _tempHp;
+  int _tempHpToLife;  // New field to track HP that will convert to LIFE
   late StatValue _hp;
   late StatValue _life;
   late StatValue _power;
@@ -46,6 +47,7 @@ class Character {
     required this.wil,
     this.avatarPath,
     int? tempHp,
+    int? tempHpToLife,  // New parameter
     DefCategory? defCategory,
     this.hasShield = false,
     List<Spell>? spells,
@@ -56,6 +58,7 @@ class Character {
     DateTime? lastUsed,
     this.background,
   })  : _tempHp = tempHp ?? 0,
+        _tempHpToLife = tempHpToLife ?? 0,  // Initialize new field
         _xp = xp ?? 0,
         defCategory = defCategory ?? DefCategory.none,
         _spells = spells ?? [],
@@ -76,6 +79,7 @@ class Character {
   StatValue get hpStat => _hp;
   set hpStat(StatValue value) => _hp = value;
   StatValue get lifeStat => _life;
+  set lifeStat(StatValue value) => _life = value;
   StatValue get powerStat => _power;
 
   // Getters for backward compatibility
@@ -87,6 +91,8 @@ class Character {
   int get availablePower => _power.current;
   int get tempHp => _tempHp;
   set tempHp(int value) => _tempHp = value;
+  int get tempHpToLife => _tempHpToLife;  // New getter
+  set tempHpToLife(int value) => _tempHpToLife = value;  // New setter
   int get xp => _xp;
   set xp(int value) => _xp = value;
 
@@ -144,6 +150,62 @@ class Character {
     updateDerivedStats();
   }
 
+  // Add new method to handle HP to LIFE conversion
+  void addHpToLife() {
+    if (_tempHpToLife >= _hp.max) {
+      if (_life.current < _life.max) {
+        _life = _life.copyWithCurrent(_life.current + 1);
+        _tempHpToLife -= _hp.max;
+      }
+    }
+  }
+
+  // Modify heal method to handle new behavior
+  void heal([int amount = 1]) {
+    for (int i = 0; i < amount; i++) {
+      // First try to heal HP if not at max
+      if (hpStat.current < hpStat.max) {
+        hpStat = hpStat.copyWithCurrent(hpStat.current + 1);
+      } else if (lifeStat.current < lifeStat.max) {
+        // If HP is at max, add to temp HP to Life
+        _tempHpToLife++;
+        
+        // If temp HP to Life reaches max HP, convert to actual Life
+        if (_tempHpToLife >= hpStat.max) {
+          _tempHpToLife = 0;
+          _life = _life.copyWithCurrent(_life.current + 1);
+        }
+      }
+    }
+    updateDerivedStats();
+  }
+
+  // Add method to handle damage
+  void takeDamage([int amount = 1]) {
+    for (int i = 0; i < amount; i++) {
+      if (_tempHp > 0) {
+        _tempHp--;
+      } else if (_hp.current > 0) {
+        _hp = _hp.copyWithCurrent(_hp.current - 1);
+      } else if (_life.current > 0) {
+        _life = _life.copyWithCurrent(_life.current - 1);
+      }
+    }
+    updateDerivedStats();
+  }
+
+  // Add method to add temporary HP
+  void addTempHp([int amount = 1]) {
+    _tempHp += amount;
+    updateDerivedStats();
+  }
+
+  // Add method to clear temporary HP
+  void clearTempHp() {
+    _tempHp = 0;
+    updateDerivedStats();
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'version': currentSaveVersion,
@@ -155,6 +217,7 @@ class Character {
       'wil': wil,
       'avatarPath': avatarPath,
       'tempHp': _tempHp,
+      'tempHpToLife': _tempHpToLife,  // Add new field
       'hp': _hp.max,
       'currentLife': _life.current,
       'maxLife': _life.max,
@@ -229,6 +292,7 @@ class Character {
       wil: safeToInt(json['wil']),
       avatarPath: json['avatarPath'] as String?,
       tempHp: safeToInt(json['tempHp']),
+      tempHpToLife: safeToInt(json['tempHpToLife']),  // Add new parameter
       defCategory: DefCategory.values[safeToInt(json['defCategory'])],
       hasShield: json['hasShield'] as bool? ?? false,
       spells: safeToSpells(json['spells']),
@@ -265,6 +329,7 @@ class Character {
     int? wil,
     String? avatarPath,
     int? tempHp,
+    int? tempHpToLife,  // New parameter
     DefCategory? defCategory,
     bool? hasShield,
     List<Spell>? spells,
@@ -284,6 +349,7 @@ class Character {
       wil: wil ?? this.wil,
       avatarPath: avatarPath ?? this.avatarPath,
       tempHp: tempHp ?? this._tempHp,
+      tempHpToLife: tempHpToLife ?? this._tempHpToLife,  // New parameter
       defCategory: defCategory ?? this.defCategory,
       hasShield: hasShield ?? this.hasShield,
       spells: spells ?? this._spells,

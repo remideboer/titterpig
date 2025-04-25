@@ -72,6 +72,8 @@ class SecondaryStatsRow extends StatelessWidget {
                 : HeartIcon(
                     size: size,
                     value: character.lifeStat,
+                    tempHpToLife: character.tempHpToLife,
+                    isDead: isDead,
                   ),
           ],
         ),

@@ -5,7 +5,7 @@ import '../models/def_category.dart';
 import '../theme/app_theme.dart';
 import 'shield_icon.dart';
 
-class StatModifierRow extends StatelessWidget {
+class StatModifierRow extends StatefulWidget {
   final Character character;
   final double size;
   final DefCategory selectedDefense;
@@ -22,6 +22,37 @@ class StatModifierRow extends StatelessWidget {
     required this.onHeal,
     required this.onTakeDamage,
   });
+
+  @override
+  State<StatModifierRow> createState() => _StatModifierRowState();
+}
+
+class _StatModifierRowState extends State<StatModifierRow> {
+  late Character character;
+  late double size;
+  late DefCategory selectedDefense;
+  late Function(DefCategory) onDefenseChanged;
+  late VoidCallback onHeal;
+  late VoidCallback onTakeDamage;
+
+  @override
+  void initState() {
+    super.initState();
+    character = widget.character;
+    size = widget.size;
+    selectedDefense = widget.selectedDefense;
+    onDefenseChanged = widget.onDefenseChanged;
+    onHeal = widget.onHeal;
+    onTakeDamage = widget.onTakeDamage;
+  }
+
+  void _handleHeal() {
+    onHeal();
+  }
+
+  void _handleDamage() {
+    onTakeDamage();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +79,7 @@ class StatModifierRow extends StatelessWidget {
                     BlendMode.srcIn,
                   ),
                 ),
-                onPressed: onHeal,
+                onPressed: _handleHeal,
                 color: Colors.green,
                 enabled: !isDead,
               ),
@@ -63,7 +94,7 @@ class StatModifierRow extends StatelessWidget {
                     BlendMode.srcIn,
                   ),
                 ),
-                onPressed: onTakeDamage,
+                onPressed: _handleDamage,
                 color: Colors.red,
                 enabled: !isDead,
               ),

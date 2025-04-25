@@ -199,15 +199,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
 
   void _heal() {
     setState(() {
-      // First try to heal HP if not at max
-      if (_character.hpStat.current < _character.hpStat.max) {
-        _character.hpStat =
-            _character.hpStat.copyWithCurrent(_character.hpStat.current + 1);
-      } else if (_character.lifeStat.current < _character.lifeStat.max) {
-        // If HP is at max, try to heal life
-        _character.increaseLife();
-      }
-      _character.updateDerivedStats();
+      _character.heal();
       _updateLastUsed();
     });
   }
