@@ -701,6 +701,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                                   disabled: isDead,
                                   actions: SpellListItemActions(
                                     spell: spell,
+                                    decorator: PowerCheckSpellActionDecorator(DefaultSpellActionDecorator()),
                                     actions: [
                                       if (spell.effectValue != null)
                                         IconButton(
