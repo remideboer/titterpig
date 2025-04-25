@@ -472,85 +472,81 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
 
               // Defense section
               Center(
-                child: Column(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Left column - Health buttons
-                        SizedBox(
-                          width: screenSize.width * 0.25, // Same width as stat boxes
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildActionButton(
-                                icon: SvgPicture.asset(
-                                  'assets/svg/health-increase.svg',
-                                  width: 48,
-                                  height: 48,
-                                  colorFilter: const ColorFilter.mode(
-                                    Colors.green,
-                                    BlendMode.srcIn,
-                                  ),
-                                ),
-                                onPressed: _heal,
-                                color: Colors.green,
-                                enabled: !isDead,
+                    // Left column - Health buttons
+                    SizedBox(
+                      width: screenSize.width * 0.25,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildActionButton(
+                            icon: SvgPicture.asset(
+                              'assets/svg/health-increase.svg',
+                              width: 48,
+                              height: 48,
+                              colorFilter: const ColorFilter.mode(
+                                Colors.green,
+                                BlendMode.srcIn,
                               ),
-                              _buildActionButton(
-                                icon: SvgPicture.asset(
-                                  'assets/svg/health-decrease.svg',
-                                  width: 48,
-                                  height: 48,
-                                  colorFilter: const ColorFilter.mode(
-                                    Colors.red,
-                                    BlendMode.srcIn,
-                                  ),
-                                ),
-                                onPressed: _takeDamage,
-                                color: Colors.red,
-                                enabled: !isDead,
+                            ),
+                            onPressed: _heal,
+                            color: Colors.green,
+                            enabled: !isDead,
+                          ),
+                          _buildActionButton(
+                            icon: SvgPicture.asset(
+                              'assets/svg/health-decrease.svg',
+                              width: 48,
+                              height: 48,
+                              colorFilter: const ColorFilter.mode(
+                                Colors.red,
+                                BlendMode.srcIn,
                               ),
-
-                            ],
+                            ),
+                            onPressed: _takeDamage,
+                            color: Colors.red,
+                            enabled: !isDead,
                           ),
-                        ),
-                        // Center column - Shield icon
-                        SizedBox(
-                          width: screenSize.width * 0.25,
-                          child: Center(
-                            child: _buildShieldIcon(isDead ? null : _character.def, svgStatSize),
-                          ),
-                        ),
-                        // Right column - Empty space to balance layout
-                        SizedBox(
-                          width: screenSize.width * 0.25,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    // Armor type selection row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildDefenseCircle(
-                            'L',
-                            DefCategory.light,
-                            selectedDefense == DefCategory.light,
-                            svgStatSize * defOptionScreenProportion),
-                        const SizedBox(width: 8),
-                        _buildDefenseCircle(
-                            'M',
-                            DefCategory.medium,
-                            selectedDefense == DefCategory.medium,
-                            svgStatSize * defOptionScreenProportion),
-                        const SizedBox(width: 8),
-                        _buildDefenseCircle(
+                    // Center column - Shield icon
+                    SizedBox(
+                      width: screenSize.width * 0.25,
+                      child: Center(
+                        child: _buildShieldIcon(isDead ? null : _character.def, svgStatSize),
+                      ),
+                    ),
+                    // Right column - Defense circles
+                    SizedBox(
+                      width: screenSize.width * 0.25,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildDefenseCircle(
                             'H',
                             DefCategory.heavy,
                             selectedDefense == DefCategory.heavy,
-                            svgStatSize * defOptionScreenProportion),
-                      ],
+                            svgStatSize * defOptionScreenProportion,
+                          ),
+                          const SizedBox(height: 8),
+                          _buildDefenseCircle(
+                            'M',
+                            DefCategory.medium,
+                            selectedDefense == DefCategory.medium,
+                            svgStatSize * defOptionScreenProportion,
+                          ),
+                          const SizedBox(height: 8),
+                          _buildDefenseCircle(
+                            'L',
+                            DefCategory.light,
+                            selectedDefense == DefCategory.light,
+                            svgStatSize * defOptionScreenProportion,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
