@@ -179,9 +179,19 @@ class Character {
     }
     updateDerivedStats();
   }
+  /// repeatedly subtracting until reach 0, return remainder
+  int subtractReturnRemainder(int start, int subtract) {
+    if (start <= 0) return 0;
+    if (subtract <= 0) return start;  // Can't subtract a non-positive number
 
-  // Add method to handle damage
+    return start % subtract;  // The remainder after dividing
+  }
+
   void takeDamage([int amount = 1]) {
+    // this basically keeps subtracting 1 from each value pool till end amount
+    // though it should only subtract life once, so break looks strange
+    // but alternative is a bunch of nested if statements with double conditions
+    // for small amount this is acceptable since it's clearly not optimal
     for (int i = 0; i < amount; i++) {
       if (_tempHp > 0) {
         _tempHp--;
@@ -189,6 +199,7 @@ class Character {
         _hp = _hp.copyWithCurrent(_hp.current - 1);
       } else if (_life.current > 0) {
         _life = _life.copyWithCurrent(_life.current - 1);
+        break; // do only once
       }
     }
     updateDerivedStats();
