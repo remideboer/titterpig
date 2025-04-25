@@ -8,6 +8,10 @@ A Flutter application for managing tabletop RPG characters, with support for cha
 - Create and edit characters
 - Manage character stats (VIT, ATH, WIL)
 - Track HP, Life, and Power
+- HP to Life conversion system:
+  * Excess healing accumulates as temporary HP
+  * When temporary HP reaches max HP, converts to 1 Life
+  * Visual indicator shows current temporary HP
 - Custom species selection
 - Defense category management
 - Session logging
@@ -73,6 +77,11 @@ Related Business Rules: BR-13
 - Life calculation: Base 3 + VIT
 - Power calculation: WIL × 3
 - Defense calculation: Base defense from category + 2 if shield is active
+- HP to Life conversion:
+  * When HP is full, excess healing accumulates as temporary HP
+  * Temporary HP is displayed as an overlay on the heart icon
+  * When temporary HP reaches max HP, converts to 1 Life
+  * Conversion only occurs if Life is not at maximum
 
 ### Spell Management
 - Spell cost must be less than or equal to character's power
@@ -118,6 +127,11 @@ Rules:
   2. VIT must result in Life >= 1 (Life = 3 + VIT)
   3. All other stats have a minimum of -3
 - Power is calculated as (WIL × 3), clamped to minimum 0
+- HP to Life conversion:
+  * Excess healing accumulates as temporary HP
+  * Temporary HP is displayed as an overlay on the heart icon
+  * When temporary HP reaches max HP, converts to 1 Life
+  * Conversion only occurs if Life is not at maximum
 
 Examples:
 - VIT constraint by HP: VIT cannot be less than -2 (6 + (2 × -2) = 2 HP)
@@ -126,6 +140,9 @@ Examples:
 - Valid stat distribution: VIT -2, ATH -3, WIL -1 (total points: 3)
 - Invalid VIT value: VIT -3 (results in HP = 0 and Life = 0)
 - Power calculation: WIL -1 gives Power 0 (-3 clamped to 0)
+- HP to Life conversion: Healing at max HP (8) accumulates temporary HP
+  * After 8 heals at max HP, converts to 1 Life
+  * Temporary HP (4/8) shown as overlay on heart icon
 
 Dependencies: None
 

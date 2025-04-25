@@ -4,14 +4,15 @@ import '../models/character.dart';
 import '../models/def_category.dart';
 import '../theme/app_theme.dart';
 import 'shield_icon.dart';
+import 'heal_damage_controls.dart';
 
 class StatModifierRow extends StatefulWidget {
   final Character character;
   final double size;
   final DefCategory selectedDefense;
   final Function(DefCategory) onDefenseChanged;
-  final VoidCallback onHeal;
-  final VoidCallback onTakeDamage;
+  final Function(int) onHeal;
+  final Function(int) onTakeDamage;
 
   const StatModifierRow({
     super.key,
@@ -32,8 +33,8 @@ class _StatModifierRowState extends State<StatModifierRow> {
   late double size;
   late DefCategory selectedDefense;
   late Function(DefCategory) onDefenseChanged;
-  late VoidCallback onHeal;
-  late VoidCallback onTakeDamage;
+  late Function(int) onHeal;
+  late Function(int) onTakeDamage;
 
   @override
   void initState() {
@@ -46,59 +47,23 @@ class _StatModifierRowState extends State<StatModifierRow> {
     onTakeDamage = widget.onTakeDamage;
   }
 
-  void _handleHeal() {
-    onHeal();
-  }
-
-  void _handleDamage() {
-    onTakeDamage();
-  }
-
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isDead = character.isDead;
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        // Left column - Health buttons
+        // Left column - Health controls
         SizedBox(
           width: screenSize.width * 0.25,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildActionButton(
-                context: context,
-                icon: SvgPicture.asset(
-                  'assets/svg/health-increase.svg',
-                  width: 48,
-                  height: 48,
-                  colorFilter: const ColorFilter.mode(
-                    Colors.green,
-                    BlendMode.srcIn,
-                  ),
-                ),
-                onPressed: _handleHeal,
-                color: Colors.green,
-                enabled: !isDead,
-              ),
-              _buildActionButton(
-                context: context,
-                icon: SvgPicture.asset(
-                  'assets/svg/health-decrease.svg',
-                  width: 48,
-                  height: 48,
-                  colorFilter: const ColorFilter.mode(
-                    Colors.red,
-                    BlendMode.srcIn,
-                  ),
-                ),
-                onPressed: _handleDamage,
-                color: Colors.red,
-                enabled: !isDead,
-              ),
-            ],
+          child: Center(
+            child: HealDamageControls(
+              character: character,
+              onHeal: onHeal,
+              onTakeDamage: onTakeDamage,
+            ),
           ),
         ),
         // Center column - Shield icon
@@ -141,30 +106,6 @@ class _StatModifierRowState extends State<StatModifierRow> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildActionButton({
-    required BuildContext context,
-    required Widget icon,
-    required VoidCallback onPressed,
-    required Color color,
-    bool enabled = true,
-  }) {
-    return Container(
-      height: 80,
-      child: Center(
-        child: IconButton(
-          icon: Opacity(
-            opacity: enabled ? 1.0 : 0.5,
-            child: icon,
-          ),
-          onPressed: enabled ? onPressed : () {},
-          style: IconButton.styleFrom(
-            disabledForegroundColor: Colors.grey,
-          ),
-        ),
-      ),
     );
   }
 

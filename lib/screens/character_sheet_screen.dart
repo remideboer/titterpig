@@ -175,31 +175,16 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     );
   }
 
-  void _takeDamage() {
+  void _heal([int amount = 1]) {
     setState(() {
-      if (_character.hpStat.current > 0) {
-        // First try to reduce temp HP if available
-        if (_character.tempHp > 0) {
-          _character.tempHp--;
-        } else {
-          // If no temp HP, reduce actual HP
-          _character.hpStat =
-              _character.hpStat.copyWithCurrent(_character.hpStat.current - 1);
-        }
-      } else if (_character.lifeStat.current > 0) {
-        _character.decreaseLife();
-        if (_character.lifeStat.current == 0) {
-          _showDeathDialog();
-        }
-      }
-      _character.updateDerivedStats();
+      _character.heal(amount);
       _updateLastUsed();
     });
   }
 
-  void _heal() {
+  void _takeDamage([int amount = 1]) {
     setState(() {
-      _character.heal();
+      _character.takeDamage(amount);
       _updateLastUsed();
     });
   }
