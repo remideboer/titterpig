@@ -290,6 +290,7 @@ UI and Styling
 - Implement responsive design using LayoutBuilder or MediaQuery.
 - Use themes for consistent styling across the app.
 - Use Theme.of(context).textTheme.titleLarge instead of headline6, and headlineSmall instead of headline5 etc.
+- Use keys sparingly and only when necessary. Avoid using global keys whenever possible
 
 Model and Database Conventions
 - Include createdAt, updatedAt, and isDeleted fields in database tables.
