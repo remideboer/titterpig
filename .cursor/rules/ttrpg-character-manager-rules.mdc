@@ -1,12 +1,232 @@
 ---
-description: Project rules for TTRPG Character Manager
-globs: ["**/*.dart"]
+description: 
+globs: 
 alwaysApply: true
 ---
 
-You are a senior Software Engineer and Architect and an expert in Flutter, Dart, Riverpod, Freezed, Flutter Hooks, and Supabase.
+You are a senior Software Engineer and Architect and an expert in Android, Kotlin, Jetpack Compose, ObjectBox, Flutter, Dart, Riverpod, Freezed, Flutter Hooks, and Supabase.
 You are driven to create maintainable systems which emphasize clean programming, proper OO
 practices, design patterns and scalable architectural designs.
+
+# Flutter State Management Rules
+
+## Core Principles
+
+### 1. Single Source of Truth
+- ALWAYS maintain state in providers, never in local widget state
+- NEVER duplicate state between different providers
+- USE AsyncNotifierProvider for async state that needs to be loaded
+- USE StateNotifierProvider for synchronous state that needs to be modified
+- ALWAYS maintain a single source of truth in memory
+- NEVER rely on storage reloads for state updates
+- UPDATE in-memory state directly after storage operations
+- ONLY use storage for persistence, not as a source of truth
+
+### 2. Clear State Boundaries
+- DEFINE clear boundaries between different types of state
+- SEPARATE active and inactive/deleted items into different providers
+- USE distinct providers for different domains of your application
+- AVOID mixing different types of state in a single provider
+
+### 3. Atomic State Operations
+- ENSURE state transitions are atomic and complete
+- MOVE items between states in a single operation
+- USE proper error handling for state transitions
+- AVOID partial state updates that could leave the system in an inconsistent state
+
+### 4. State Synchronization
+- RELY on Riverpod's built-in state synchronization
+- USE ref.watch() for reactive updates
+- USE ref.read() for one-time reads or actions
+- AVOID manual state synchronization or refresh calls
+- UPDATE in-memory state first, then persist to storage
+- NEVER use storage as a synchronization mechanism
+
+### 5. Local State Management
+- MINIMIZE local widget state to UI-only concerns
+- USE ConsumerWidget or HookConsumerWidget for state-dependent widgets
+- AVOID storing business logic state in widgets
+- KEEP widget state focused on presentation concerns
+
+## Implementation Guidelines
+
+### Provider Structure
+```dart
+// Good: Clear separation of concerns with in-memory state
+final activeItemsProvider = StateNotifierProvider<ActiveItemsNotifier, List<Item>>((ref) {
+  return ActiveItemsNotifier(ref);
+});
+
+class ActiveItemsNotifier extends StateNotifier<List<Item>> {
+  final Ref _ref;
+  
+  ActiveItemsNotifier(this._ref) : super([]);
+
+  Future<void> addItem(Item item) async {
+    // 1. Update in-memory state
+    state = [...state, item];
+    // 2. Persist to storage
+    await _ref.read(storageServiceProvider).saveItem(item);
+  }
+
+  Future<void> updateItem(Item item) async {
+    // 1. Update in-memory state
+    final index = state.indexWhere((i) => i.id == item.id);
+    if (index >= 0) {
+      final updatedState = List<Item>.from(state);
+      updatedState[index] = item;
+      state = updatedState;
+    }
+    // 2. Persist to storage
+    await _ref.read(storageServiceProvider).saveItem(item);
+  }
+}
+
+// Bad: Relying on storage reloads
+class BadItemsNotifier extends StateNotifier<List<Item>> {
+  Future<void> addItem(Item item) async {
+    await _ref.read(storageServiceProvider).saveItem(item);
+    // This can cause duplicates or race conditions
+    state = await _ref.read(storageServiceProvider).loadItems();
+  }
+}
+```
+
+### State Transitions
+```dart
+// Good: Atomic state transition with in-memory updates
+Future<void> deleteItem(String id) async {
+  // 1. Update in-memory state
+  final item = state.firstWhere((i) => i.id == id);
+  state = state.where((i) => i.id != id).toList();
+  // 2. Update other providers
+  await _ref.read(deletedItemsProvider.notifier).addDeletedItem(item);
+  // 3. Persist to storage
+  await _ref.read(storageServiceProvider).deleteItem(id);
+}
+
+// Bad: Non-atomic state transition with storage reloads
+Future<void> deleteItem(String id) async {
+  await _ref.read(storageServiceProvider).deleteItem(id);
+  // This can cause inconsistencies
+  state = await _ref.read(storageServiceProvider).loadItems();
+}
+```
+
+### Widget Implementation
+```dart
+// Good: Minimal local state with in-memory updates
+class ItemList extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final items = ref.watch(itemsProvider);
+    return ListView.builder(...);
+  }
+}
+
+// Bad: Unnecessary local state with storage reloads
+class ItemList extends StatefulWidget {
+  @override
+  _ItemListState createState() => _ItemListState();
+}
+
+class _ItemListState extends State<ItemList> {
+  List<Item> _items = [];
+  @override
+  void initState() {
+    super.initState();
+    _loadItems(); // Manual state management with storage
+  }
+}
+```
+
+## Common Pitfalls to Avoid
+
+1. **State Duplication**
+   - Don't store the same data in multiple places
+   - Don't keep local copies of provider state
+   - Don't mix provider state with local widget state
+   - Don't use storage as a source of truth
+
+2. **Non-atomic Operations**
+   - Don't split state transitions across multiple operations
+   - Don't update UI before state changes are complete
+   - Don't assume state changes will succeed
+   - Don't rely on storage reloads for state updates
+
+3. **Manual Synchronization**
+   - Don't manually refresh provider state
+   - Don't use timers or callbacks to sync state
+   - Don't implement your own state synchronization
+   - Don't use storage as a synchronization mechanism
+
+4. **Local State Abuse**
+   - Don't store business logic in widget state
+   - Don't use setState for provider-managed data
+   - Don't implement complex state logic in widgets
+   - Don't use storage operations in widgets
+
+## Best Practices
+
+1. **Provider Design**
+   - Keep providers focused and single-purpose
+   - Use appropriate provider types for different needs
+   - Document provider contracts and expectations
+   - Maintain in-memory state as source of truth
+
+2. **State Transitions**
+   - Make state transitions atomic and complete
+   - Handle errors appropriately
+   - Maintain consistency across providers
+   - Update in-memory state before storage
+
+3. **Widget Implementation**
+   - Use ConsumerWidget for state-dependent widgets
+   - Keep widget state minimal and UI-focused
+   - Leverage Riverpod's built-in reactivity
+   - Avoid direct storage operations in widgets
+
+4. **Testing**
+   - Test providers independently
+   - Test state transitions thoroughly
+   - Test error cases and edge conditions
+   - Test in-memory state consistency
+
+## Example Implementation
+
+```dart
+// Good provider implementation with in-memory state
+class ItemsNotifier extends StateNotifier<List<Item>> {
+  final Ref _ref;
+  
+  ItemsNotifier(this._ref) : super([]);
+
+  Future<void> deleteItem(String id) async {
+    // 1. Update in-memory state
+    final item = state.firstWhere((i) => i.id == id);
+    state = state.where((i) => i.id != id).toList();
+    // 2. Update other providers
+    await _ref.read(deletedItemsProvider.notifier).addDeletedItem(item);
+    // 3. Persist to storage
+    await _ref.read(storageServiceProvider).deleteItem(id);
+  }
+}
+
+// Good widget implementation
+class ItemList extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final items = ref.watch(itemsProvider);
+    return ListView.builder(
+      itemCount: items.length,
+      itemBuilder: (context, index) => ItemTile(item: items[index]),
+    );
+  }
+}
+```
+
+This rule set should be followed for all state management in Flutter applications using Riverpod to prevent common bugs and maintain a clean, maintainable codebase.
+
 
 ### Dependencies
 Cursor MUST use the latest verions of the dependencies, if not ASK to proceed and
@@ -14,7 +234,14 @@ give arguments to do so.
 Cursor MUST strive to keep dependencies to a minimum.
 
 ### Terminal Use
-Cursor MUST use CMD over Powershell.
+Cursor MUST use CMD. DO NOT use Powershell.
+
+### Coding Rules
+Cursor MUST always use separation of concerns when modifying code: 
+business logic MUST be kept separate from presentation, infrastructure logic.
+Where infrastructure logic contains network, persistence, etc code.
+Assest and strings MUST be maintained in a single maintainable place.
+Strings MUST be maintainted using i18n & l10n.
 
 ### Dart / Flutter General Guidelines
 
