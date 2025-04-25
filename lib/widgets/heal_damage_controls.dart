@@ -52,7 +52,7 @@ class _HealDamageControlsState extends State<HealDamageControls> {
     required Color color,
     bool enabled = true,
   }) {
-    return Container(
+    return SizedBox(
       height: 40,
       child: Center(
         child: IconButton(
