@@ -187,6 +187,10 @@ class Character {
       return;
     }
     amount -= def;
+    // when take damage reset _tempHpToLife to 0
+    if (_life.current < _life.max) {
+      _tempHpToLife = 0;
+    }
     // this basically keeps subtracting 1 from each value pool till end amount
     // though it should only subtract life once, so break looks strange
     // but alternative is a bunch of nested if statements with double conditions
