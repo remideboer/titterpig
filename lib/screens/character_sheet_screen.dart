@@ -542,6 +542,13 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                   },
                   onHeal: _heal,
                   onTakeDamage: _takeDamage,
+                  onShieldToggled: (hasShield) {
+                    setState(() {
+                      _character.hasShield = hasShield;
+                      _character.updateDerivedStats();
+                      _updateLastUsed();
+                    });
+                  },
                 ),
               ),
               const SizedBox(height: 24),

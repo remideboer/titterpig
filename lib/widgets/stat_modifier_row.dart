@@ -4,6 +4,7 @@ import '../models/def_category.dart';
 import '../theme/app_theme.dart';
 import 'shield_icon.dart';
 import 'heal_damage_controls.dart';
+import 'shield_toggle_button.dart';
 
 class StatModifierRow extends StatefulWidget {
   final Character character;
@@ -12,6 +13,7 @@ class StatModifierRow extends StatefulWidget {
   final Function(DefCategory) onDefenseChanged;
   final Function(int) onHeal;
   final Function(int) onTakeDamage;
+  final Function(bool) onShieldToggled;
 
   const StatModifierRow({
     super.key,
@@ -21,6 +23,7 @@ class StatModifierRow extends StatefulWidget {
     required this.onDefenseChanged,
     required this.onHeal,
     required this.onTakeDamage,
+    required this.onShieldToggled,
   });
 
   @override
@@ -34,6 +37,7 @@ class _StatModifierRowState extends State<StatModifierRow> {
   late Function(DefCategory) onDefenseChanged;
   late Function(int) onHeal;
   late Function(int) onTakeDamage;
+  late Function(bool) onShieldToggled;
 
   @override
   void initState() {
@@ -44,6 +48,7 @@ class _StatModifierRowState extends State<StatModifierRow> {
     onDefenseChanged = widget.onDefenseChanged;
     onHeal = widget.onHeal;
     onTakeDamage = widget.onTakeDamage;
+    onShieldToggled = widget.onShieldToggled;
   }
 
   @override
@@ -75,11 +80,21 @@ class _StatModifierRowState extends State<StatModifierRow> {
             ),
           ),
         ),
-        // Center column - Shield icon
+        // Center column - Shield icon and toggle
         SizedBox(
           width: screenSize.width * 0.25,
-          child: Center(
-            child: _buildShieldIcon(context, isDead ? null : character.def, size),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildShieldIcon(context, isDead ? null : character.def, size),
+              const SizedBox(height: 8),
+              ShieldToggleButton(
+                isSelected: character.hasShield,
+                isDead: isDead,
+                onPressed: () => onShieldToggled(!character.hasShield),
+                size: size * 0.5,
+              ),
+            ],
           ),
         ),
         // Right column - Defense circles
