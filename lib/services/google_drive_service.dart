@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:ttrpg_character_manager/services/google_auth_client.dart';

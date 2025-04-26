@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../models/character.dart';
 import '../models/def_category.dart';
 import '../theme/app_theme.dart';

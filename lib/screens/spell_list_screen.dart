@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../models/spell.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 import '../widgets/spell_list_item.dart';
-import 'spell_edit_screen.dart';
 
 class SpellListScreen extends StatelessWidget {
   final void Function(List<Spell>) onSpellsChanged;

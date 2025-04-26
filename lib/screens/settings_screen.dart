@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../theme/app_theme.dart';
 import '../utils/sound_manager.dart';
 import 'settings/sync_settings_screen.dart';
 import '../services/sync_service.dart';

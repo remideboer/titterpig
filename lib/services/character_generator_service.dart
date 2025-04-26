@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ttrpg_character_manager/models/character.dart';
 import 'package:ttrpg_character_manager/services/character_service.dart';
 import 'package:ttrpg_character_manager/models/species.dart';

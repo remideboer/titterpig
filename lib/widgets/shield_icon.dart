@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'single_value_icon.dart';
 import '../theme/app_theme.dart';
 

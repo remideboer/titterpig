@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models/character.dart';
-import '../theme/app_theme.dart';
 import 'heal_damage_input.dart';
 
 class HealDamageControls extends StatefulWidget {

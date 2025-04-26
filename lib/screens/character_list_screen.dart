@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../models/character.dart';
 import '../repositories/local_character_repository.dart';
-import '../theme/app_theme.dart';
 import '../viewmodels/character_list_viewmodel.dart';
 import 'character_creation_screen.dart';
 import 'character_sheet_screen.dart';
-import '../utils/name_formatter.dart';
 import '../widgets/character_list_item.dart';
 
 enum SortOption {

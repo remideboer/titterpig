@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/spell.dart';
-import '../models/character.dart';
 import '../widgets/hexagon_shape.dart';
 import '../theme/app_theme.dart';
-import '../repositories/local_character_repository.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 import '../widgets/spell_list_item.dart';
 import '../widgets/cost_range_slider.dart';
 import '../widgets/spell_type_filter.dart';
-import 'spell_detail_screen.dart';
 
 class SpellSelectionScreen extends StatefulWidget {
   final Function(List<Spell>) onSpellsChanged;

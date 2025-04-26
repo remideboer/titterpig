@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'character_sheet_screen.dart';
 import 'character_list_screen.dart';
-import 'spell_list_screen.dart';
 import 'spells_admin_screen.dart';
 import 'settings_screen.dart';
 import '../models/character.dart';
 import '../repositories/local_character_repository.dart';
 import '../repositories/last_selected_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../theme/app_theme.dart';
 
 class MainScreen extends StatefulWidget {
   final Function(bool) onThemeChanged;
