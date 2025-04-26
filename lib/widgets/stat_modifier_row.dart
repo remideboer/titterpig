@@ -151,6 +151,7 @@ class _StatModifierRowState extends State<StatModifierRow> {
               size: size,
               value: value ?? 0,
               color: isDead ? Colors.grey : null,
+              defCategory: character.defCategory,
             ),
           ),
           // const SizedBox(height: 4),
