@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import 'package:ttrpg_character_manager/widgets/animated_dice.dart';
 
 import '../models/character.dart';
@@ -27,6 +28,8 @@ import 'character_creation_screen.dart';
 import 'spell_selection_screen.dart';
 import '../widgets/secondary_stats_row.dart';
 import '../widgets/stat_modifier_row.dart';
+import '../widgets/avatar_selector.dart';
+import '../viewmodels/character_list_viewmodel.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -253,6 +256,83 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     });
   }
 
+  void _showAvatarSelector() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Select Avatar',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              AvatarSelector(
+                initialAvatarPath: _character.avatarPath,
+                onAvatarSelected: (path) async {
+                  if (path != null) {
+                    // Create updated character
+                    final updatedCharacter = Character(
+                      id: _character.id,
+                      name: _character.name,
+                      species: _character.species,
+                      vit: _character.vit,
+                      ath: _character.ath,
+                      wil: _character.wil,
+                      avatarPath: path,
+                      tempHp: _character.tempHp,
+                      defCategory: _character.defCategory,
+                      hasShield: _character.hasShield,
+                      spells: _character.spells,
+                      sessionLog: _character.sessionLog,
+                      notes: _character.notes,
+                      xp: _character.xp,
+                      createdAt: _character.createdAt,
+                      lastUsed: DateTime.now(),
+                      background: _character.background,
+                    );
+
+                    // Update in repository
+                    await _repository.updateCharacter(updatedCharacter);
+
+                    // Update local state
+                    setState(() {
+                      _character = updatedCharacter;
+                    });
+
+                    // Update last used timestamp
+                    await _updateLastUsed();
+
+                    // Notify parent widget and trigger character list reload
+                    if (widget.onCharacterUpdated != null) {
+                      widget.onCharacterUpdated!(updatedCharacter);
+                    }
+
+                    // Force a reload of the character list
+                    if (mounted) {
+                      final viewModel = context.read<CharacterListViewModel>();
+                      await viewModel.loadCharacters();
+                    }
+                  }
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+                size: 150,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -355,40 +435,43 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                       child: isDead ? Container() : null,
                     ),
                     // Center avatar
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Theme.of(context).colorScheme.surface,
-                        border: Border.all(
-                          color: isDead ? Colors.grey.withOpacity(0.5) : Theme.of(context).colorScheme.primary,
-                          width: 2,
+                    GestureDetector(
+                      onTap: isDead ? null : () => _showAvatarSelector(),
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Theme.of(context).colorScheme.surface,
+                          border: Border.all(
+                            color: isDead ? Colors.grey.withOpacity(0.5) : Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          ),
                         ),
-                      ),
-                      child: ClipOval(
-                        child: _character.avatarPath != null
-                            ? ColorFiltered(
-                                colorFilter: isDead
-                                    ? const ColorFilter.matrix([
-                                        0.2126, 0.7152, 0.0722, 0, 0,
-                                        0.2126, 0.7152, 0.0722, 0, 0,
-                                        0.2126, 0.7152, 0.0722, 0, 0,
-                                        0, 0, 0, 1, 0,
-                                      ])
-                                    : const ColorFilter.mode(
-                                        Colors.transparent,
-                                        BlendMode.srcOver,
-                                      ),
-                                child: Image.file(
-                                  File(_character.avatarPath!),
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return _buildDefaultAvatar();
-                                  },
-                                ),
-                              )
-                            : _buildDefaultAvatar(),
+                        child: ClipOval(
+                          child: _character.avatarPath != null
+                              ? ColorFiltered(
+                                  colorFilter: isDead
+                                      ? const ColorFilter.matrix([
+                                          0.2126, 0.7152, 0.0722, 0, 0,
+                                          0.2126, 0.7152, 0.0722, 0, 0,
+                                          0.2126, 0.7152, 0.0722, 0, 0,
+                                          0, 0, 0, 1, 0,
+                                        ])
+                                      : const ColorFilter.mode(
+                                          Colors.transparent,
+                                          BlendMode.srcOver,
+                                        ),
+                                  child: Image.file(
+                                    File(_character.avatarPath!),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return _buildDefaultAvatar();
+                                    },
+                                  ),
+                                )
+                              : _buildDefaultAvatar(),
+                        ),
                       ),
                     ),
                     // Right side - resurrect button or placeholder

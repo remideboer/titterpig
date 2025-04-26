@@ -68,6 +68,21 @@ Acceptance Criteria:
 
 Related Business Rules: BR-13
 
+Story ID: JS-49
+When I am on the main character screen
+I want to be able to change my avatar by clicking on it
+So that I can update my character's appearance without going to the edit screen
+
+Acceptance Criteria:
+1. Avatar is clickable in the main character screen
+2. Clicking the avatar opens the avatar selector dialog
+3. New avatar selection is immediately visible in the main screen
+4. Changes are persisted and visible in the character list
+5. Avatar changes are synchronized across all views
+6. Dead characters cannot change their avatar
+
+Related Business Rules: None
+
 ## Business Rules
 
 ### Character Creation
