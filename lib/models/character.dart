@@ -72,8 +72,10 @@ class Character {
     _hp = StatValue.full(newHp < 2 ? 2 : newHp);
     _life = StatValue.full(newLife);
     _power = StatValue.full(newPower < minPower ? minPower : newPower);
-    def = this.defCategory.defValue + (hasShield ? 2 : 0);
+    def = _defUpdate();
   }
+
+  int _defUpdate() => defCategory.defValue + (hasShield ? 2 : 0);
 
   // Getters for the stat values
   StatValue get hpStat => _hp;
@@ -123,20 +125,6 @@ class Character {
     def = defCategory.defValue + (hasShield ? 2 : 0);
   }
 
-  // Decrease life by 1, but not below 0
-  void decreaseLife() {
-    if (_life.current > 0) {
-      _life = _life.copyWithCurrent(_life.current - 1);
-    }
-  }
-
-  // Increase life by 1, but not above maxLife
-  void increaseLife() {
-    if (_life.current < _life.max) {
-      _life = _life.copyWithCurrent(_life.current + 1);
-    }
-  }
-
   /// Returns true if the character is dead (LIFE stat is 0)
   bool get isDead => lifeStat.current == 0;
 
@@ -150,17 +138,6 @@ class Character {
     updateDerivedStats();
   }
 
-  // Add new method to handle HP to LIFE conversion
-  void addHpToLife() {
-    if (_tempHpToLife >= _hp.max) {
-      if (_life.current < _life.max) {
-        _life = _life.copyWithCurrent(_life.current + 1);
-        _tempHpToLife -= _hp.max;
-      }
-    }
-  }
-
-  // Modify heal method to handle new behavior
   void heal([int amount = 1]) {
     for (int i = 0; i < amount; i++) {
       // First try to heal HP if not at max
@@ -205,18 +182,6 @@ class Character {
         break; // do only once
       }
     }
-    updateDerivedStats();
-  }
-
-  // Add method to add temporary HP
-  void addTempHp([int amount = 1]) {
-    _tempHp += amount;
-    updateDerivedStats();
-  }
-
-  // Add method to clear temporary HP
-  void clearTempHp() {
-    _tempHp = 0;
     updateDerivedStats();
   }
 
@@ -386,90 +351,4 @@ class Character {
     }
     updateDerivedStats();
   }
-
-  void addSpell(Spell spell) {
-    final spellLimit = SpellLimitCalculator.calculateSpellLimit(wil);
-    if (_spells.length < spellLimit && !_spells.any((s) => s.versionId == spell.versionId)) {
-      _spells.add(spell);
-      updateDerivedStats();
-    }
-  }
-
-  void removeSpell(Spell spell) {
-    _spells.removeWhere((s) => s.versionId == spell.versionId);
-    updateDerivedStats();
-  }
-
-  void updateSpells(List<Spell> updatedSpells) {
-    final spellLimit = SpellLimitCalculator.calculateSpellLimit(wil);
-    final Map<String, Spell> currentMap = {
-      for (var spell in _spells) spell.name: spell
-    };
-    
-    _spells = updatedSpells.where((spell) {
-      final currentSpell = currentMap[spell.name];
-      return currentSpell == null || spell.isNewerThan(currentSpell);
-    }).toList();
-
-    if (_spells.length > spellLimit) {
-      _spells = _spells.sublist(0, spellLimit);
-    }
-    
-    updateDerivedStats();
-  }
 }
-
-class StatBlock {
-  int ath;
-  int dex;
-  int intel;
-  int cha;
-
-  StatBlock({
-    required this.ath,
-    required this.dex,
-    required this.intel,
-    required this.cha,
-  });
-
-  int get totalPoints => ath + dex + intel + cha;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'ath': ath,
-      'dex': dex,
-      'intel': intel,
-      'cha': cha,
-    };
-  }
-
-  factory StatBlock.fromJson(Map<String, dynamic> json) {
-    return StatBlock(
-      ath: json['ath'],
-      dex: json['dex'],
-      intel: json['intel'],
-      cha: json['cha'],
-    );
-  }
-}
-
-class LifeStat {
-  int max;
-  int current;
-
-  LifeStat({required this.max, required this.current});
-
-  Map<String, dynamic> toJson() {
-    return {
-      'max': max,
-      'current': current,
-    };
-  }
-
-  factory LifeStat.fromJson(Map<String, dynamic> json) {
-    return LifeStat(
-      max: json['max'],
-      current: json['current'],
-    );
-  }
-} 
