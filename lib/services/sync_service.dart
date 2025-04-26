@@ -6,6 +6,7 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/character.dart';
 import '../repositories/character_repository.dart';
+import '../repositories/google_drive_character_repository.dart';
 import 'google_auth_client.dart';
 import '../repositories/mappers/character_mapper.dart';
 
@@ -16,7 +17,8 @@ class SyncService extends ChangeNotifier {
   
   final GoogleSignIn _googleSignIn;
   final SharedPreferences _prefs;
-  final CharacterRepository _characterRepo;
+  final CharacterRepository _localRepo;
+  final GoogleDriveCharacterRepository _cloudRepo;
   
   drive.DriveApi? _driveApi;
   String? _appFolderId;
@@ -28,19 +30,21 @@ class SyncService extends ChangeNotifier {
   SyncService({
     required GoogleSignIn googleSignIn,
     required SharedPreferences prefs,
-    required CharacterRepository characterRepo,
+    required CharacterRepository localRepo,
+    required GoogleDriveCharacterRepository cloudRepo,
   }) : _googleSignIn = googleSignIn,
        _prefs = prefs,
-       _characterRepo = characterRepo {
+       _localRepo = localRepo,
+       _cloudRepo = cloudRepo {
     _lastSyncTime = _getLastSyncTime();
-    // Listen to character repository changes
-    _characterRepo.addListener(_onRepositoryChanged);
+    // Listen to local repository changes
+    _localRepo.addListener(_onRepositoryChanged);
   }
   
   @override
   void dispose() {
     _syncDebouncer?.cancel();
-    _characterRepo.removeListener(_onRepositoryChanged);
+    _localRepo.removeListener(_onRepositoryChanged);
     super.dispose();
   }
   
@@ -240,10 +244,10 @@ class SyncService extends ChangeNotifier {
     if (_driveApi == null || _appFolderId == null) return;
     
     // Get local characters
-    final localCharacters = await _characterRepo.getAllCharacters();
+    final localCharacters = await _localRepo.getAllCharacters();
     
     // Get remote characters
-    final remoteCharacters = await _getRemoteCharacters();
+    final remoteCharacters = await _cloudRepo.getAllCharacters();
     
     // Merge characters
     final mergedCharacters = _mergeCharacterLists(
@@ -252,69 +256,13 @@ class SyncService extends ChangeNotifier {
     );
     
     // Update local storage
-    await _characterRepo.updateCharacters(mergedCharacters);
+    await _localRepo.updateCharacters(mergedCharacters);
     
     // Update remote storage
-    await _updateRemoteCharacters(mergedCharacters);
+    await _cloudRepo.updateCharacters(mergedCharacters);
     
     // Update last sync time
     await _updateLastSyncTime(DateTime.now());
-  }
-  
-  Future<List<Character>> _getRemoteCharacters() async {
-    if (_driveApi == null || _appFolderId == null) return [];
-    
-    final result = await _driveApi!.files.list(
-      q: "'$_appFolderId' in parents",
-      spaces: 'drive',
-    );
-    
-    final characters = <Character>[];
-    for (final file in result.files ?? []) {
-      final content = await _driveApi!.files.get(
-        file.id!,
-        downloadOptions: drive.DownloadOptions.fullMedia,
-      ) as drive.Media;
-      
-      final jsonString = await content.stream
-        .transform(const Utf8Decoder())
-        .join();
-      
-      final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
-      characters.add(CharacterMapper.fromJson(jsonMap));
-    }
-    
-    return characters;
-  }
-  
-  Future<void> _updateRemoteCharacters(List<Character> characters) async {
-    if (_driveApi == null || _appFolderId == null) return;
-    
-    // Delete existing files
-    final existing = await _driveApi!.files.list(
-      q: "'$_appFolderId' in parents",
-      spaces: 'drive',
-    );
-    
-    for (final file in existing.files ?? []) {
-      await _driveApi!.files.delete(file.id!);
-    }
-    
-    // Upload new files
-    for (final character in characters) {
-      final content = jsonEncode(CharacterMapper.toJson(character));
-      final file = drive.File()
-        ..name = '${character.id}.json'
-        ..parents = [_appFolderId!];
-      
-      await _driveApi!.files.create(
-        file,
-        uploadMedia: drive.Media(
-          Stream.fromIterable([const Utf8Encoder().convert(content)]),
-          content.length,
-        ),
-      );
-    }
   }
   
   List<Character> _mergeCharacterLists(

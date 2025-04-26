@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as provider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
+import 'dart:convert';
+import 'package:flutter/services.dart';
+import 'services/google_auth_client.dart';
 import 'screens/main_screen.dart';
 import 'viewmodels/character_list_viewmodel.dart';
 import 'viewmodels/spell_list_viewmodel.dart';
 import 'repositories/spell_repository.dart';
 import 'repositories/local_character_repository.dart';
+import 'repositories/google_drive_character_repository.dart';
 import 'services/sync_service.dart';
 import 'theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,19 +21,34 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final isDarkMode = prefs.getBool('isDarkMode') ?? false;
   
+  // Load Google credentials
+  final credentialsJson = await rootBundle.loadString('assets/credentials/client_id.json');
+  final credentials = jsonDecode(credentialsJson);
+  
   // Initialize services
-  final characterRepo = LocalCharacterRepository();
+  final localRepo = LocalCharacterRepository();
   final googleSignIn = GoogleSignIn(
     scopes: [
       'email',
       'https://www.googleapis.com/auth/drive.file',
     ],
+    clientId: credentials['client_id'],
+    serverClientId: credentials['server_client_id'],
+  );
+  
+  // Initialize Google Drive API
+  final auth = await googleSignIn.signInSilently();
+  final driveApi = drive.DriveApi(GoogleAuthClient(await auth?.authHeaders ?? {}));
+  final cloudRepo = GoogleDriveCharacterRepository(
+    googleSignIn: googleSignIn,
+    driveApi: driveApi,
   );
   
   final syncService = SyncService(
     googleSignIn: googleSignIn,
     prefs: prefs,
-    characterRepo: characterRepo,
+    localRepo: localRepo,
+    cloudRepo: cloudRepo,
   );
   
   runApp(
