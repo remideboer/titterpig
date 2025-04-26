@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/app_theme.dart';
-import 'shield_icon.dart';
 
 class ShieldToggleButton extends StatelessWidget {
   final bool isSelected;
@@ -24,7 +24,10 @@ class ShieldToggleButton extends StatelessWidget {
         : (isSelected ? AppTheme.highlightColor : Colors.transparent);
     final borderColor = isDead 
         ? Colors.grey 
-        : (isSelected ? AppTheme.accentColor : AppTheme.primaryColor);
+        : (isSelected ? AppTheme.primaryColor : Colors.grey);
+    final iconColor = isDead 
+        ? Colors.grey 
+        : (isSelected ? AppTheme.valueDisplayColor : Colors.grey);
 
     return IconButton(
       icon: Stack(
@@ -42,10 +45,14 @@ class ShieldToggleButton extends StatelessWidget {
           // Shield icon
           Opacity(
             opacity: isDead ? 0.5 : 1.0,
-            child: ShieldIcon(
-              size: size * 0.6,
-              value: 1,
-              color: isDead ? Colors.grey : (isSelected ? Colors.white : AppTheme.primaryColor),
+            child: SvgPicture.asset(
+              'assets/svg/shield.svg',
+              width: size * 0.6,
+              height: size * 0.6,
+              colorFilter: ColorFilter.mode(
+                iconColor,
+                BlendMode.srcIn,
+              ),
             ),
           ),
         ],
