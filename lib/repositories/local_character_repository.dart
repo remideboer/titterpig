@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import '../models/character.dart';
+import '../mappers/character_mapper.dart';
 import 'character_repository.dart';
 import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,7 +30,7 @@ class LocalCharacterRepository extends ChangeNotifier implements CharacterReposi
       final charactersJson = prefs.getStringList(_charactersKey);
       if (charactersJson != null) {
         _characters = charactersJson
-            .map((json) => Character.fromJson(jsonDecode(json)))
+            .map((json) => CharacterMapper.fromJson(jsonDecode(json)))
             .toList();
       } else {
         // Try to load from old format (single JSON string)
@@ -38,7 +39,7 @@ class LocalCharacterRepository extends ChangeNotifier implements CharacterReposi
           if (_debug) print('Loading characters from old format');
           final List<dynamic> jsonList = jsonDecode(oldFormatJson);
           _characters = jsonList
-              .map((json) => Character.fromJson(json))
+              .map((json) => CharacterMapper.fromJson(json))
               .toList();
           // Migrate to new format
           await _saveCharacters();
@@ -126,7 +127,7 @@ class LocalCharacterRepository extends ChangeNotifier implements CharacterReposi
     try {
       final prefs = await SharedPreferences.getInstance();
       final charactersJson = _characters
-          .map((character) => jsonEncode(character.toJson()))
+          .map((character) => jsonEncode(CharacterMapper.toJson(character)))
           .toList();
       
       await prefs.setStringList(_charactersKey, charactersJson);

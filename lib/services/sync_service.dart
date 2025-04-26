@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/character.dart';
 import '../repositories/character_repository.dart';
 import 'google_auth_client.dart';
+import '../mappers/character_mapper.dart';
 
 class SyncService extends ChangeNotifier {
   static const String _prefSyncEnabled = 'sync_enabled';
@@ -280,7 +281,7 @@ class SyncService extends ChangeNotifier {
         .join();
       
       final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
-      characters.add(Character.fromJson(jsonMap));
+      characters.add(CharacterMapper.fromJson(jsonMap));
     }
     
     return characters;
@@ -301,7 +302,7 @@ class SyncService extends ChangeNotifier {
     
     // Upload new files
     for (final character in characters) {
-      final content = jsonEncode(character.toJson());
+      final content = jsonEncode(CharacterMapper.toJson(character));
       final file = drive.File()
         ..name = '${character.id}.json'
         ..parents = [_appFolderId!];

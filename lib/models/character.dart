@@ -2,8 +2,6 @@ import 'spell.dart';
 import 'stat_value.dart';
 import 'species.dart';
 import 'background.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../repositories/spell_repository.dart';
 import 'def_category.dart';
 import '../utils/spell_limit_calculator.dart';
 import 'package:flutter/foundation.dart';
@@ -12,7 +10,6 @@ class Character {
   static const int baseHp = 6;
   static const int hpPerVit = 2;
   static const int baseLife = 3;
-  static const int currentSaveVersion = 2; // Increment this when making breaking changes to the save format
   static const int minPower = 0; // Minimum power value
 
   final String id;
@@ -83,6 +80,7 @@ class Character {
   StatValue get lifeStat => _life;
   set lifeStat(StatValue value) => _life = value;
   StatValue get powerStat => _power;
+  set powerStat(StatValue value) => _power = value;
 
   // Getters for backward compatibility
   int get hp => _hp.max;
@@ -183,120 +181,6 @@ class Character {
       }
     }
     updateDerivedStats();
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'version': currentSaveVersion,
-      'id': id,
-      'name': name,
-      'species': species.toJson(),
-      'vit': vit,
-      'ath': ath,
-      'wil': wil,
-      'avatarPath': avatarPath,
-      'tempHp': _tempHp,
-      'tempHpToLife': _tempHpToLife,  // Add new field
-      'hp': _hp.max,
-      'currentLife': _life.current,
-      'maxLife': _life.max,
-      'power': _power.max,
-      'availablePower': _power.current,
-      'def': def,
-      'defCategory': defCategory.index,
-      'hasShield': hasShield,
-      'spells': _spells.map((s) => s.toJson()).toList(),
-      'sessionLog': sessionLog,
-      'notes': notes,
-      'xp': _xp,
-      'createdAt': createdAt.toIso8601String(),
-      'lastUsed': lastUsed.toIso8601String(),
-      'background': background?.toJson(),
-    };
-  }
-
-  factory Character.fromJson(Map<String, dynamic> json) {
-    // Check save version
-    final saveVersion = json['version'] as int? ?? 1; // Default to 1 for old saves
-    if (saveVersion > currentSaveVersion) {
-      throw FormatException(
-        'This character was saved with a newer version of the app (v$saveVersion). '
-        'Please update the app to load this character.'
-      );
-    }
-
-    // Helper function to safely convert to int
-    int safeToInt(dynamic value) {
-      if (value is int) return value;
-      if (value is String) return int.tryParse(value) ?? 0;
-      if (value is num) return value.toInt();
-      return 0;
-    }
-
-    // Helper function to safely convert to DateTime
-    DateTime safeToDateTime(dynamic value) {
-      if (value is String) {
-        return DateTime.tryParse(value) ?? DateTime.now();
-      }
-      return DateTime.now();
-    }
-
-    // Helper function to safely convert spells
-    List<Spell> safeToSpells(dynamic value) {
-      if (value is List) {
-        return value.map((s) => Spell.fromJson(s)).toList();
-      }
-      return [];
-    }
-
-    // Handle both string and Map species formats
-    Species species;
-    if (json['species'] is String) {
-      // Old format: species is a string
-      species = Species(
-        name: json['species'] as String,
-        icon: '${json['species'].toString().toLowerCase()}-face.svg',
-      );
-    } else {
-      // New format: species is a Map
-      species = Species.fromJson(json['species'] as Map<String, dynamic>);
-    }
-
-    final character = Character(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      species: species,
-      vit: safeToInt(json['vit']),
-      ath: safeToInt(json['ath']),
-      wil: safeToInt(json['wil']),
-      avatarPath: json['avatarPath'] as String?,
-      tempHp: safeToInt(json['tempHp']),
-      tempHpToLife: safeToInt(json['tempHpToLife']),  // Add new parameter
-      defCategory: DefCategory.values[safeToInt(json['defCategory'])],
-      hasShield: json['hasShield'] as bool? ?? false,
-      spells: safeToSpells(json['spells']),
-      sessionLog: List<String>.from(json['sessionLog'] ?? []),
-      notes: json['notes'] as String? ?? '',
-      xp: safeToInt(json['xp']),
-      createdAt: safeToDateTime(json['createdAt']),
-      lastUsed: safeToDateTime(json['lastUsed']),
-      background: json['background'] != null 
-          ? Background.fromJson(json['background'] as Map<String, dynamic>)
-          : null,
-    );
-    
-    // Initialize stat values from JSON
-    character._life = StatValue(
-      current: safeToInt(json['currentLife'] ?? json['life'] ?? (Character.baseLife + safeToInt(json['vit']))),
-      max: safeToInt(json['maxLife'] ?? json['life'] ?? (Character.baseLife + safeToInt(json['vit'])))
-    );
-    
-    character._power = StatValue(
-      current: safeToInt(json['availablePower'] ?? json['power']),
-      max: safeToInt(json['power'])
-    );
-    
-    return character;
   }
 
   Character copyWith({
