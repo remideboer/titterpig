@@ -1,10 +1,10 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/character.dart';
-import '../models/spell.dart';
-import '../models/stat_value.dart';
-import '../models/species.dart';
-import '../models/background.dart';
-import '../models/def_category.dart';
+import '../../models/character.dart';
+import '../../models/spell.dart';
+import '../../models/stat_value.dart';
+import '../../models/species.dart';
+import '../../models/background.dart';
+import '../../models/def_category.dart';
 
 class CharacterMapper {
   static const int currentSaveVersion = 2;

@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/character.dart';
 import '../repositories/character_repository.dart';
 import 'google_auth_client.dart';
-import '../mappers/character_mapper.dart';
+import '../repositories/mappers/character_mapper.dart';
 
 class SyncService extends ChangeNotifier {
   static const String _prefSyncEnabled = 'sync_enabled';

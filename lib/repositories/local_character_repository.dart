@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import '../models/character.dart';
-import '../mappers/character_mapper.dart';
+import 'mappers/character_mapper.dart';
 import 'character_repository.dart';
 import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,7 +49,7 @@ class LocalCharacterRepository extends ChangeNotifier implements CharacterReposi
         }
       }
     } catch (e) {
-      print('Error loading characters: $e');
+      if (_debug) print('Error loading characters: $e');
       // Reset to empty list if there's any error
       _characters = [];
       // Clear potentially corrupted data
