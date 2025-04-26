@@ -21,13 +21,13 @@ class ShieldToggleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final backgroundColor = isDead 
         ? Colors.grey.withOpacity(0.3)
-        : (isSelected ? AppTheme.highlightColor : Colors.transparent);
+        : (isSelected ? AppTheme.highlightColor : Colors.grey);
     final borderColor = isDead 
         ? Colors.grey 
-        : (isSelected ? AppTheme.primaryColor : Colors.grey);
+        : (isSelected ? AppTheme.primaryColor : Colors.white60);
     final iconColor = isDead 
         ? Colors.grey 
-        : (isSelected ? AppTheme.valueDisplayColor : Colors.grey);
+        : (isSelected ? AppTheme.primaryColor : Colors.white60);
 
     return IconButton(
       icon: Stack(

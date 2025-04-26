@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'single_value_icon.dart';
 import '../theme/app_theme.dart';
 
-class ShieldIcon extends StatelessWidget {
+class DefenseIcon extends StatelessWidget {
   final double size;
   final int value;
   final Color? color;
 
-  const ShieldIcon({
+  const DefenseIcon({
     super.key,
     required this.size,
     required this.value,
@@ -17,7 +17,7 @@ class ShieldIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleValueIcon(
-      svgAsset: 'assets/svg/shield.svg',
+      svgAsset: 'assets/svg/armor-heavy.svg',
       value: value,
       size: size,
       color: color ?? AppTheme.highlightColor,

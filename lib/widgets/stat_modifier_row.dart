@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/character.dart';
 import '../models/def_category.dart';
 import '../theme/app_theme.dart';
-import 'shield_icon.dart';
+import 'defense_icon.dart';
 import 'heal_damage_controls.dart';
 import 'shield_toggle_button.dart';
 
@@ -66,6 +66,7 @@ class _StatModifierRowState extends State<StatModifierRow> {
     final screenSize = MediaQuery.of(context).size;
     final isDead = character.isDead;
 
+    var defenceCircleSize = size * 0.4;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -83,16 +84,19 @@ class _StatModifierRowState extends State<StatModifierRow> {
         // Center column - Shield icon and toggle
         SizedBox(
           width: screenSize.width * 0.25,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              _buildShieldIcon(context, isDead ? null : character.def, size),
-              const SizedBox(height: 8),
-              ShieldToggleButton(
-                isSelected: character.hasShield,
-                isDead: isDead,
-                onPressed: () => onShieldToggled(!character.hasShield),
-                size: size * 0.5,
+              _buildDefenseIcon(context, isDead ? null : character.def, size),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: ShieldToggleButton(
+                  isSelected: character.hasShield,
+                  isDead: isDead,
+                  onPressed: () => onShieldToggled(!character.hasShield),
+                  size: size * 0.5,
+                ),
               ),
             ],
           ),
@@ -108,7 +112,7 @@ class _StatModifierRowState extends State<StatModifierRow> {
                 'H',
                 DefCategory.heavy,
                 selectedDefense == DefCategory.heavy,
-                size * 0.5,
+                defenceCircleSize,
               ),
               const SizedBox(height: 8),
               _buildDefenseCircle(
@@ -116,7 +120,7 @@ class _StatModifierRowState extends State<StatModifierRow> {
                 'M',
                 DefCategory.medium,
                 selectedDefense == DefCategory.medium,
-                size * 0.5,
+                defenceCircleSize,
               ),
               const SizedBox(height: 8),
               _buildDefenseCircle(
@@ -124,7 +128,7 @@ class _StatModifierRowState extends State<StatModifierRow> {
                 'L',
                 DefCategory.light,
                 selectedDefense == DefCategory.light,
-                size * 0.5,
+                defenceCircleSize,
               ),
             ],
           ),
@@ -133,7 +137,7 @@ class _StatModifierRowState extends State<StatModifierRow> {
     );
   }
 
-  Widget _buildShieldIcon(BuildContext context, int? value, double size) {
+  Widget _buildDefenseIcon(BuildContext context, int? value, double size) {
     final isDead = character.isDead;
     return SizedBox(
       height: size * 1.5,
@@ -143,20 +147,20 @@ class _StatModifierRowState extends State<StatModifierRow> {
         children: [
           Opacity(
             opacity: isDead ? 0.5 : 1.0,
-            child: ShieldIcon(
+            child: DefenseIcon(
               size: size,
               value: value ?? 0,
               color: isDead ? Colors.grey : null,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'DEF',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: size * 0.18,
-                  color: isDead ? Colors.grey : Colors.white,
-                ),
-          ),
+          // const SizedBox(height: 4),
+          // Text(
+          //   'DEF',
+          //   style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          //         fontSize: size * 0.18,
+          //         color: isDead ? Colors.grey : AppTheme.primaryColor,
+          //       ),
+          // ),
         ],
       ),
     );
@@ -170,15 +174,15 @@ class _StatModifierRowState extends State<StatModifierRow> {
     double size,
   ) {
     final isDead = character.isDead;
-    final backgroundColor = isDead 
+    final backgroundColor = isDead
         ? Colors.grey.withOpacity(0.3)
-        : (isSelected ? AppTheme.highlightColor : Colors.transparent);
-    final textColor = isDead 
-        ? Colors.grey 
-        : (isSelected ? Colors.white : AppTheme.primaryColor);
-    final borderColor = isDead 
-        ? Colors.grey 
-        : (isSelected ? AppTheme.accentColor : AppTheme.primaryColor);
+        : (isSelected ? AppTheme.highlightColor : Colors.grey);
+    final textColor = isDead
+        ? Colors.grey
+        : (isSelected ? AppTheme.primaryColor : Colors.white60);
+    final borderColor = isDead
+        ? Colors.grey
+        : (isSelected ? AppTheme.primaryColor : Colors.white60);
 
     return IconButton(
       icon: Text(
