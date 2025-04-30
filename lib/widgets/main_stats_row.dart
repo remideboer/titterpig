@@ -14,26 +14,64 @@ class MainStatsRow extends ConsumerWidget {
     this.size = 0.25,
   });
 
-  Widget _buildStatBox(BuildContext context, String label, int value, double width, double height, bool isDead) {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _StatButton(
+          label: 'VIT',
+          value: character.vit,
+          onTap: () => _showCheckDialog(context, character, character.vit, 'VIT'),
+        ),
+        _StatButton(
+          label: 'ATH',
+          value: character.ath,
+          onTap: () => _showCheckDialog(context, character, character.ath, 'ATH'),
+        ),
+        _StatButton(
+          label: 'WIL',
+          value: character.wil,
+          onTap: () => _showCheckDialog(context, character, character.wil, 'WIL'),
+        ),
+      ],
+    );
+  }
+
+  void _showCheckDialog(BuildContext context, Character character, int statValue, String statType) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => CheckWidget(
+        character: character,
+        statValue: statValue,
+        statType: statType,
+      ),
+    );
+  }
+}
+
+class _StatButton extends StatelessWidget {
+  final String label;
+  final int value;
+  final VoidCallback onTap;
+
+  const _StatButton({
+    Key? key,
+    required this.label,
+    required this.value,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        if (isDead) return;
-        // Show check widget for this stat
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (context) => CheckWidget(
-            character: character,
-            statValue: value,
-          ),
-        );
-      },
+      onTap: onTap,
       child: Container(
-        width: width,
-        height: height,
+        width: 0.25 * MediaQuery.of(context).size.width,
+        height: 0.75 * (0.25 * MediaQuery.of(context).size.width),
         decoration: BoxDecoration(
-          color: isDead ? Colors.grey : AppTheme.primaryColor,
+          color: AppTheme.primaryColor,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -58,27 +96,6 @@ class MainStatsRow extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final boxWidth = screenWidth * size;
-    final boxHeight = boxWidth * 0.75;
-    final isDead = character.isDead;
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildStatBox(context, 'VIT', character.vit, boxWidth, boxHeight, isDead),
-            _buildStatBox(context, 'ATH', character.ath, boxWidth, boxHeight, isDead),
-            _buildStatBox(context, 'WIL', character.wil, boxWidth, boxHeight, isDead),
-          ],
-        ),
-      ],
     );
   }
 } 

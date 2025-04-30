@@ -349,6 +349,7 @@ The check system allows players to perform skill checks using their character's 
 3. **Roll Mechanics**:
    - Base dice: 3 dice
    - Additional dice: Equal to the selected stat value
+   - Total dice: 3 + stat value (minimum 1 die)
    - Success: Total roll meets or exceeds the target number
    - Failure: Total roll is less than the target number
 4. **Visual Feedback**:
@@ -363,6 +364,13 @@ Example:
 - A character with VIT 2 performing an Easy check:
   - Rolls 5 dice (3 base + 2 from VIT)
   - Needs a total of 1 or higher to succeed
+  - Animated dice show the rolling process
+  - Result dialog displays total and success/failure
+  - After closing result, returns to character screen
+
+- A character with ATH -1 performing a Normal check:
+  - Rolls 2 dice (3 base + -1 from ATH, minimum 1)
+  - Needs a total of 3 or higher to succeed
   - Animated dice show the rolling process
   - Result dialog displays total and success/failure
   - After closing result, returns to character screen

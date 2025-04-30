@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/character.dart';
@@ -19,11 +21,13 @@ enum CheckDifficulty {
 class CheckWidget extends ConsumerWidget {
   final Character character;
   final int statValue;
+  final String statType;
 
   const CheckWidget({
     super.key,
     required this.character,
     required this.statValue,
+    required this.statType,
   });
 
   @override
@@ -49,6 +53,7 @@ class CheckWidget extends ConsumerWidget {
                 difficulty: difficulty,
                 statValue: statValue,
                 character: character,
+                statType: statType,
               );
             }).toList(),
           ),
@@ -67,11 +72,13 @@ class _DifficultyButton extends StatefulWidget {
   final CheckDifficulty difficulty;
   final int statValue;
   final Character character;
+  final String statType;
 
   const _DifficultyButton({
     required this.difficulty,
     required this.statValue,
     required this.character,
+    required this.statType,
   });
 
   @override
@@ -84,19 +91,22 @@ class _DifficultyButtonState extends State<_DifficultyButton> {
   bool? _isSuccess;
 
   int _getStatValue(Character character) {
-    switch (widget.difficulty) {
-      case CheckDifficulty.easy:
+    switch (widget.statType) {
+      case 'VIT':
         return character.vit;
-      case CheckDifficulty.normal:
+      case 'ATH':
         return character.ath;
-      case CheckDifficulty.hard:
+      case 'WIL':
         return character.wil;
+      default:
+        return 0;
     }
   }
 
   void _rollCheck(Character character, CheckDifficulty difficulty) {
     final statValue = _getStatValue(character);
-    final diceCount = 3 + statValue; // Base 3 dice + stat value
+    // Calculate dice count: 3 base + stat value, minimum 1
+    final diceCount = math.max(1, 3 + statValue);
     final targetNumber = difficulty.targetNumber;
 
     // Show the dice roll animation
@@ -106,7 +116,7 @@ class _DifficultyButtonState extends State<_DifficultyButton> {
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         child: AnimatedDice(
-          count: diceCount.toInt(),
+          count: diceCount,
           onRollComplete: (total) {
             // Close the dice dialog
             Navigator.of(context).pop();
