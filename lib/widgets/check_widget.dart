@@ -68,6 +68,60 @@ class CheckWidget extends ConsumerWidget {
   }
 }
 
+class _RollResult extends StatelessWidget {
+  final int total;
+  final int targetNumber;
+
+  const _RollResult({
+    required this.total,
+    required this.targetNumber,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSuccess = total >= targetNumber;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Rolled: $total Target: $targetNumber',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isSuccess ? Icons.check_circle : Icons.cancel,
+                color: isSuccess ? Colors.green : Colors.red,
+                size: 32,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isSuccess ? 'Success!' : 'Failure!',
+                style: TextStyle(
+                  color: isSuccess ? Colors.green : Colors.red,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _DifficultyButton extends StatefulWidget {
   final CheckDifficulty difficulty;
   final int statValue;
@@ -91,6 +145,7 @@ class _DifficultyButtonState extends State<_DifficultyButton> {
   bool? _isSuccess;
 
   int _getStatValue(Character character) {
+    // Use the stat that initiated the check flow
     switch (widget.statType) {
       case 'VIT':
         return character.vit;
@@ -113,48 +168,45 @@ class _DifficultyButtonState extends State<_DifficultyButton> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: AnimatedDice(
-          count: diceCount,
-          onRollComplete: (total) {
-            // Close the dice dialog
-            Navigator.of(context).pop();
-            
-            // Show the result
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text('Check Result'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Rolled: $total Target: $targetNumber'),
-                    const SizedBox(height: 8),
-                    Text(
-                      total >= targetNumber ? 'Success!' : 'Failure!',
-                      style: TextStyle(
-                        color: total >= targetNumber ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedDice(
+                  count: diceCount,
+                  onRollComplete: (total) {
+                    setState(() {
+                      _rollResult = total;
+                      _isSuccess = total >= targetNumber;
+                    });
+                  },
                 ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      // Close the result dialog
-                      Navigator.of(context).pop();
-                      // Close the check display
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Close'),
+                if (_rollResult != null) ...[
+                  const SizedBox(height: 16),
+                  _RollResult(
+                    total: _rollResult!,
+                    targetNumber: targetNumber,
                   ),
                 ],
-              ),
-            );
-          },
-        ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    // Close the dice dialog and check display
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -182,25 +234,6 @@ class _DifficultyButtonState extends State<_DifficultyButton> {
             ),
           ),
         ),
-        if (_showResult)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Column(
-              children: [
-                Text(
-                  'Roll: $_rollResult',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  _isSuccess! ? 'Success!' : 'Fail!',
-                  style: TextStyle(
-                    color: _isSuccess! ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
       ],
     );
   }

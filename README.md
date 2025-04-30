@@ -355,8 +355,10 @@ The check system allows players to perform skill checks using their character's 
 4. **Visual Feedback**:
    - Animated dice roll shows the actual rolling process
    - Dice values are displayed during the animation
-   - Final result shows total roll and target number
-   - Success/failure is color-coded (green/red)
+   - Result appears below the dice in the same window:
+     * Shows roll total and target number
+     * Success/failure with color-coded icons (✓/✗)
+     * Green for success, red for failure
    - Check display automatically closes after viewing results
    - Focus returns to main character screen
 
