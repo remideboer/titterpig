@@ -343,19 +343,26 @@ The check system allows players to perform skill checks using their character's 
 
 1. **Stat Selection**: Tap on any main stat (VIT, ATH, or WIL) to initiate a check
 2. **Difficulty Selection**: Choose from three difficulty levels:
-   - Easy (Target Number: 1)
-   - Normal (Target Number: 3)
-   - Hard (Target Number: 5)
+   - Easy (Target Number: 1) - Uses VIT stat
+   - Normal (Target Number: 3) - Uses ATH stat
+   - Hard (Target Number: 5) - Uses WIL stat
 3. **Roll Mechanics**:
    - Base dice: 3 dice
    - Additional dice: Equal to the selected stat value
    - Success: Total roll meets or exceeds the target number
    - Failure: Total roll is less than the target number
+4. **Visual Feedback**:
+   - Animated dice roll shows the actual rolling process
+   - Dice values are displayed during the animation
+   - Final result shows total roll and target number
+   - Success/failure is color-coded (green/red)
 
 Example:
-- A character with VIT 2 performing a Normal check:
+- A character with VIT 2 performing an Easy check:
   - Rolls 5 dice (3 base + 2 from VIT)
-  - Needs a total of 3 or higher to succeed
+  - Needs a total of 1 or higher to succeed
+  - Animated dice show the rolling process
+  - Result dialog displays total and success/failure
 
 ## Gherkin Scenarios
 

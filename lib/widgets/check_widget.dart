@@ -48,6 +48,7 @@ class CheckWidget extends ConsumerWidget {
               return _DifficultyButton(
                 difficulty: difficulty,
                 statValue: statValue,
+                character: character,
               );
             }).toList(),
           ),
@@ -65,10 +66,12 @@ class CheckWidget extends ConsumerWidget {
 class _DifficultyButton extends StatefulWidget {
   final CheckDifficulty difficulty;
   final int statValue;
+  final Character character;
 
   const _DifficultyButton({
     required this.difficulty,
     required this.statValue,
+    required this.character,
   });
 
   @override
@@ -80,16 +83,66 @@ class _DifficultyButtonState extends State<_DifficultyButton> {
   int? _rollResult;
   bool? _isSuccess;
 
-  void _rollCheck() {
-    // Roll 3 base dice plus stat value number of dice
-    final diceRolls = List.generate(3 + widget.statValue, (_) => Random().nextInt(6) + 1);
-    final total = diceRolls.reduce((a, b) => a + b);
-    
-    setState(() {
-      _rollResult = total;
-      _isSuccess = total >= widget.difficulty.targetNumber;
-      _showResult = true;
-    });
+  int _getStatValue(Character character) {
+    switch (widget.difficulty) {
+      case CheckDifficulty.easy:
+        return character.vit;
+      case CheckDifficulty.normal:
+        return character.ath;
+      case CheckDifficulty.hard:
+        return character.wil;
+    }
+  }
+
+  void _rollCheck(Character character, CheckDifficulty difficulty) {
+    final statValue = _getStatValue(character);
+    final diceCount = 3 + statValue; // Base 3 dice + stat value
+    final targetNumber = difficulty.targetNumber;
+
+    // Show the dice roll animation
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: AnimatedDice(
+          count: diceCount.toInt(),
+          onRollComplete: (total) {
+            // Close the dice dialog
+            Navigator.of(context).pop();
+            
+            // Show the result
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text('Check Result'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Rolled: $total'),
+                    Text('Target: $targetNumber'),
+                    const SizedBox(height: 8),
+                    Text(
+                      total >= targetNumber ? 'Success!' : 'Failure!',
+                      style: TextStyle(
+                        color: total >= targetNumber ? Colors.green : Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -102,7 +155,7 @@ class _DifficultyButtonState extends State<_DifficultyButton> {
         ),
         const SizedBox(height: 4),
         GestureDetector(
-          onTap: _rollCheck,
+          onTap: () => _rollCheck(widget.character, widget.difficulty),
           child: HexagonContainer(
             size: 40,
             borderColor: Theme.of(context).primaryColor,
