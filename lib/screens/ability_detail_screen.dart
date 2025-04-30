@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/spell.dart';
-import 'spell_edit_screen.dart';
+import 'ability_edit_screen.dart';
 
 class SpellDetailScreen extends StatelessWidget {
   final Ability spell;

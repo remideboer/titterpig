@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'character_sheet_screen.dart';
 import 'character_list_screen.dart';
-import 'spells_admin_screen.dart';
+import 'ability_admin_screen.dart';
 import 'settings_screen.dart';
 import '../models/character.dart';
 import '../repositories/local_character_repository.dart';

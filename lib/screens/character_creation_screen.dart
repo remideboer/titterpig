@@ -13,7 +13,7 @@ import '../theme/app_theme.dart';
 import '../models/spell.dart';
 import '../utils/spell_limit_calculator.dart';
 import 'package:flutter/services.dart';
-import 'spell_selection_screen.dart';
+import 'ability_selection_screen.dart';
 import '../widgets/background_editor.dart';
 import '../models/background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/spell.dart';
-import '../screens/spell_detail_screen.dart';
+import '../screens/ability_detail_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/snackbar_service.dart';
 

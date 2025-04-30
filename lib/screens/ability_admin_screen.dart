@@ -4,7 +4,7 @@ import '../models/spell.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 import '../widgets/spell_list_item.dart';
 import '../widgets/cost_range_slider.dart';
-import 'spell_edit_screen.dart';
+import 'ability_edit_screen.dart';
 
 class SpellsAdminScreen extends StatefulWidget {
   const SpellsAdminScreen({Key? key}) : super(key: key);

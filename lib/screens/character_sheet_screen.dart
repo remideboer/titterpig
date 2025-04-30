@@ -20,7 +20,7 @@ import '../widgets/character_background_view.dart';
 import '../widgets/main_stats_row.dart';
 import '../widgets/spell_list_item.dart';
 import 'character_creation_screen.dart';
-import 'spell_selection_screen.dart';
+import 'ability_selection_screen.dart';
 import '../widgets/secondary_stats_row.dart';
 import '../widgets/stat_modifier_row.dart';
 import '../widgets/avatar_selector.dart';
