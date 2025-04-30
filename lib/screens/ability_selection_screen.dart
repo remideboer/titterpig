@@ -8,12 +8,12 @@ import '../widgets/spell_list_item.dart';
 import '../widgets/cost_range_slider.dart';
 import '../widgets/spell_type_filter.dart';
 
-class SpellSelectionScreen extends StatefulWidget {
+class AbilitySelectionScreen extends StatefulWidget {
   final Function(List<Ability>) onSpellsChanged;
   final List<Ability> selectedSpells;
   final int maxSpells;
 
-  const SpellSelectionScreen({
+  const AbilitySelectionScreen({
     Key? key,
     required this.onSpellsChanged,
     required this.selectedSpells,
@@ -21,10 +21,10 @@ class SpellSelectionScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SpellSelectionScreenState createState() => _SpellSelectionScreenState();
+  _AbilitySelectionScreenState createState() => _AbilitySelectionScreenState();
 }
 
-class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
+class _AbilitySelectionScreenState extends State<AbilitySelectionScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   late List<Ability> _currentSpells;

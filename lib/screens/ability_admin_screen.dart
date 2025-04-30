@@ -6,14 +6,14 @@ import '../widgets/spell_list_item.dart';
 import '../widgets/cost_range_slider.dart';
 import 'ability_edit_screen.dart';
 
-class SpellsAdminScreen extends StatefulWidget {
-  const SpellsAdminScreen({Key? key}) : super(key: key);
+class AbilityAdminScreen extends StatefulWidget {
+  const AbilityAdminScreen({Key? key}) : super(key: key);
 
   @override
-  _SpellsAdminScreenState createState() => _SpellsAdminScreenState();
+  _AbilityAdminScreenState createState() => _AbilityAdminScreenState();
 }
 
-class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
+class _AbilityAdminScreenState extends State<AbilityAdminScreen> {
   late SpellListViewModel _viewModel;
   final TextEditingController _searchController = TextEditingController();
 
@@ -152,7 +152,7 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const SpellEditScreen(),
+        builder: (context) => const AbilityEditScreen(),
       ),
     );
   }
@@ -161,7 +161,7 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SpellEditScreen(spell: spell),
+        builder: (context) => AbilityEditScreen(spell: spell),
       ),
     );
   }

@@ -157,7 +157,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
             maxWidth: MediaQuery.of(context).size.width * 0.9,
             maxHeight: MediaQuery.of(context).size.height * 0.8,
           ),
-          child: SpellSelectionScreen(
+          child: AbilitySelectionScreen(
             selectedSpells: _character.spells,
             maxSpells: SpellLimitCalculator.calculateSpellLimit(_character.wil),
             onSpellsChanged: (updatedSpells) {

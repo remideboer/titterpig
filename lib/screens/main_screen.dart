@@ -127,7 +127,7 @@ class _MainScreenState extends State<MainScreen> {
                   style: TextStyle(fontSize: 18),
                 ),
               ),
-            const SpellsAdminScreen(),
+            const AbilityAdminScreen(),
             SettingsScreen(
               isDarkMode: _isDarkMode,
               onThemeChanged: (value) {

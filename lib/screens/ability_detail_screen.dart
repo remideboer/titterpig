@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import '../models/spell.dart';
 import 'ability_edit_screen.dart';
 
-class SpellDetailScreen extends StatelessWidget {
+class AbilityDetailScreen extends StatelessWidget {
   final Ability spell;
 
-  const SpellDetailScreen({
+  const AbilityDetailScreen({
     Key? key,
     required this.spell,
   }) : super(key: key);
@@ -21,7 +21,7 @@ class SpellDetailScreen extends StatelessWidget {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => SpellEditScreen(spell: spell),
+                builder: (context) => AbilityEditScreen(spell: spell),
               ),
             ),
           ),

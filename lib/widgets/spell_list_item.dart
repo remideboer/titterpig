@@ -87,7 +87,7 @@ class SpellListItem extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SpellDetailScreen(spell: spell),
+              builder: (context) => AbilityDetailScreen(spell: spell),
             ),
           );
         },

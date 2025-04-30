@@ -4,16 +4,16 @@ import '../models/spell.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 import '../models/die.dart';
 
-class SpellEditScreen extends StatefulWidget {
+class AbilityEditScreen extends StatefulWidget {
   final Ability? spell;
 
-  const SpellEditScreen({Key? key, this.spell}) : super(key: key);
+  const AbilityEditScreen({Key? key, this.spell}) : super(key: key);
 
   @override
-  _SpellEditScreenState createState() => _SpellEditScreenState();
+  _AbilityEditScreenState createState() => _AbilityEditScreenState();
 }
 
-class _SpellEditScreenState extends State<SpellEditScreen> {
+class _AbilityEditScreenState extends State<AbilityEditScreen> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _costController;

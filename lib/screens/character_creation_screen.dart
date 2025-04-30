@@ -247,7 +247,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
             maxWidth: MediaQuery.of(context).size.width * 0.9,
             maxHeight: MediaQuery.of(context).size.height * 0.8,
           ),
-          child: SpellSelectionScreen(
+          child: AbilitySelectionScreen(
             selectedSpells: _spells,
             maxSpells: spellLimit,
             onSpellsChanged: (updatedSpells) {

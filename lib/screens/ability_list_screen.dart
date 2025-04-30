@@ -4,12 +4,12 @@ import '../models/spell.dart';
 import '../viewmodels/spell_list_viewmodel.dart';
 import '../widgets/spell_list_item.dart';
 
-class SpellListScreen extends StatelessWidget {
+class AbilityListScreen extends StatelessWidget {
   final void Function(List<Ability>) onSpellsChanged;
   final List<Ability> selectedSpells;
   final int maxSpells;
 
-  const SpellListScreen({
+  const AbilityListScreen({
     Key? key,
     required this.onSpellsChanged,
     required this.selectedSpells,
