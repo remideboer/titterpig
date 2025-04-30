@@ -119,8 +119,7 @@ class _DifficultyButtonState extends State<_DifficultyButton> {
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Rolled: $total'),
-                    Text('Target: $targetNumber'),
+                    Text('Rolled: $total Target: $targetNumber'),
                     const SizedBox(height: 8),
                     Text(
                       total >= targetNumber ? 'Success!' : 'Failure!',
@@ -133,7 +132,12 @@ class _DifficultyButtonState extends State<_DifficultyButton> {
                 ),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () {
+                      // Close the result dialog
+                      Navigator.of(context).pop();
+                      // Close the check display
+                      Navigator.of(context).pop();
+                    },
                     child: const Text('Close'),
                   ),
                 ],

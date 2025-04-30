@@ -356,6 +356,8 @@ The check system allows players to perform skill checks using their character's 
    - Dice values are displayed during the animation
    - Final result shows total roll and target number
    - Success/failure is color-coded (green/red)
+   - Check display automatically closes after viewing results
+   - Focus returns to main character screen
 
 Example:
 - A character with VIT 2 performing an Easy check:
@@ -363,6 +365,7 @@ Example:
   - Needs a total of 1 or higher to succeed
   - Animated dice show the rolling process
   - Result dialog displays total and success/failure
+  - After closing result, returns to character screen
 
 ## Gherkin Scenarios
 
