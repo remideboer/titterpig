@@ -157,7 +157,7 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
     );
   }
 
-  void _showEditSpellDialog(BuildContext context, Spell spell) {
+  void _showEditSpellDialog(BuildContext context, Ability spell) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -166,7 +166,7 @@ class _SpellsAdminScreenState extends State<SpellsAdminScreen> {
     );
   }
 
-  void _showDeleteSpellDialog(BuildContext context, Spell spell) {
+  void _showDeleteSpellDialog(BuildContext context, Ability spell) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

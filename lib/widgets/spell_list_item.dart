@@ -5,12 +5,12 @@ import '../theme/app_theme.dart';
 import '../utils/snackbar_service.dart';
 
 abstract class SpellActionDecorator {
-  Widget decorate(Widget action, Spell spell, BuildContext context);
+  Widget decorate(Widget action, Ability spell, BuildContext context);
 }
 
 class DefaultSpellActionDecorator implements SpellActionDecorator {
   @override
-  Widget decorate(Widget action, Spell spell, BuildContext context) {
+  Widget decorate(Widget action, Ability spell, BuildContext context) {
     if (action is IconButton) {
       return IconButton(
         icon: action.icon,
@@ -28,7 +28,7 @@ class PowerCheckSpellActionDecorator implements SpellActionDecorator {
   PowerCheckSpellActionDecorator(this._decorator);
 
   @override
-  Widget decorate(Widget action, Spell spell, BuildContext context) {
+  Widget decorate(Widget action, Ability spell, BuildContext context) {
     if (action is IconButton) {
       return IconButton(
         icon: action.icon,
@@ -43,7 +43,7 @@ class PowerCheckSpellActionDecorator implements SpellActionDecorator {
 }
 
 class SpellListItemActions extends StatelessWidget {
-  final Spell spell;
+  final Ability spell;
   final List<Widget> actions;
   final SpellActionDecorator? decorator;
 
@@ -67,7 +67,7 @@ class SpellListItemActions extends StatelessWidget {
 }
 
 class SpellListItem extends StatelessWidget {
-  final Spell spell;
+  final Ability spell;
   final SpellListItemActions? actions;
   final bool disabled;
 

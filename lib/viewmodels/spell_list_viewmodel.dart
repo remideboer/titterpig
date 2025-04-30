@@ -5,7 +5,7 @@ import '../repositories/spell_repository.dart';
 
 class SpellListViewModel extends ChangeNotifier {
   final SpellRepository _repository;
-  List<Spell> _spells = [];
+  List<Ability> _spells = [];
   String _searchQuery = '';
   bool _isLoading = false;
   late RangeValues _costRange;
@@ -16,7 +16,7 @@ class SpellListViewModel extends ChangeNotifier {
     _costRange = const RangeValues(0, 10); // Default range
   }
 
-  List<Spell> get allSpells => _spells;
+  List<Ability> get allSpells => _spells;
   bool get isLoading => _isLoading;
   RangeValues get costRange => _costRange;
   Set<String> get selectedTypes => _selectedTypes;
@@ -30,7 +30,7 @@ class SpellListViewModel extends ChangeNotifier {
     return _spells.map((s) => s.cost.toDouble()).reduce((a, b) => a > b ? a : b);
   }
   
-  List<Spell> get filteredSpells {
+  List<Ability> get filteredSpells {
     return _spells.where((spell) {
       final matchesSearch = _searchQuery.isEmpty ||
           spell.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -70,19 +70,19 @@ class SpellListViewModel extends ChangeNotifier {
     await loadSpells();
   }
 
-  Future<void> addSpell(Spell spell) async {
+  Future<void> addSpell(Ability spell) async {
     debugPrint('Adding spell in ViewModel: ${spell.name}');
     await _repository.addSpell(spell);
     await loadSpells();
   }
 
-  Future<void> removeSpell(Spell spell) async {
+  Future<void> removeSpell(Ability spell) async {
     debugPrint('Removing spell in ViewModel: ${spell.name}');
     await _repository.removeSpell(spell);
     await loadSpells();
   }
 
-  Future<void> updateSpell(Spell spell) async {
+  Future<void> updateSpell(Ability spell) async {
     debugPrint('Updating spell in ViewModel: ${spell.name}');
     await _repository.updateSpell(spell);
     await loadSpells();

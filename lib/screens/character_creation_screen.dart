@@ -54,7 +54,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
   List<SpeciesOption> _dropdownOptions = [];
   late DefCategory _selectedDefense;
   bool _showSpellOverlay = false;
-  List<Spell> _spells = [];
+  List<Ability> _spells = [];
   Background? _background;
   String? _avatarPath;
 
@@ -167,7 +167,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
     });
   }
 
-  void _addSpell(Spell spell) {
+  void _addSpell(Ability spell) {
     setState(() {
       _spells.add(spell);
     });
@@ -821,9 +821,9 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                       const SizedBox(height: 16),
                       Expanded(
                         child: ListView.builder(
-                          itemCount: Spell.availableSpells.length,
+                          itemCount: Ability.availableSpells.length,
                           itemBuilder: (context, index) {
-                            final spell = Spell.availableSpells[index];
+                            final spell = Ability.availableSpells[index];
                             final canAdd = spell.cost <= CharacterService.calculatePower(_wil) && 
                                         !_spells.any((s) => s.name == spell.name);
                             return ListTile(

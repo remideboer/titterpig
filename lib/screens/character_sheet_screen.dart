@@ -89,7 +89,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     await _repository.updateCharacter(_character);
   }
 
-  Future<void> _handleSpellUse(Spell spell,
+  Future<void> _handleSpellUse(Ability spell,
       {bool shouldRollDice = false}) async {
     if (_character.availablePower < spell.cost) {
       SnackBarService.showInsufficientPowerMessage(
@@ -656,7 +656,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
                           builder: (context) {
                             // Sort spells by availability and then by cost
                             final sortedSpells =
-                                List<Spell>.from(_character.spells)
+                                List<Ability>.from(_character.spells)
                                   ..sort((a, b) {
                                     final aAvailable =
                                         a.cost <= _character.availablePower;

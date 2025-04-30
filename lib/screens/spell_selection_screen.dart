@@ -9,8 +9,8 @@ import '../widgets/cost_range_slider.dart';
 import '../widgets/spell_type_filter.dart';
 
 class SpellSelectionScreen extends StatefulWidget {
-  final Function(List<Spell>) onSpellsChanged;
-  final List<Spell> selectedSpells;
+  final Function(List<Ability>) onSpellsChanged;
+  final List<Ability> selectedSpells;
   final int maxSpells;
 
   const SpellSelectionScreen({
@@ -27,7 +27,7 @@ class SpellSelectionScreen extends StatefulWidget {
 class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  late List<Spell> _currentSpells;
+  late List<Ability> _currentSpells;
   late RangeValues _costRange;
   double _maxSpellCost = 0;
   Set<String> _selectedTypes = {};
@@ -65,7 +65,7 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
     super.dispose();
   }
 
-  List<Spell> _filterAndSortSpells(List<Spell> spells) {
+  List<Ability> _filterAndSortSpells(List<Ability> spells) {
     // First, filter spells based on search query, cost range, and selected types
     var filteredSpells = spells.where((spell) {
       final matchesSearch = _searchQuery.isEmpty ||
@@ -100,7 +100,7 @@ class _SpellSelectionScreenState extends State<SpellSelectionScreen> {
     });
   }
 
-  void _toggleSpell(Spell spell) {
+  void _toggleSpell(Ability spell) {
     setState(() {
       if (_currentSpells.contains(spell)) {
         _currentSpells.remove(spell);

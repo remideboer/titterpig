@@ -3,7 +3,7 @@ import '../models/spell.dart';
 import 'spell_edit_screen.dart';
 
 class SpellDetailScreen extends StatelessWidget {
-  final Spell spell;
+  final Ability spell;
 
   const SpellDetailScreen({
     Key? key,

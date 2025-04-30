@@ -5,7 +5,7 @@ import '../viewmodels/spell_list_viewmodel.dart';
 import '../models/die.dart';
 
 class SpellEditScreen extends StatefulWidget {
-  final Spell? spell;
+  final Ability? spell;
 
   const SpellEditScreen({Key? key, this.spell}) : super(key: key);
 
@@ -54,7 +54,7 @@ class _SpellEditScreenState extends State<SpellEditScreen> {
     final viewModel = context.read<SpellListViewModel>();
     final dieCount = int.tryParse(_dieCountController.text) ?? 0;
     
-    final newSpell = Spell(
+    final newSpell = Ability(
       name: _nameController.text,
       description: _descriptionController.text,
       cost: int.tryParse(_costController.text) ?? 0,

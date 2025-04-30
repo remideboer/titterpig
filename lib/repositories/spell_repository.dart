@@ -6,11 +6,11 @@ import 'package:flutter/foundation.dart';
 
 class SpellRepository {
   static const String _spellsKey = 'spells';
-  final List<Spell> _spells = [];
+  final List<Ability> _spells = [];
 
   SpellRepository();
 
-  Future<List<Spell>> getSpells() async {
+  Future<List<Ability>> getSpells() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       debugPrint('Loading spells from SharedPreferences...');
@@ -18,19 +18,19 @@ class SpellRepository {
       final spellsJson = prefs.getStringList(_spellsKey);
       if (spellsJson == null || spellsJson.isEmpty) {
         debugPrint('No spells found in SharedPreferences, loading default spells...');
-        return Spell.availableSpells;
+        return Ability.availableSpells;
       }
 
       debugPrint('Found ${spellsJson.length} spells in SharedPreferences');
       final spells = spellsJson
-          .map((json) => Spell.fromJson(jsonDecode(json)))
+          .map((json) => Ability.fromJson(jsonDecode(json)))
           .toList();
       
       debugPrint('Loaded spells: ${spells.map((s) => s.name).join(', ')}');
       return spells;
     } catch (e) {
       debugPrint('Error loading spells: $e');
-      return Spell.availableSpells;
+      return Ability.availableSpells;
     }
   }
 
@@ -51,7 +51,7 @@ class SpellRepository {
     }
   }
 
-  Future<void> addSpell(Spell spell) async {
+  Future<void> addSpell(Ability spell) async {
     _spells.clear();
     _spells.addAll(await getSpells());
     
@@ -64,7 +64,7 @@ class SpellRepository {
     }
   }
 
-  Future<void> removeSpell(Spell spell) async {
+  Future<void> removeSpell(Ability spell) async {
     _spells.clear();
     _spells.addAll(await getSpells());
     
@@ -73,7 +73,7 @@ class SpellRepository {
     await _saveSpells();
   }
 
-  Future<void> updateSpell(Spell spell) async {
+  Future<void> updateSpell(Ability spell) async {
     _spells.clear();
     _spells.addAll(await getSpells());
     
@@ -93,7 +93,7 @@ class SpellRepository {
     print('Cleared all spells');
   }
 
-  Future<Spell?> getSpellById(String id) async {
+  Future<Ability?> getSpellById(String id) async {
     final spells = await getSpells();
     try {
       final spell = spells.firstWhere((spell) => spell.versionId == id);

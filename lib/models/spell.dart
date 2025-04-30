@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'die.dart';
 
 @immutable
-class Spell {
+class Ability {
   static const int currentSaveVersion = 3; // Increment version for breaking changes
 
   final String name;
@@ -15,7 +15,7 @@ class Spell {
   final String type;
   final String range;
 
-  const Spell._internal({
+  const Ability._internal({
     required this.name,
     required this.description,
     required this.cost,
@@ -27,7 +27,7 @@ class Spell {
     this.effectValue,
   });
 
-  factory Spell({
+  factory Ability({
     required String name,
     required String description,
     required int cost,
@@ -38,7 +38,7 @@ class Spell {
     String type = 'Spell',
     String range = 'Self',
   }) {
-    return Spell._internal(
+    return Ability._internal(
       name: name,
       description: description,
       cost: cost,
@@ -51,7 +51,7 @@ class Spell {
     );
   }
 
-  Spell copyWith({
+  Ability copyWith({
     String? name,
     String? description,
     int? cost,
@@ -62,7 +62,7 @@ class Spell {
     String? type,
     String? range,
   }) {
-    return Spell(
+    return Ability(
       name: name ?? this.name,
       description: description ?? this.description,
       cost: cost ?? this.cost,
@@ -89,12 +89,12 @@ class Spell {
     };
   }
 
-  factory Spell.fromJson(Map<String, dynamic> json) {
+  factory Ability.fromJson(Map<String, dynamic> json) {
     final effectValue = json['effectValue'] != null 
         ? Die(json['effectValue'] as int)
         : null;
 
-    return Spell(
+    return Ability(
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       cost: json['cost'] ?? 0,
@@ -109,14 +109,14 @@ class Spell {
     );
   }
 
-  bool isNewerThan(Spell other) {
+  bool isNewerThan(Ability other) {
     return lastUpdated.isAfter(other.lastUpdated);
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Spell &&
+      other is Ability &&
           runtimeType == other.runtimeType &&
           name == other.name &&
           description == other.description &&
@@ -126,8 +126,8 @@ class Spell {
   int get hashCode => name.hashCode ^ description.hashCode ^ cost.hashCode;
 
   // Default list of available spells
-  static final List<Spell> availableSpells = [
-    Spell(
+  static final List<Ability> availableSpells = [
+    Ability(
       name: 'Arcane Arrow',
       description: '',
       cost: 1,
@@ -137,7 +137,7 @@ class Spell {
       type: 'Offensive',
       range: '',
     ),
-    Spell(
+    Ability(
       name: 'Minor Heal',
       description: 'Restore a small amount of HP',
       cost: 1,
@@ -146,7 +146,7 @@ class Spell {
       type: 'Support',
       range: 'Touch',
     ),
-    Spell(
+    Ability(
       name: 'Shield',
       description: 'Gain temporary HP',
       cost: 1,
@@ -154,7 +154,7 @@ class Spell {
       type: 'Defensive',
       range: 'Self',
     ),
-    Spell(
+    Ability(
       name: 'Energy Bolt',
       description: 'Deal damage to a single target',
       cost: 2,
@@ -163,7 +163,7 @@ class Spell {
       type: 'Offensive',
       range: '30ft',
     ),
-    Spell(
+    Ability(
       name: 'Blink',
       description: 'Teleport a short distance',
       cost: 2,

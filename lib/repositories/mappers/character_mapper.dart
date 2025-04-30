@@ -66,9 +66,9 @@ class CharacterMapper {
     }
 
     // Helper function to safely convert spells
-    List<Spell> safeToSpells(dynamic value) {
+    List<Ability> safeToSpells(dynamic value) {
       if (value is List) {
-        return value.map((s) => Spell.fromJson(s)).toList();
+        return value.map((s) => Ability.fromJson(s)).toList();
       }
       return [];
     }

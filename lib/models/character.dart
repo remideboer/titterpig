@@ -27,7 +27,7 @@ class Character {
   late int def;
   DefCategory defCategory;
   bool hasShield;
-  List<Spell> _spells;
+  List<Ability> _spells;
   List<String> sessionLog;
   String notes;
   int _xp;
@@ -47,7 +47,7 @@ class Character {
     int? tempHpToLife,  // New parameter
     DefCategory? defCategory,
     this.hasShield = false,
-    List<Spell>? spells,
+    List<Ability>? spells,
     List<String>? sessionLog,
     this.notes = '',
     int? xp,
@@ -195,7 +195,7 @@ class Character {
     int? tempHpToLife,  // New parameter
     DefCategory? defCategory,
     bool? hasShield,
-    List<Spell>? spells,
+    List<Ability>? spells,
     List<String>? sessionLog,
     String? notes,
     int? xp,
@@ -225,8 +225,8 @@ class Character {
     );
   }
 
-  List<Spell> get spells => _spells;
-  set spells(List<Spell> newSpells) {
+  List<Ability> get spells => _spells;
+  set spells(List<Ability> newSpells) {
     final spellLimit = SpellLimitCalculator.calculateSpellLimit(wil);
     if (newSpells.length > spellLimit) {
       _spells = newSpells.sublist(0, spellLimit);
