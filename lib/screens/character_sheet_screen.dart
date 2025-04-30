@@ -513,9 +513,11 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
               ),
 
               // Main stats row (VIT, ATH, WIL)
-              MainStatsRow(
-                character: _character,
-                size: 0.25,
+              Consumer(
+                builder: (context, ref, child) => MainStatsRow(
+                  character: _character,
+                  size: 0.25,
+                ),
               ),
               const SizedBox(height: 24),
 

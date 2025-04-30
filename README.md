@@ -338,6 +338,25 @@ Key components:
    - Updates view in real-time
    - Preserves editing context
 
+### Check System
+The check system allows players to perform skill checks using their character's stats. Here's how it works:
+
+1. **Stat Selection**: Tap on any main stat (VIT, ATH, or WIL) to initiate a check
+2. **Difficulty Selection**: Choose from three difficulty levels:
+   - Easy (Target Number: 1)
+   - Normal (Target Number: 3)
+   - Hard (Target Number: 5)
+3. **Roll Mechanics**:
+   - Base dice: 3 dice
+   - Additional dice: Equal to the selected stat value
+   - Success: Total roll meets or exceeds the target number
+   - Failure: Total roll is less than the target number
+
+Example:
+- A character with VIT 2 performing a Normal check:
+  - Rolls 5 dice (3 base + 2 from VIT)
+  - Needs a total of 3 or higher to succeed
+
 ## Gherkin Scenarios
 
 ### Character Creation

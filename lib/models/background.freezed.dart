@@ -44,12 +44,8 @@ mixin _$Background {
   /// Whether this background has been customized from its template
   bool get isCustomized => throw _privateConstructorUsedError;
 
-  /// Serializes this Background to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Background
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $BackgroundCopyWith<Background> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -81,8 +77,6 @@ class _$BackgroundCopyWithImpl<$Res, $Val extends Background>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Background
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -159,8 +153,6 @@ class __$$BackgroundImplCopyWithImpl<$Res>
       _$BackgroundImpl _value, $Res Function(_$BackgroundImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Background
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -300,14 +292,12 @@ class _$BackgroundImpl extends _Background with DiagnosticableTreeMixin {
                 other.isCustomized == isCustomized));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, id, name, description,
       placeOfBirth, parents, siblings, templateId, isCustomized);
 
-  /// Create a copy of Background
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$BackgroundImplCopyWith<_$BackgroundImpl> get copyWith =>
@@ -336,42 +326,40 @@ abstract class _Background extends Background {
   factory _Background.fromJson(Map<String, dynamic> json) =
       _$BackgroundImpl.fromJson;
 
-  /// Unique identifier for the background
   @override
+
+  /// Unique identifier for the background
   String get id;
+  @override
 
   /// Name of the background (e.g., "Noble", "Merchant")
-  @override
   String get name;
+  @override
 
   /// Detailed description of the background
-  @override
   String get description;
+  @override
 
   /// Character's place of birth
-  @override
   String get placeOfBirth;
+  @override
 
   /// Description of character's parents
-  @override
   String get parents;
+  @override
 
   /// Description of character's siblings
-  @override
   String get siblings;
+  @override
 
   /// ID of the template this background is based on (null if completely custom)
-  @override
   String? get templateId;
+  @override
 
   /// Whether this background has been customized from its template
-  @override
   bool get isCustomized;
-
-  /// Create a copy of Background
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$BackgroundImplCopyWith<_$BackgroundImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
