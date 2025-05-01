@@ -25,6 +25,7 @@ import '../widgets/secondary_stats_row.dart';
 import '../widgets/stat_modifier_row.dart';
 import '../widgets/avatar_selector.dart';
 import '../viewmodels/character_list_viewmodel.dart';
+import '../widgets/vitality_check_overlay.dart';
 
 class CharacterSheetScreen extends StatefulWidget {
   final Character character;
@@ -180,11 +181,29 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
     });
   }
 
-  void _takeDamage([int amount = 1]) {
+  void _takeDamage([int amount = 1]) async {
     setState(() {
       _character.takeDamage(amount);
       _updateLastUsed();
     });
+
+    // Check if we need to show vitality check
+    if (_character.pendingVitalityCheckDamage > 0) {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => VitalityCheckOverlay(
+          character: _character,
+          targetNumber: _character.pendingVitalityCheckDamage,
+          onResult: (success) {
+            setState(() {
+              _character.handleVitalityCheckResult(success);
+              _updateLastUsed();
+            });
+          },
+        ),
+      );
+    }
   }
 
   void _showDeathDialog() {

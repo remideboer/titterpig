@@ -5,12 +5,14 @@ import 'background.dart';
 import 'def_category.dart';
 import '../utils/spell_limit_calculator.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:math' as math;
 
 class Character {
   static const int baseHp = 6;
   static const int hpPerVit = 2;
   static const int baseLife = 3;
   static const int minPower = 0; // Minimum power value
+  static const int baseCheckDice = 3; // Base number of dice for checks
 
   final String id;
   final String name;
@@ -166,20 +168,44 @@ class Character {
     if (_life.current < _life.max) {
       _tempHpToLife = 0;
     }
-    // this basically keeps subtracting 1 from each value pool till end amount
-    // though it should only subtract life once, so break looks strange
-    // but alternative is a bunch of nested if statements with double conditions
-    // for small amount this is acceptable since it's clearly not optimal
-    for (int i = 0; i < amount; i++) {
-      if (_tempHp > 0) {
-        _tempHp--;
-      } else if (_hp.current > 0) {
-        _hp = _hp.copyWithCurrent(_hp.current - 1);
-      } else if (_life.current > 0) {
-        _life = _life.copyWithCurrent(_life.current - 1);
-        break; // do only once
-      }
+
+    // Track remaining damage after HP is depleted
+    int remainingDamage = amount;
+    
+    // First apply damage to temp HP if available
+    if (_tempHp > 0) {
+      final tempHpDamage = math.min(_tempHp, remainingDamage);
+      _tempHp -= tempHpDamage;
+      remainingDamage -= tempHpDamage;
     }
+
+    // Then apply damage to HP
+    if (remainingDamage > 0 && _hp.current > 0) {
+      final hpDamage = math.min(_hp.current, remainingDamage);
+      _hp = _hp.copyWithCurrent(_hp.current - hpDamage);
+      remainingDamage -= hpDamage;
+    }
+
+    // If there's still damage remaining after HP is depleted, trigger vitality check
+    if (remainingDamage > 0 && _hp.current == 0) {
+      // Store the remaining damage for the vitality check
+      _pendingVitalityCheckDamage = remainingDamage;
+      // The actual life deduction will be handled by the vitality check result
+    }
+
+    updateDerivedStats();
+  }
+
+  // Add this field to track pending vitality check damage
+  int _pendingVitalityCheckDamage = 0;
+  int get pendingVitalityCheckDamage => _pendingVitalityCheckDamage;
+
+  // Add this method to handle vitality check result
+  void handleVitalityCheckResult(bool success) {
+    if (!success && _life.current > 0) {
+      _life = _life.copyWithCurrent(_life.current - 1);
+    }
+    _pendingVitalityCheckDamage = 0;
     updateDerivedStats();
   }
 
@@ -234,5 +260,28 @@ class Character {
       _spells = newSpells;
     }
     updateDerivedStats();
+  }
+
+  /// Performs a stat check with the given target number
+  /// Returns a tuple of (diceCount, result, success)
+  /// where diceCount is the number of dice to roll (3 + stat value, minimum 3)
+  /// result is the actual roll result
+  /// success is whether the roll met or exceeded the target number
+  (int, int, bool) check(String statType, int targetNumber) {
+    // Get the stat value
+    final statValue = switch (statType) {
+      'VIT' => vit,
+      'ATH' => ath,
+      'WIL' => wil,
+      _ => 0,
+    };
+
+    // Calculate dice count: 3 base + stat value, minimum 3
+    final diceCount = math.max(baseCheckDice, baseCheckDice + statValue);
+
+    // Roll the dice (simulated for now, actual rolling happens in UI)
+    final result = 0; // This will be set by the UI
+
+    return (diceCount, result, result >= targetNumber);
   }
 }
