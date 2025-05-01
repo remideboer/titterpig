@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/species.dart';
 
 class SpeciesListItemActions {
@@ -26,9 +27,18 @@ class SpeciesListItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
-        leading: CircleAvatar(
-          child: Text(species.name[0]),
-        ),
+        leading: species.icon.isNotEmpty
+            ? SvgPicture.asset(
+                'assets/svg/${species.icon}',
+                width: 40,
+                height: 40,
+                placeholderBuilder: (context) => CircleAvatar(
+                  child: Text(species.name[0]),
+                ),
+              )
+            : CircleAvatar(
+                child: Text(species.name[0]),
+              ),
         title: Text(species.name),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
