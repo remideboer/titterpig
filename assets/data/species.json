@@ -54,5 +54,20 @@
     "power": 2,
     "def": 0,
     "speed": 0
+  },
+  {
+    "name": "Gnome",
+    "icon": "gnome-face.svg",
+    "culture": "Tribal",
+    "traits": ["Witty", "Curious", "Merry"],
+    "vit": 0,
+    "ath": -1,
+    "wil": 2,
+    "hp": 0,
+    "life": 0,
+    "power": 0,
+    "def": 0,
+    "speed": 0
   }
+
 ] 

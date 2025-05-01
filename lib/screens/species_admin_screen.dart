@@ -5,6 +5,7 @@ import '../viewmodels/species_list_viewmodel.dart';
 import '../widgets/species_list_item.dart';
 import 'species_edit_screen.dart';
 import '../providers/providers.dart';
+import '../repositories/species_repository.dart';
 
 class SpeciesAdminScreen extends ConsumerStatefulWidget {
   const SpeciesAdminScreen({Key? key}) : super(key: key);
@@ -15,20 +16,24 @@ class SpeciesAdminScreen extends ConsumerStatefulWidget {
 
 class _SpeciesAdminScreenState extends ConsumerState<SpeciesAdminScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final _speciesRepository = SpeciesRepository();
+  List<Species> _species = [];
 
   @override
   void initState() {
     super.initState();
-    // Load species when the screen is first shown
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(speciesListViewModelProvider).loadSpecies();
+    _loadSpecies();
+  }
+
+  Future<void> _loadSpecies() async {
+    final species = await _speciesRepository.getSpecies();
+    setState(() {
+      _species = species;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = ref.watch(speciesListViewModelProvider);
-    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manage Species'),
@@ -51,52 +56,54 @@ class _SpeciesAdminScreenState extends ConsumerState<SpeciesAdminScreen> {
                   icon: const Icon(Icons.clear),
                   onPressed: () {
                     _searchController.clear();
-                    viewModel.clearSearchQuery();
+                    setState(() {});
                   },
                 ),
               ),
-              onChanged: (value) => viewModel.setSearchQuery(value),
+              onChanged: (value) => setState(() {}),
             ),
           ),
           Expanded(
-            child: Consumer(
-              builder: (context, ref, child) {
-                if (viewModel.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                
-                final species = viewModel.filteredSpecies;
-                if (species.isEmpty) {
-                  return const Center(child: Text('No species found'));
-                }
-
-                return ListView.builder(
-                  itemCount: species.length,
-                  itemBuilder: (context, index) {
-                    final speciesItem = species[index];
-                    return SpeciesListItem(
-                      species: speciesItem,
-                      actions: SpeciesListItemActions(
-                        species: speciesItem,
-                        actions: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _showEditSpeciesDialog(context, speciesItem),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _showDeleteSpeciesDialog(context, speciesItem),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+            child: _buildSpeciesList(),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSpeciesList() {
+    final searchQuery = _searchController.text.toLowerCase();
+    final filteredSpecies = _species.where((species) {
+      return species.name.toLowerCase().contains(searchQuery) ||
+             species.culture.toLowerCase().contains(searchQuery) ||
+             species.traits.any((trait) => trait.toLowerCase().contains(searchQuery));
+    }).toList();
+
+    if (filteredSpecies.isEmpty) {
+      return const Center(child: Text('No species found'));
+    }
+
+    return ListView.builder(
+      itemCount: filteredSpecies.length,
+      itemBuilder: (context, index) {
+        final species = filteredSpecies[index];
+        return SpeciesListItem(
+          species: species,
+          actions: SpeciesListItemActions(
+            species: species,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () => _showEditSpeciesDialog(context, species),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () => _showDeleteSpeciesDialog(context, species),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -106,7 +113,7 @@ class _SpeciesAdminScreenState extends ConsumerState<SpeciesAdminScreen> {
       MaterialPageRoute(
         builder: (context) => const SpeciesEditScreen(),
       ),
-    );
+    ).then((_) => _loadSpecies());
   }
 
   void _showEditSpeciesDialog(BuildContext context, Species species) {
@@ -115,7 +122,7 @@ class _SpeciesAdminScreenState extends ConsumerState<SpeciesAdminScreen> {
       MaterialPageRoute(
         builder: (context) => SpeciesEditScreen(species: species),
       ),
-    );
+    ).then((_) => _loadSpecies());
   }
 
   void _showDeleteSpeciesDialog(BuildContext context, Species species) {
@@ -131,7 +138,9 @@ class _SpeciesAdminScreenState extends ConsumerState<SpeciesAdminScreen> {
           ),
           TextButton(
             onPressed: () {
-              ref.read(speciesListViewModelProvider).removeSpecies(species);
+              setState(() {
+                _species.remove(species);
+              });
               Navigator.pop(context);
             },
             child: const Text('Delete'),
