@@ -1,6 +1,10 @@
 import 'package:flutter/foundation.dart';
 
 class Species {
+  static const int totalPoints = 2;
+  static const int highCost = 2; // Cost for VIT, ATH, WIL, LIFE
+  static const int lowCost = 1;  // Cost for HP, POWER, DEF, SPEED
+
   final String name;
   final String icon;
   final bool isCustom;
@@ -63,6 +67,92 @@ class Species {
       'culture': culture,
       'traits': traits,
     };
+  }
+
+  int get remainingPoints {
+    int spentPoints = 0;
+    spentPoints += vit * highCost;
+    spentPoints += ath * highCost;
+    spentPoints += wil * highCost;
+    spentPoints += life * highCost;
+    spentPoints += hp * lowCost;
+    spentPoints += power * lowCost;
+    spentPoints += def * lowCost;
+    spentPoints += speed * lowCost;
+    return totalPoints - spentPoints;
+  }
+
+  bool canIncreaseStat(String stat) {
+    final cost = getStatCost(stat);
+    return remainingPoints >= cost;
+  }
+
+  bool canDecreaseStat(String stat) {
+    // Allow decreasing any stat to negative values
+    return true;
+  }
+
+  int getStatCost(String stat) {
+    switch (stat) {
+      case 'vit':
+      case 'ath':
+      case 'wil':
+      case 'life':
+        return highCost;
+      case 'hp':
+      case 'power':
+      case 'def':
+      case 'speed':
+        return lowCost;
+      default:
+        return 0;
+    }
+  }
+
+  int getStatValue(String stat) {
+    switch (stat) {
+      case 'vit': return vit;
+      case 'ath': return ath;
+      case 'wil': return wil;
+      case 'hp': return hp;
+      case 'life': return life;
+      case 'power': return power;
+      case 'def': return def;
+      case 'speed': return speed;
+      default: return 0;
+    }
+  }
+
+  Species copyWith({
+    String? name,
+    String? icon,
+    bool? isCustom,
+    int? vit,
+    int? ath,
+    int? wil,
+    int? hp,
+    int? life,
+    int? power,
+    int? def,
+    int? speed,
+    String? culture,
+    List<String>? traits,
+  }) {
+    return Species(
+      name: name ?? this.name,
+      icon: icon ?? this.icon,
+      isCustom: isCustom ?? this.isCustom,
+      vit: vit ?? this.vit,
+      ath: ath ?? this.ath,
+      wil: wil ?? this.wil,
+      hp: hp ?? this.hp,
+      life: life ?? this.life,
+      power: power ?? this.power,
+      def: def ?? this.def,
+      speed: speed ?? this.speed,
+      culture: culture ?? this.culture,
+      traits: traits ?? this.traits,
+    );
   }
 
   @override

@@ -99,6 +99,20 @@ Related Business Rules: None
   * When temporary HP reaches max HP, converts to 1 Life
   * Conversion only occurs if Life is not at maximum
 
+### Species Creation
+- Total starting points: 2 points to distribute
+- Stat costs:
+  * VIT, ATH, WIL, LIFE: 2 points per increase
+  * HP, POWER, DEF, SPEED: 1 point per increase
+- Point borrowing:
+  * Stats can be decreased below 0 to "borrow" points
+  * Points returned to pool based on stat's cost when decreased
+  * Borrowed points can be spent on increasing other stats
+- Stat validation:
+  * Points cannot be spent if insufficient points available
+  * Points are automatically returned when decreasing stats
+  * Total points spent must not exceed available points
+
 ### Species Attributes
 - Each species provides base bonuses to character stats:
   * VIT, ATH, WIL: Added to character's base stats
