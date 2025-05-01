@@ -133,7 +133,6 @@ class LocalCharacterRepository extends ChangeNotifier implements CharacterReposi
       await prefs.setStringList(_charactersKey, charactersJson);
       if (_debug) print('Saved ${_characters.length} characters to storage');
     } catch (e) {
-      print('Error saving characters: $e');
       // Handle error (maybe add retry logic or notify user)
     }
   }

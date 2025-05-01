@@ -21,7 +21,6 @@ class SvgValueIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('Loading SVG: $svgAsset'); // Debug print
     return SizedBox(
       width: size,
       height: size,

@@ -13,23 +13,18 @@ class SpellRepository {
   Future<List<Ability>> getSpells() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      debugPrint('Loading spells from SharedPreferences...');
-      
+
       final spellsJson = prefs.getStringList(_spellsKey);
       if (spellsJson == null || spellsJson.isEmpty) {
-        debugPrint('No spells found in SharedPreferences, loading default spells...');
         return Ability.availableSpells;
       }
 
-      debugPrint('Found ${spellsJson.length} spells in SharedPreferences');
       final spells = spellsJson
           .map((json) => Ability.fromJson(jsonDecode(json)))
           .toList();
-      
-      debugPrint('Loaded spells: ${spells.map((s) => s.name).join(', ')}');
+
       return spells;
     } catch (e) {
-      debugPrint('Error loading spells: $e');
       return Ability.availableSpells;
     }
   }

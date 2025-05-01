@@ -1,28 +1,30 @@
-import 'package:flutter/services.dart';
-import 'dart:convert';
 import '../models/species.dart';
+import '../services/species_service.dart';
 
 class SpeciesRepository {
-  static const String _speciesAssetPath = 'assets/data/species.json';
+  final SpeciesService _service = SpeciesService();
   List<Species> _species = [];
 
   Future<List<Species>> getSpecies() async {
     if (_species.isEmpty) {
-      try {
-        final String jsonString = await rootBundle.loadString(_speciesAssetPath);
-        final List<dynamic> jsonList = json.decode(jsonString);
-        _species = jsonList.map((item) => Species.fromJson(item)).toList();
-      } catch (e) {
-        // Fallback to default species if file can't be loaded
-        _species = [
-          const Species(name: 'Human', icon: 'human-face.svg'),
-          const Species(name: 'Dwarf', icon: 'dwarf-face.svg'),
-          const Species(name: 'Elf', icon: 'elf-face.svg'),
-          const Species(name: 'Gnome', icon: 'gnome-face.svg'),
-          const Species(name: 'Tiefling', icon: 'tiefling-face.svg'),
-        ];
-      }
+      _species = await _service.getSpecies();
+    } else {
     }
     return _species;
+  }
+
+  Future<void> addSpecies(Species species) async {
+    await _service.addSpecies(species);
+    _species = await _service.getSpecies(); // Refresh the cache
+  }
+
+  Future<void> updateSpecies(Species species) async {
+    await _service.updateSpecies(species);
+    _species = await _service.getSpecies(); // Refresh the cache
+  }
+
+  Future<void> deleteSpecies(Species species) async {
+    await _service.deleteSpecies(species);
+    _species = await _service.getSpecies(); // Refresh the cache
   }
 } 

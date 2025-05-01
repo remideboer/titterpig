@@ -21,5 +21,8 @@ final spellServiceProvider = Provider<SpellService>(
 );
 
 final speciesListViewModelProvider = ChangeNotifierProvider<SpeciesListViewModel>((ref) {
-  return SpeciesListViewModel(SpeciesService());
+  final viewModel = SpeciesListViewModel();
+  // Load species immediately when the provider is created
+  viewModel.loadSpecies();
+  return viewModel;
 }); 

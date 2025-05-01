@@ -71,13 +71,10 @@ class SyncService extends ChangeNotifier {
       try {
         if (!isEnabled || !_hasPendingChanges) return;
         
-        print('Performing automatic sync due to data changes...');
         await syncNow();
         _hasPendingChanges = false;
         notifyListeners();
-        print('Automatic sync completed successfully');
       } catch (e) {
-        print('Automatic sync failed: $e');
         // Keep _hasPendingChanges true so we can retry later
       }
     });
@@ -86,70 +83,42 @@ class SyncService extends ChangeNotifier {
   // Enable sync
   Future<void> enableSync() async {
     try {
-      print('\n=== Sync Service: Enable Sync ===');
       _isSyncing = true;
       notifyListeners();
       
-      print('1. Attempting Google Sign In...');
       // Sign in to Google
       final account = await _googleSignIn.signIn();
       if (account == null) {
-        print('❌ Sign in failed: User cancelled or configuration error');
         throw Exception('Sign in cancelled or failed');
       }
-      print('✓ Successfully signed in as: ${account.email}');
-      
-      print('2. Getting auth headers...');
+
       // Get auth client
       try {
         final auth = await account.authHeaders;
-        print('✓ Auth headers received: ${auth.keys.join(", ")}');
         final client = GoogleAuthClient(auth);
         _driveApi = drive.DriveApi(client);
-        print('✓ Drive API client created');
       } catch (authError) {
-        print('❌ Error getting auth headers:');
-        print('Error type: ${authError.runtimeType}');
-        print('Error details: $authError');
         rethrow;
       }
       
-      print('3. Initializing Drive folder...');
       // Initialize Drive folder
       try {
         _appFolderId = await _getOrCreateAppFolder();
-        print('✓ App folder ready: $_appFolderId');
       } catch (folderError) {
-        print('❌ Error with Drive folder:');
-        print('Error type: ${folderError.runtimeType}');
-        print('Error details: $folderError');
         rethrow;
       }
-      
-      print('4. Performing initial sync...');
       // Do initial sync
       await _syncData();
-      print('✓ Initial sync completed');
-      
+
       // Save preferences
       await _prefs.setBool(_prefSyncEnabled, true);
-      print('✓ Sync enabled in preferences');
-      
+
       _isSyncing = false;
       notifyListeners();
-      print('=== Sync Enable Completed Successfully ===\n');
+
     } catch (e, stackTrace) {
-      print('\n=== Sync Enable Error ===');
-      print('Error type: ${e.runtimeType}');
-      print('Error message: $e');
-      print('\nStack trace:');
       print(stackTrace);
-      print('\nCommon error codes:');
-      print('- ApiException 10: OAuth configuration issue (check SHA-1 and package name)');
-      print('- ApiException 12501: Google Play Services missing/outdated');
-      print('- ApiException 12500: Google Play Services disabled');
-      print('======================\n');
-      
+
       _isSyncing = false;
       notifyListeners();
       rethrow;

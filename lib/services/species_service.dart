@@ -1,63 +1,68 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/species.dart';
 
 class SpeciesService {
-  static const String _speciesPath = 'assets/data/species.json';
+  static const String _fileName = 'species.json';
+  static const String _assetPath = 'assets/data/species.json';
 
   Future<List<Species>> getSpecies() async {
     try {
-      final String jsonString = await rootBundle.loadString(_speciesPath);
-      final List<dynamic> jsonList = json.decode(jsonString);
-      return jsonList.map((json) => Species.fromJson(json)).toList();
+      final file = await _getLocalFile();
+      if (await file.exists()) {
+        final contents = await file.readAsString();
+        final List<dynamic> jsonList = json.decode(contents);
+        final species = jsonList.map((json) => Species.fromJson(json)).toList();
+        return species;
+      }
     } catch (e) {
-      print('Error loading species: $e');
+    }
+
+    try {
+      final String contents = await rootBundle.loadString(_assetPath);
+      final List<dynamic> jsonList = json.decode(contents);
+      final species = jsonList.map((json) => Species.fromJson(json)).toList();
+      return species;
+    } catch (e) {
       return [];
     }
   }
 
   Future<void> addSpecies(Species species) async {
-    try {
-      final List<Species> currentSpecies = await getSpecies();
-      currentSpecies.add(species);
-      await _saveSpecies(currentSpecies);
-    } catch (e) {
-      print('Error adding species: $e');
-    }
+    final speciesList = await getSpecies();
+    speciesList.add(species);
+    await _saveSpecies(speciesList);
   }
 
   Future<void> updateSpecies(Species species) async {
-    try {
-      final List<Species> currentSpecies = await getSpecies();
-      final index = currentSpecies.indexWhere((s) => s.name == species.name);
-      if (index != -1) {
-        currentSpecies[index] = species;
-        await _saveSpecies(currentSpecies);
-      }
-    } catch (e) {
-      print('Error updating species: $e');
+    final speciesList = await getSpecies();
+    final index = speciesList.indexWhere((s) => s.name == species.name);
+    if (index != -1) {
+      speciesList[index] = species;
+      await _saveSpecies(speciesList);
     }
   }
 
   Future<void> deleteSpecies(Species species) async {
-    try {
-      final List<Species> currentSpecies = await getSpecies();
-      currentSpecies.removeWhere((s) => s.name == species.name);
-      await _saveSpecies(currentSpecies);
-    } catch (e) {
-      print('Error deleting species: $e');
-    }
+    final speciesList = await getSpecies();
+    speciesList.removeWhere((s) => s.name == species.name);
+    await _saveSpecies(speciesList);
+  }
+
+  Future<File> _getLocalFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    return File('${directory.path}/$_fileName');
   }
 
   Future<void> _saveSpecies(List<Species> species) async {
     try {
+      final file = await _getLocalFile();
       final jsonList = species.map((s) => s.toJson()).toList();
-      final jsonString = json.encode(jsonList);
-      // Note: In a real app, you would need to implement a way to save to the filesystem
-      // For now, we'll just print the JSON to demonstrate the structure
-      print('Species JSON to save: $jsonString');
+      await file.writeAsString(json.encode(jsonList));
     } catch (e) {
-      print('Error saving species: $e');
+      rethrow;
     }
   }
 } 
