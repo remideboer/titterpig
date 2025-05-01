@@ -18,14 +18,14 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
   late TextEditingController _iconController;
   late TextEditingController _cultureController;
   late TextEditingController _traitsController;
-  late TextEditingController _vitController;
-  late TextEditingController _athController;
-  late TextEditingController _wilController;
-  late TextEditingController _hpController;
-  late TextEditingController _lifeController;
-  late TextEditingController _powerController;
-  late TextEditingController _defController;
-  late TextEditingController _speedController;
+  int _vit = 0;
+  int _ath = 0;
+  int _wil = 0;
+  int _hp = 0;
+  int _life = 0;
+  int _power = 0;
+  int _def = 0;
+  int _speed = 0;
 
   @override
   void initState() {
@@ -34,14 +34,14 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
     _iconController = TextEditingController(text: widget.species?.icon ?? 'human-face.svg');
     _cultureController = TextEditingController(text: widget.species?.culture ?? '');
     _traitsController = TextEditingController(text: widget.species?.traits.join(', ') ?? '');
-    _vitController = TextEditingController(text: widget.species?.vit.toString() ?? '0');
-    _athController = TextEditingController(text: widget.species?.ath.toString() ?? '0');
-    _wilController = TextEditingController(text: widget.species?.wil.toString() ?? '0');
-    _hpController = TextEditingController(text: widget.species?.hp.toString() ?? '0');
-    _lifeController = TextEditingController(text: widget.species?.life.toString() ?? '0');
-    _powerController = TextEditingController(text: widget.species?.power.toString() ?? '0');
-    _defController = TextEditingController(text: widget.species?.def.toString() ?? '0');
-    _speedController = TextEditingController(text: widget.species?.speed.toString() ?? '0');
+    _vit = widget.species?.vit ?? 0;
+    _ath = widget.species?.ath ?? 0;
+    _wil = widget.species?.wil ?? 0;
+    _hp = widget.species?.hp ?? 0;
+    _life = widget.species?.life ?? 0;
+    _power = widget.species?.power ?? 0;
+    _def = widget.species?.def ?? 0;
+    _speed = widget.species?.speed ?? 0;
   }
 
   @override
@@ -50,15 +50,22 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
     _iconController.dispose();
     _cultureController.dispose();
     _traitsController.dispose();
-    _vitController.dispose();
-    _athController.dispose();
-    _wilController.dispose();
-    _hpController.dispose();
-    _lifeController.dispose();
-    _powerController.dispose();
-    _defController.dispose();
-    _speedController.dispose();
     super.dispose();
+  }
+
+  void _updateStat(String stat, int delta) {
+    setState(() {
+      switch (stat) {
+        case 'vit': _vit += delta; break;
+        case 'ath': _ath += delta; break;
+        case 'wil': _wil += delta; break;
+        case 'hp': _hp += delta; break;
+        case 'life': _life += delta; break;
+        case 'power': _power += delta; break;
+        case 'def': _def += delta; break;
+        case 'speed': _speed += delta; break;
+      }
+    });
   }
 
   void _saveSpecies(BuildContext context) {
@@ -69,14 +76,14 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
       icon: _iconController.text,
       culture: _cultureController.text,
       traits: _traitsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
-      vit: int.tryParse(_vitController.text) ?? 0,
-      ath: int.tryParse(_athController.text) ?? 0,
-      wil: int.tryParse(_wilController.text) ?? 0,
-      hp: int.tryParse(_hpController.text) ?? 0,
-      life: int.tryParse(_lifeController.text) ?? 0,
-      power: int.tryParse(_powerController.text) ?? 0,
-      def: int.tryParse(_defController.text) ?? 0,
-      speed: int.tryParse(_speedController.text) ?? 0,
+      vit: _vit,
+      ath: _ath,
+      wil: _wil,
+      hp: _hp,
+      life: _life,
+      power: _power,
+      def: _def,
+      speed: _speed,
     );
 
     if (widget.species != null) {
@@ -86,6 +93,56 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
     }
 
     Navigator.pop(context);
+  }
+
+  Widget _buildStatInput(String label, int value, VoidCallback onIncrement, VoidCallback onDecrement) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          IntrinsicWidth(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: IconButton(
+                    icon: const Icon(Icons.remove, size: 16),
+                    padding: EdgeInsets.zero,
+                    onPressed: onDecrement,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    value.toString(),
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ),
+                SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: IconButton(
+                    icon: const Icon(Icons.add, size: 16),
+                    padding: EdgeInsets.zero,
+                    onPressed: onIncrement,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -118,7 +175,7 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
               decoration: const InputDecoration(
                 labelText: 'Icon',
                 border: OutlineInputBorder(),
-                helperText: 'SVG file name in assets/icons',
+                helperText: 'SVG file name in assets/svg',
               ),
             ),
             const SizedBox(height: 16),
@@ -144,35 +201,23 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _vitController,
-                    decoration: const InputDecoration(
-                      labelText: 'VIT',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
+                  child: _buildStatInput('VIT', _vit, 
+                    () => _updateStat('vit', 1),
+                    () => _updateStat('vit', -1),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: TextField(
-                    controller: _athController,
-                    decoration: const InputDecoration(
-                      labelText: 'ATH',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
+                  child: _buildStatInput('ATH', _ath,
+                    () => _updateStat('ath', 1),
+                    () => _updateStat('ath', -1),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: TextField(
-                    controller: _wilController,
-                    decoration: const InputDecoration(
-                      labelText: 'WIL',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
+                  child: _buildStatInput('WIL', _wil,
+                    () => _updateStat('wil', 1),
+                    () => _updateStat('wil', -1),
                   ),
                 ),
               ],
@@ -183,35 +228,23 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _hpController,
-                    decoration: const InputDecoration(
-                      labelText: 'HP',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
+                  child: _buildStatInput('HP', _hp,
+                    () => _updateStat('hp', 1),
+                    () => _updateStat('hp', -1),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: TextField(
-                    controller: _lifeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Life',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
+                  child: _buildStatInput('Life', _life,
+                    () => _updateStat('life', 1),
+                    () => _updateStat('life', -1),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: TextField(
-                    controller: _powerController,
-                    decoration: const InputDecoration(
-                      labelText: 'Power',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
+                  child: _buildStatInput('Power', _power,
+                    () => _updateStat('power', 1),
+                    () => _updateStat('power', -1),
                   ),
                 ),
               ],
@@ -220,24 +253,16 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _defController,
-                    decoration: const InputDecoration(
-                      labelText: 'Defense',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
+                  child: _buildStatInput('Defense', _def,
+                    () => _updateStat('def', 1),
+                    () => _updateStat('def', -1),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: TextField(
-                    controller: _speedController,
-                    decoration: const InputDecoration(
-                      labelText: 'Speed',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
+                  child: _buildStatInput('Speed', _speed,
+                    () => _updateStat('speed', 1),
+                    () => _updateStat('speed', -1),
                   ),
                 ),
               ],
