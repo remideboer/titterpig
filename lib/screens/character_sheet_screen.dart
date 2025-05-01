@@ -43,9 +43,7 @@ class CharacterSheetScreen extends StatefulWidget {
 
 class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   late DefCategory selectedDefense;
-  bool _showSpellOverlay = false;
   final LocalCharacterRepository _repository = LocalCharacterRepository();
-  SettingsRepository? _settingsRepository;
   late Character _character;
   final PageController _pageController = PageController();
   int _currentPage = 0;
@@ -81,7 +79,6 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   Future<void> _initializeSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _settingsRepository = SettingsRepository(prefs);
     });
   }
 
@@ -351,7 +348,7 @@ class _CharacterSheetScreenState extends State<CharacterSheetScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(NameFormatter.formatName(_character.name)),
+        title: Text("${NameFormatter.formatName(_character.name)} (${NameFormatter.formatName(_character.species.name)})"),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
