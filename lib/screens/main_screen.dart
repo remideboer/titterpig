@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'character_sheet_screen.dart';
 import 'character_list_screen.dart';
-import 'ability_admin_screen.dart';
+import 'admin_screen.dart';
 import 'settings_screen.dart';
 import '../models/character.dart';
 import '../repositories/local_character_repository.dart';
@@ -127,7 +127,7 @@ class _MainScreenState extends State<MainScreen> {
                   style: TextStyle(fontSize: 18),
                 ),
               ),
-            const AbilityAdminScreen(),
+            const AdminScreen(),
             SettingsScreen(
               isDarkMode: _isDarkMode,
               onThemeChanged: (value) {
@@ -166,8 +166,8 @@ class _MainScreenState extends State<MainScreen> {
               label: 'Character Sheet',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.auto_awesome),
-              label: 'Spells',
+              icon: Icon(Icons.admin_panel_settings),
+              label: 'Admin',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings),

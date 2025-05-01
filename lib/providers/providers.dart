@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/character_service.dart';
 import '../services/character_generator_service.dart';
 import '../services/spell_service.dart';
+import '../viewmodels/species_list_viewmodel.dart';
+import '../services/species_service.dart';
 
 /// Provider for the character service
 final characterServiceProvider = Provider<CharacterService>(
@@ -16,4 +18,8 @@ final characterGeneratorProvider = Provider<CharacterGeneratorService>(
 /// Provider for the spell service
 final spellServiceProvider = Provider<SpellService>(
   (ref) => SpellService(),
-); 
+);
+
+final speciesListViewModelProvider = ChangeNotifierProvider<SpeciesListViewModel>((ref) {
+  return SpeciesListViewModel(SpeciesService());
+}); 
