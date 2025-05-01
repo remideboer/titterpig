@@ -22,23 +22,23 @@ class MainStatsRow extends ConsumerWidget {
         _StatButton(
           label: 'VIT',
           value: character.vit,
-          onTap: () => _showCheckDialog(context, character, character.vit, 'VIT'),
+          onTap: () => _showCheckDialog(context, character, character.vit, Stat.vit),
         ),
         _StatButton(
           label: 'ATH',
           value: character.ath,
-          onTap: () => _showCheckDialog(context, character, character.ath, 'ATH'),
+          onTap: () => _showCheckDialog(context, character, character.ath, Stat.ath),
         ),
         _StatButton(
           label: 'WIL',
           value: character.wil,
-          onTap: () => _showCheckDialog(context, character, character.wil, 'WIL'),
+          onTap: () => _showCheckDialog(context, character, character.wil, Stat.wil),
         ),
       ],
     );
   }
 
-  void _showCheckDialog(BuildContext context, Character character, int statValue, String statType) {
+  void _showCheckDialog(BuildContext context, Character character, int statValue, Stat statType) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

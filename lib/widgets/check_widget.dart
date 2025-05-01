@@ -23,7 +23,7 @@ enum CheckDifficulty {
 class CheckWidget extends ConsumerWidget {
   final Character character;
   final int statValue;
-  final String statType;
+  final Stat statType;
 
   const CheckWidget({
     super.key,
@@ -129,7 +129,7 @@ class _DifficultyButton extends StatefulWidget {
   final CheckDifficulty difficulty;
   final int statValue;
   final Character character;
-  final String statType;
+  final Stat statType;
   final WidgetRef ref;
 
   const _DifficultyButton({
@@ -152,14 +152,12 @@ class _DifficultyButtonState extends State<_DifficultyButton> {
   int _getStatValue(Character character) {
     // Use the stat that initiated the check flow
     switch (widget.statType) {
-      case 'VIT':
+      case Stat.vit:
         return character.vit;
-      case 'ATH':
+      case Stat.ath:
         return character.ath;
-      case 'WIL':
+      case Stat.wil:
         return character.wil;
-      default:
-        return 0;
     }
   }
 

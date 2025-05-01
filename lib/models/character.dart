@@ -7,6 +7,14 @@ import '../utils/spell_limit_calculator.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 
+enum Stat {
+  vit,
+  ath,
+  wil;
+
+  String get displayName => name.toUpperCase();
+}
+
 class Character {
   static const int baseHp = 6;
   static const int hpPerVit = 2;
@@ -267,13 +275,12 @@ class Character {
   /// where diceCount is the number of dice to roll (3 + stat value, minimum 3)
   /// result is the actual roll result
   /// success is whether the roll met or exceeded the target number
-  (int, int, bool) check(String statType, int targetNumber) {
+  (int, int, bool) check(Stat stat, int targetNumber) {
     // Get the stat value
-    final statValue = switch (statType) {
-      'VIT' => vit,
-      'ATH' => ath,
-      'WIL' => wil,
-      _ => 0,
+    final statValue = switch (stat) {
+      Stat.vit => vit,
+      Stat.ath => ath,
+      Stat.wil => wil,
     };
 
     // Calculate dice count: 3 base + stat value, minimum 3

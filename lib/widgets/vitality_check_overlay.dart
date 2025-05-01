@@ -32,7 +32,7 @@ class _VitalityCheckOverlayState extends ConsumerState<VitalityCheckOverlay> {
   void initState() {
     super.initState();
     // Get the dice count from the character's check method
-    final (diceCount, _, _) = widget.character.check('VIT', widget.targetNumber);
+    final (diceCount, _, _) = widget.character.check(Stat.vit, widget.targetNumber);
     _diceCount = diceCount;
   }
 
