@@ -27,18 +27,16 @@ class SpeciesListItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
-        leading: species.icon.isNotEmpty
-            ? SvgPicture.asset(
-                'assets/svg/${species.icon}',
-                width: 40,
-                height: 40,
-                placeholderBuilder: (context) => CircleAvatar(
-                  child: Text(species.name[0]),
-                ),
-              )
-            : CircleAvatar(
-                child: Text(species.name[0]),
-              ),
+        leading: SvgPicture.asset(
+          'assets/svg/${species.icon.isNotEmpty ? species.icon : 'unknown-face.svg'}',
+          width: 40,
+          height: 40,
+          placeholderBuilder: (context) => SvgPicture.asset(
+            'assets/svg/unknown-face.svg',
+            width: 40,
+            height: 40,
+          ),
+        ),
         title: Text(species.name),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
