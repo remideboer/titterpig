@@ -1,18 +1,50 @@
+import 'package:flutter/foundation.dart';
+
 class Species {
   final String name;
   final String icon;
   final bool isCustom;
+  final int vit;
+  final int ath;
+  final int wil;
+  final int hp;
+  final int life;
+  final int power;
+  final int def;
+  final int speed;
+  final String culture;
+  final List<String> traits;
 
   const Species({
     required this.name,
     required this.icon,
     this.isCustom = false,
+    this.vit = 0,
+    this.ath = 0,
+    this.wil = 0,
+    this.hp = 0,
+    this.life = 0,
+    this.power = 0,
+    this.def = 0,
+    this.speed = 0,
+    this.culture = '',
+    this.traits = const [],
   });
 
   factory Species.fromJson(Map<String, dynamic> json) {
     return Species(
       name: json['name'] as String,
       icon: json['icon'] as String,
+      vit: json['vit'] as int? ?? 0,
+      ath: json['ath'] as int? ?? 0,
+      wil: json['wil'] as int? ?? 0,
+      hp: json['hp'] as int? ?? 0,
+      life: json['life'] as int? ?? 0,
+      power: json['power'] as int? ?? 0,
+      def: json['def'] as int? ?? 0,
+      speed: json['speed'] as int? ?? 0,
+      culture: json['culture'] as String? ?? '',
+      traits: (json['traits'] as List<dynamic>?)?.cast<String>() ?? [],
     );
   }
 
@@ -20,6 +52,16 @@ class Species {
     return {
       'name': name,
       'icon': icon,
+      'vit': vit,
+      'ath': ath,
+      'wil': wil,
+      'hp': hp,
+      'life': life,
+      'power': power,
+      'def': def,
+      'speed': speed,
+      'culture': culture,
+      'traits': traits,
     };
   }
 
@@ -30,8 +72,32 @@ class Species {
           runtimeType == other.runtimeType &&
           name == other.name &&
           icon == other.icon &&
-          isCustom == other.isCustom;
+          isCustom == other.isCustom &&
+          vit == other.vit &&
+          ath == other.ath &&
+          wil == other.wil &&
+          hp == other.hp &&
+          life == other.life &&
+          power == other.power &&
+          def == other.def &&
+          speed == other.speed &&
+          culture == other.culture &&
+          listEquals(traits, other.traits);
 
   @override
-  int get hashCode => name.hashCode ^ icon.hashCode ^ isCustom.hashCode;
+  int get hashCode => Object.hash(
+        name,
+        icon,
+        isCustom,
+        vit,
+        ath,
+        wil,
+        hp,
+        life,
+        power,
+        def,
+        speed,
+        culture,
+        Object.hashAll(traits),
+      );
 } 

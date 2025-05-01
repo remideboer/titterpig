@@ -25,12 +25,12 @@ class Character {
   final String id;
   final String name;
   final Species species;
-  final int vit;
-  final int ath;
-  final int wil;
-  final String? avatarPath; // Path to the avatar image file
+  final int _vit;  // Changed to private
+  final int _ath;  // Changed to private
+  final int _wil;  // Changed to private
+  final String? avatarPath;
   int _tempHp;
-  int _tempHpToLife;  // New field to track HP that will convert to LIFE
+  int _tempHpToLife;
   late StatValue _hp;
   late StatValue _life;
   late StatValue _power;
@@ -45,16 +45,26 @@ class Character {
   DateTime lastUsed;
   Background? background;
 
+  // Getters that combine character and species attributes
+  int get vit => _vit + species.vit;
+  int get ath => _ath + species.ath;
+  int get wil => _wil + species.wil;
+  int get speciesHpBonus => species.hp;
+  int get speciesLifeBonus => species.life;
+  int get speciesPowerBonus => species.power;
+  int get speciesDefBonus => species.def;
+  int get speciesSpeed => species.speed;
+
   Character({
     required this.id,
     required this.name,
     required this.species,
-    required this.vit,
-    required this.ath,
-    required this.wil,
+    required int vit,
+    required int ath,
+    required int wil,
     this.avatarPath,
     int? tempHp,
-    int? tempHpToLife,  // New parameter
+    int? tempHpToLife,
     DefCategory? defCategory,
     this.hasShield = false,
     List<Ability>? spells,
@@ -64,17 +74,20 @@ class Character {
     DateTime? createdAt,
     DateTime? lastUsed,
     this.background,
-  })  : _tempHp = tempHp ?? 0,
-        _tempHpToLife = tempHpToLife ?? 0,  // Initialize new field
+  })  : _vit = vit,
+        _ath = ath,
+        _wil = wil,
+        _tempHp = tempHp ?? 0,
+        _tempHpToLife = tempHpToLife ?? 0,
         _xp = xp ?? 0,
         defCategory = defCategory ?? DefCategory.none,
         _spells = spells ?? [],
         sessionLog = sessionLog ?? [],
         createdAt = createdAt ?? DateTime.now(),
         lastUsed = lastUsed ?? DateTime.now() {
-    final newHp = baseHp + hpPerVit * vit;
-    final newLife = baseLife + vit;
-    final newPower = wil * 3;
+    final newHp = Character.baseHp + speciesHpBonus + hpPerVit * vit;
+    final newLife = Character.baseLife + speciesLifeBonus + vit;
+    final newPower = wil * 3 + speciesPowerBonus;
     
     _hp = StatValue.full(newHp < 2 ? 2 : newHp);
     _life = StatValue.full(newLife);
@@ -82,7 +95,7 @@ class Character {
     def = _defUpdate();
   }
 
-  int _defUpdate() => defCategory.defValue + (hasShield ? 2 : 0);
+  int _defUpdate() => defCategory.defValue + (hasShield ? 2 : 0) + speciesDefBonus;
 
   // Getters for the stat values
   StatValue get hpStat => _hp;
@@ -101,8 +114,8 @@ class Character {
   int get availablePower => _power.current;
   int get tempHp => _tempHp;
   set tempHp(int value) => _tempHp = value;
-  int get tempHpToLife => _tempHpToLife;  // New getter
-  set tempHpToLife(int value) => _tempHpToLife = value;  // New setter
+  int get tempHpToLife => _tempHpToLife;
+  set tempHpToLife(int value) => _tempHpToLife = value;
   int get xp => _xp;
   set xp(int value) => _xp = value;
 
@@ -112,25 +125,25 @@ class Character {
   }
 
   void updateDerivedStats() {
-    final newHp = baseHp + hpPerVit * vit;
+    final newHp = Character.baseHp + speciesHpBonus + hpPerVit * vit;
     _hp = StatValue(
       current: _hp.current.clamp(0, newHp < 2 ? 2 : newHp),
       max: newHp < 2 ? 2 : newHp
     );
     
-    final newLife = baseLife + vit;
+    final newLife = Character.baseLife + speciesLifeBonus + vit;
     _life = StatValue(
       current: _life.current.clamp(0, newLife),
       max: newLife
     );
     
-    final newPower = wil * 3;
+    final newPower = wil * 3 + speciesPowerBonus;
     _power = StatValue(
       current: _power.current.clamp(0, newPower < minPower ? minPower : newPower),
       max: newPower < minPower ? minPower : newPower
     );
     
-    def = defCategory.defValue + (hasShield ? 2 : 0);
+    def = _defUpdate();
   }
 
   /// Returns true if the character is dead (LIFE stat is 0)
@@ -241,9 +254,9 @@ class Character {
       id: id ?? this.id,
       name: name ?? this.name,
       species: species ?? this.species,
-      vit: vit ?? this.vit,
-      ath: ath ?? this.ath,
-      wil: wil ?? this.wil,
+      vit: vit ?? this._vit,
+      ath: ath ?? this._ath,
+      wil: wil ?? this._wil,
       avatarPath: avatarPath ?? this.avatarPath,
       tempHp: tempHp ?? this._tempHp,
       tempHpToLife: tempHpToLife ?? this._tempHpToLife,  // New parameter

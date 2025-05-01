@@ -88,15 +88,27 @@ Related Business Rules: None
 ### Character Creation
 - Total stat points: 3 points to distribute
 - Minimum stat value: -3
-- HP calculation: Base 6 + (2 × VIT)
-- Life calculation: Base 3 + VIT
-- Power calculation: WIL × 3
-- Defense calculation: Base defense from category + 2 if shield is active
+- HP calculation: Base 6 + Species HP Bonus + (2 × VIT)
+- Life calculation: Base 3 + Species Life Bonus + VIT
+- Power calculation: (WIL × 3) + Species Power Bonus
+- Defense calculation: Species Defense Bonus + Base defense from category + 2 if shield is active
+- Speed: Determined by species
 - HP to Life conversion:
   * When HP is full, excess healing accumulates as temporary HP
   * Temporary HP is displayed as an overlay on the heart icon
   * When temporary HP reaches max HP, converts to 1 Life
   * Conversion only occurs if Life is not at maximum
+
+### Species Attributes
+- Each species provides base bonuses to character stats:
+  * VIT, ATH, WIL: Added to character's base stats
+  * HP: Added to base HP calculation
+  * Life: Added to base Life calculation
+  * Power: Added to total power calculation
+  * Defense: Added to total defense calculation
+  * Speed: Determines character's base speed
+  * Culture: Describes species' cultural background
+  * Traits: List of species-specific characteristics
 
 ### Spell Management
 - Spell cost must be less than or equal to character's power
