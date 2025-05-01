@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/species.dart';
 import '../viewmodels/species_list_viewmodel.dart';
 import '../providers/providers.dart';
+import '../widgets/avatar_selector.dart';
 
 class SpeciesEditScreen extends ConsumerStatefulWidget {
   final Species? species;
@@ -15,25 +16,24 @@ class SpeciesEditScreen extends ConsumerStatefulWidget {
 
 class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
   late TextEditingController _nameController;
-  late TextEditingController _iconController;
   late TextEditingController _cultureController;
   late TextEditingController _traitsController;
   late Species _currentSpecies;
+  String? _iconPath;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.species?.name ?? '');
-    _iconController = TextEditingController(text: widget.species?.icon ?? 'human-face.svg');
     _cultureController = TextEditingController(text: widget.species?.culture ?? '');
     _traitsController = TextEditingController(text: widget.species?.traits.join(', ') ?? '');
     _currentSpecies = widget.species ?? const Species(name: '', icon: '');
+    _iconPath = widget.species?.icon;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _iconController.dispose();
     _cultureController.dispose();
     _traitsController.dispose();
     super.dispose();
@@ -62,7 +62,7 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
     
     final newSpecies = Species(
       name: _nameController.text,
-      icon: _iconController.text,
+      icon: _iconPath ?? 'unknown-face.svg',
       culture: _cultureController.text,
       traits: _traitsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
       vit: _currentSpecies.vit,
@@ -165,12 +165,16 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _iconController,
-              decoration: const InputDecoration(
-                labelText: 'Icon',
-                border: OutlineInputBorder(),
-                helperText: 'SVG file name in assets/svg',
+            // Icon Selection
+            Center(
+              child: AvatarSelector(
+                initialAvatarPath: _iconPath,
+                onAvatarSelected: (path) {
+                  setState(() {
+                    _iconPath = path;
+                  });
+                },
+                size: 120,
               ),
             ),
             const SizedBox(height: 16),
