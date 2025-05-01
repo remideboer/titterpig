@@ -6,8 +6,10 @@ import '../models/character.dart';
 import 'hexagon_shape.dart';
 import 'animated_dice.dart';
 import 'dart:math';
+import '../utils/sound_manager.dart';
 
 final checkStateProvider = StateProvider<bool>((ref) => true); // Always show options
+final soundManagerProvider = Provider<SoundManager>((ref) => SoundManager());
 
 enum CheckDifficulty {
   easy(1),
@@ -54,6 +56,7 @@ class CheckWidget extends ConsumerWidget {
                 statValue: statValue,
                 character: character,
                 statType: statType,
+                ref: ref,
               );
             }).toList(),
           ),
@@ -127,12 +130,14 @@ class _DifficultyButton extends StatefulWidget {
   final int statValue;
   final Character character;
   final String statType;
+  final WidgetRef ref;
 
   const _DifficultyButton({
     required this.difficulty,
     required this.statValue,
     required this.character,
     required this.statType,
+    required this.ref,
   });
 
   @override
@@ -163,6 +168,10 @@ class _DifficultyButtonState extends State<_DifficultyButton> {
     // Calculate dice count: 3 base + stat value, minimum 1
     final diceCount = math.max(1, 3 + statValue);
     final targetNumber = difficulty.targetNumber;
+
+    // Play roll sound
+    final soundManager = widget.ref.read(soundManagerProvider);
+    soundManager.playRollSound();
 
     // Show the dice roll animation
     showDialog(
