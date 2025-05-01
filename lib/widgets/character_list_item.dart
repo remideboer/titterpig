@@ -19,6 +19,48 @@ class CharacterListItem extends StatelessWidget {
     required this.onTap,
   });
 
+  Widget _buildSpeciesIcon() {
+    // Check if the icon path is an absolute path or contains the app's documents directory
+    if (character.species.icon.startsWith('/') || character.species.icon.contains('app_flutter')) {
+      try {
+        // Try to load as an image file
+        return Image.file(
+          File(character.species.icon),
+          width: 16,
+          height: 16,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // Fallback to SVG if image loading fails
+            return SvgPicture.asset(
+              'assets/svg/unknown-face.svg',
+              width: 16,
+              height: 16,
+            );
+          },
+        );
+      } catch (e) {
+        // If file doesn't exist, fallback to SVG
+        return SvgPicture.asset(
+          'assets/svg/unknown-face.svg',
+          width: 16,
+          height: 16,
+        );
+      }
+    } else {
+      // Handle SVG icons
+      return SvgPicture.asset(
+        'assets/svg/${character.species.icon.isNotEmpty ? character.species.icon : 'unknown-face.svg'}',
+        width: 16,
+        height: 16,
+        placeholderBuilder: (context) => SvgPicture.asset(
+          'assets/svg/unknown-face.svg',
+          width: 16,
+          height: 16,
+        ),
+      );
+    }
+  }
+
   Widget _buildAvatar(BuildContext context, bool isDead) {
     return Stack(
       children: [
@@ -101,14 +143,8 @@ class CharacterListItem extends StatelessWidget {
                   width: 1,
                 ),
               ),
-              child: SvgPicture.asset(
-                'assets/svg/${character.species.icon}',
-                width: 16,
-                height: 16,
-                colorFilter: ColorFilter.mode(
-                  Colors.black,
-                  BlendMode.srcIn,
-                ),
+              child: ClipOval(
+                child: _buildSpeciesIcon(),
               ),
             ),
           ),

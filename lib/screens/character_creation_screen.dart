@@ -313,10 +313,73 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
     );
   }
 
+  Widget _buildStatInput(String label, int value, int speciesValue, VoidCallback onIncrement, VoidCallback onDecrement) {
+    final totalValue = value + speciesValue;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text('Species: $speciesValue', style: const TextStyle(fontSize: 12)),
+          const SizedBox(height: 4),
+          IntrinsicWidth(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: IconButton(
+                    icon: const Icon(Icons.remove, size: 16),
+                    padding: EdgeInsets.zero,
+                    onPressed: label == 'VIT' 
+                        ? (CharacterService.isValidVitForHp(totalValue - 1) ? onIncrement : null)
+                        : onIncrement,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        totalValue.toString(),
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      Text(
+                        '(+$value)',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: IconButton(
+                    icon: const Icon(Icons.add, size: 16),
+                    padding: EdgeInsets.zero,
+                    onPressed: onDecrement,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStatsView() {
-    final hp = CharacterService.calculateHp(_vit);
-    final life = CharacterService.calculateLife(_vit);
-    final power = CharacterService.calculatePower(_wil);
+    final hp = CharacterService.calculateHp(_vit + _selectedSpecies.vit);
+    final life = CharacterService.calculateLife(_vit + _selectedSpecies.vit);
+    final power = CharacterService.calculatePower(_wil + _selectedSpecies.wil);
     final screenSize = MediaQuery.of(context).size;
 
     // Find the current species option or use the first one if not found
@@ -492,19 +555,19 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: _buildStatInput('VIT', _vit, () => _updateStat('vit', -1), () => _updateStat('vit', 1)),
+                  child: _buildStatInput('VIT', _vit, _selectedSpecies.vit, () => _updateStat('vit', -1), () => _updateStat('vit', 1)),
                 ),
               ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: _buildStatInput('ATH', _ath, () => _updateStat('ath', -1), () => _updateStat('ath', 1)),
+                  child: _buildStatInput('ATH', _ath, _selectedSpecies.ath, () => _updateStat('ath', -1), () => _updateStat('ath', 1)),
                 ),
               ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: _buildStatInput('WIL', _wil, () => _updateStat('wil', -1), () => _updateStat('wil', 1)),
+                  child: _buildStatInput('WIL', _wil, _selectedSpecies.wil, () => _updateStat('wil', -1), () => _updateStat('wil', 1)),
                 ),
               ),
             ],
@@ -528,6 +591,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
               children: [
                 const Text('POWER'),
                 Text(power.toString(), style: Theme.of(context).textTheme.headlineSmall),
+                Text('(Base: ${_selectedSpecies.power})', style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),
@@ -537,7 +601,7 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
           Center(
             child: Column(
               children: [
-                _buildShieldIcon(CharacterService.calculateDefense(_ath, _selectedDefense)),
+                _buildShieldIcon(_selectedSpecies.def),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -861,58 +925,6 @@ class _CharacterCreationScreenState extends ConsumerState<CharacterCreationScree
                 ),
               ),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatInput(String label, int value, VoidCallback onIncrement, VoidCallback onDecrement) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          IntrinsicWidth(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 28,
-                  height: 28,
-                  child: IconButton(
-                    icon: const Icon(Icons.remove, size: 16),
-                    padding: EdgeInsets.zero,
-                    onPressed: label == 'VIT' 
-                        ? (CharacterService.isValidVitForHp(value - 1) ? onIncrement : null)
-                        : onIncrement,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    value.toString(),
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                ),
-                SizedBox(
-                  width: 28,
-                  height: 28,
-                  child: IconButton(
-                    icon: const Icon(Icons.add, size: 16),
-                    padding: EdgeInsets.zero,
-                    onPressed: onDecrement,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
