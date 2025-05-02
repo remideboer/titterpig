@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AvatarSelector extends StatefulWidget {
   final String? initialAvatarPath;
@@ -74,6 +75,35 @@ class _AvatarSelectorState extends State<AvatarSelector> {
     }
   }
 
+  Widget _buildAvatarImage() {
+    if (_avatarPath == null) {
+      return _buildDefaultAvatar();
+    }
+
+    // Check if the path is an absolute path or contains the app's documents directory
+    if (_avatarPath!.startsWith('/') || _avatarPath!.contains('app_flutter')) {
+      try {
+        // Try to load as an image file
+        return Image.file(
+          File(_avatarPath!),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildDefaultAvatar();
+          },
+        );
+      } catch (e) {
+        return _buildDefaultAvatar();
+      }
+    } else {
+      // Handle SVG icons
+      return SvgPicture.asset(
+        'assets/svg/${_avatarPath!.isNotEmpty ? _avatarPath! : 'unknown-face.svg'}',
+        fit: BoxFit.cover,
+        placeholderBuilder: (context) => _buildDefaultAvatar(),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -93,15 +123,7 @@ class _AvatarSelectorState extends State<AvatarSelector> {
               ),
             ),
             child: ClipOval(
-              child: _avatarPath != null
-                  ? Image.file(
-                      File(_avatarPath!),
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return _buildDefaultAvatar();
-                      },
-                    )
-                  : _buildDefaultAvatar(),
+              child: _buildAvatarImage(),
             ),
           ),
         ),
