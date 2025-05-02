@@ -54,8 +54,10 @@ class _StatModifierRowState extends State<StatModifierRow> {
   @override
   void didUpdateWidget(StatModifierRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.selectedDefense != oldWidget.selectedDefense) {
+    if (widget.character != oldWidget.character || 
+        widget.selectedDefense != oldWidget.selectedDefense) {
       setState(() {
+        character = widget.character;
         selectedDefense = widget.selectedDefense;
       });
     }
@@ -87,14 +89,38 @@ class _StatModifierRowState extends State<StatModifierRow> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              _buildDefenseIcon(context, isDead ? null : character.def, size),
+              _buildDefenseIcon(context, character.def, size),
               Positioned(
                 right: 0,
                 bottom: 0,
                 child: ShieldToggleButton(
                   isSelected: character.hasShield,
                   isDead: isDead,
-                  onPressed: () => onShieldToggled(!character.hasShield),
+                  onPressed: () {
+                    onShieldToggled(!character.hasShield);
+                    setState(() {
+                      // Force UI update when shield state changes
+                      character = Character(
+                        id: character.id,
+                        name: character.name,
+                        species: character.species,
+                        vit: character.vit,
+                        ath: character.ath,
+                        wil: character.wil,
+                        avatarPath: character.avatarPath,
+                        tempHp: character.tempHp,
+                        defCategory: character.defCategory,
+                        hasShield: !character.hasShield,
+                        spells: character.spells,
+                        sessionLog: character.sessionLog,
+                        notes: character.notes,
+                        xp: character.xp,
+                        createdAt: character.createdAt,
+                        lastUsed: character.lastUsed,
+                        background: character.background,
+                      );
+                    });
+                  },
                   size: size * 0.5,
                 ),
               ),
@@ -154,14 +180,6 @@ class _StatModifierRowState extends State<StatModifierRow> {
               defCategory: character.defCategory,
             ),
           ),
-          // const SizedBox(height: 4),
-          // Text(
-          //   'DEF',
-          //   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          //         fontSize: size * 0.18,
-          //         color: isDead ? Colors.grey : AppTheme.primaryColor,
-          //       ),
-          // ),
         ],
       ),
     );
@@ -194,7 +212,31 @@ class _StatModifierRowState extends State<StatModifierRow> {
           color: textColor,
         ),
       ),
-      onPressed: isDead ? null : () => onDefenseChanged(category),
+      onPressed: isDead ? null : () {
+        onDefenseChanged(category);
+        setState(() {
+          // Force UI update when defense category changes
+          character = Character(
+            id: character.id,
+            name: character.name,
+            species: character.species,
+            vit: character.vit,
+            ath: character.ath,
+            wil: character.wil,
+            avatarPath: character.avatarPath,
+            tempHp: character.tempHp,
+            defCategory: category,
+            hasShield: character.hasShield,
+            spells: character.spells,
+            sessionLog: character.sessionLog,
+            notes: character.notes,
+            xp: character.xp,
+            createdAt: character.createdAt,
+            lastUsed: character.lastUsed,
+            background: character.background,
+          );
+        });
+      },
       style: IconButton.styleFrom(
         backgroundColor: backgroundColor,
         shape: const CircleBorder(),
