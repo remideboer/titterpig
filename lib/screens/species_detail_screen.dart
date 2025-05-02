@@ -129,6 +129,7 @@ class SpeciesDetailScreen extends ConsumerWidget {
                   // });
                 },
                 size: 120,
+                editable: false,
               ),
             ),
             const SizedBox(height: 16),
