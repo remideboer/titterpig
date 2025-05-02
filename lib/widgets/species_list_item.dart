@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:ttrpg_character_manager/screens/species_detail_screen.dart';
 import '../models/species.dart';
 
 class SpeciesListItemActions {
@@ -71,6 +72,14 @@ class SpeciesListItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SpeciesDetailScreen(species: species),
+            ),
+          );
+        },
         leading: ClipOval(
           child: Container(
             width: 40,
