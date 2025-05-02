@@ -8,7 +8,7 @@ import '../viewmodels/species_list_viewmodel.dart';
 import '../providers/providers.dart';
 import '../widgets/avatar_selector.dart';
 
-class SpeciesDetailScreen extends StatelessWidget {
+class SpeciesDetailScreen extends ConsumerWidget {
   final Species species;
 
   const SpeciesDetailScreen({Key? key, required this.species})
@@ -89,17 +89,24 @@ class SpeciesDetailScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch the species list to get updates
+    final viewModel = ref.watch(speciesListViewModelProvider);
+    final updatedSpecies = viewModel.species.firstWhere(
+      (s) => s.name == species.name,
+      orElse: () => species,
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Species'),
+        title: const Text('Species Details'),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => SpeciesEditScreen(species: species),
+                builder: (context) => SpeciesEditScreen(species: updatedSpecies),
               ),
             ),
           ),
@@ -110,12 +117,12 @@ class SpeciesDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoDisplay(species.name),
+            _buildInfoDisplay(updatedSpecies.name),
             const SizedBox(height: 16),
             // Icon Selection
             Center(
               child: AvatarSelector(
-                initialAvatarPath: species.icon,
+                initialAvatarPath: updatedSpecies.icon,
                 onAvatarSelected: (path) {
                   // setState(() {
                   //   _iconPath = path;
@@ -125,9 +132,9 @@ class SpeciesDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _buildInfoDisplay(species.culture),
+            _buildInfoDisplay(updatedSpecies.culture),
             const SizedBox(height: 16),
-          _buildInfoDisplay(species.traits.join(', ')),
+            _buildInfoDisplay(updatedSpecies.traits.join(', ')),
             const SizedBox(height: 16),
             const Center(child: SizedBox(height: 16)),
             const SizedBox(height: 16),
@@ -137,15 +144,15 @@ class SpeciesDetailScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _buildStatDisplay('VIT', species.vit.toString()),
+                  child: _buildStatDisplay('VIT', updatedSpecies.vit.toString()),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _buildStatDisplay('ATH', species.ath.toString()),
+                  child: _buildStatDisplay('ATH', updatedSpecies.ath.toString()),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _buildStatDisplay('WIL', species.wil.toString()),
+                  child: _buildStatDisplay('WIL', updatedSpecies.wil.toString()),
                 ),
               ],
             ),
@@ -156,15 +163,15 @@ class SpeciesDetailScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _buildStatDisplay('HP', species.hp.toString()),
+                  child: _buildStatDisplay('HP', updatedSpecies.hp.toString()),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _buildStatDisplay('Life', species.life.toString()),
+                  child: _buildStatDisplay('Life', updatedSpecies.life.toString()),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _buildStatDisplay('Power', species.power.toString()),
+                  child: _buildStatDisplay('Power', updatedSpecies.power.toString()),
                 ),
               ],
             ),
@@ -172,11 +179,11 @@ class SpeciesDetailScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _buildStatDisplay('Defense', species.def.toString()),
+                  child: _buildStatDisplay('Defense', updatedSpecies.def.toString()),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _buildStatDisplay('Speed', species.speed.toString()),
+                  child: _buildStatDisplay('Speed', updatedSpecies.speed.toString()),
                 ),
               ],
             ),
